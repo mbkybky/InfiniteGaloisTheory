@@ -1,2 +1,3 @@
-import InfiniteGaloisTheory.Basic
+import Mathlib
+
 import InfiniteGaloisTheory.ProFinite.Basic
