@@ -9,7 +9,7 @@ import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
-
+import Mathlib.Tactic.StacksAttribute
 
 /-!
 
@@ -32,6 +32,7 @@ universe u v
 
 open CategoryTheory Topology
 
+@[stacks 08R1 "This stacks tag is test"]
 structure ProfiniteGrp where
   toProfinite : Profinite
   [isGroup : Group toProfinite]
