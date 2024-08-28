@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan
 -/
 
 
@@ -12,6 +12,9 @@ import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.FieldTheory.KrullTopology
 
 set_option linter.unusedTactic false
+
+set_option autoImplicit false
+
 /-!
 
 # Category of Profinite Groups

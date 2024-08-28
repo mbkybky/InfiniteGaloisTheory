@@ -1,4 +1,4 @@
-# InfiniteGaloisTheory
+# Infinite Galois Theory
 
 Formalizing infinite Galois theory in LEAN
 
