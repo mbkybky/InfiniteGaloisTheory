@@ -9,8 +9,9 @@ import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
+import Mathlib.FieldTheory.KrullTopology
 
-
+set_option linter.unusedTactic false
 /-!
 
 # Category of Profinite Groups
@@ -32,11 +33,13 @@ universe u v
 
 open CategoryTheory Topology
 
+@[pp_with_univ]
 structure ProfiniteGrp where
   toProfinite : Profinite
   [isGroup : Group toProfinite]
   [isTopologicalGroup : TopologicalGroup toProfinite]
 
+@[pp_with_univ]
 structure FiniteGrp where
   carrier : Grp
   isFinite : Fintype carrier
@@ -124,14 +127,15 @@ def ofClosedSubgroup {G : ProfiniteGrp}
       isClosed_range := by simpa }
   of H
 
-def fromFinitGrp : FiniteGrp ⥤ ProfiniteGrp :=
-sorry
+def fromFiniteGrp : FiniteGrp ⥤ ProfiniteGrp where
+  obj := fun G => ofFiniteGrp G
+  map := fun f => ⟨f,by continuity⟩
 
 section
 
 universe w w'
 
-variable {J : Type v} [Category.{w, v} J] (F : J ⥤ FiniteGrp.{w'})
+variable {J : Type v} [Category.{w, v} J] (F : J ⥤ FiniteGrp.{max v w'})
 
 attribute [local instance] ConcreteCategory.instFunLike ConcreteCategory.hasCoeToSort
 
@@ -186,13 +190,27 @@ instance : CompactSpace (G_ F) := ClosedEmbedding.compactSpace (f := (G_ F).subt
 def limitOfFiniteGrp : ProfiniteGrp := of (G_ F)
 
 -- should be correct?
-instance : Limits.HasLimit (F ⋙ fromFinitGrp.{w', max v w'}) where
+instance : Limits.HasLimit (F ⋙ fromFiniteGrp) where
   exists_limit := Nonempty.intro
     { cone :=
-      { pt := limitOfFiniteGrp.{v, w, w'} F
+      { pt := limitOfFiniteGrp F
         π :=
-        { app := sorry
-          naturality := sorry } }
+        { app := fun j => {
+          toFun := fun x => x.1 j
+          map_one' := rfl
+          map_mul' := fun x y => rfl
+          continuous_toFun := by
+            dsimp
+            have triv : Continuous fun (x : ↑(((Functor.const J).obj (limitOfFiniteGrp F)).obj j).toProfinite.toTop) => x.1 :=  continuous_iff_le_induced.mpr fun U a => a
+            have : Continuous fun (x1 : (j : J) → ↑(F.obj j).carrier) => x1 j := continuous_apply j
+            exact Continuous.comp this triv
+        }
+          naturality := by
+            intro i j f
+            simp
+            congr
+            exact funext fun x ↦ (x.2 f).symm
+            } }
       isLimit :=
       { lift := sorry
         fac := sorry
