@@ -32,7 +32,7 @@ universe u v
 
 open CategoryTheory Topology
 
-@[stacks 08R1 "This stacks tag is test"]
+--@[stacks 0BR1]
 structure ProfiniteGrp where
   toProfinite : Profinite
   [isGroup : Group toProfinite]

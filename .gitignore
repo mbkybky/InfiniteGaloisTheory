@@ -1,1 +1,7 @@
 /.lake
+/blueprint/print
+/blueprint/web
+
+*.synctex.gz
+*.bbl
+/blueprint/src/print.pdf

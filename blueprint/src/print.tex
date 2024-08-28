@@ -19,15 +19,23 @@
 \usepackage{amssymb, amsthm, mathtools}
 \usepackage[unicode,colorlinks=true,linkcolor=blue,urlcolor=magenta, citecolor=blue]{hyperref}
 
+\usepackage{thmtools}
+
 \usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
 
 \input{macros/common}
 \input{macros/print}
 
+\usepackage[backend=bibtex,sorting=nyt]{biblatex}
+
+\addbibresource{ref.bib}
+
 \title{Infinite Galois Theory}
-\author{Hu Yongle}
+\author{Peking University}
 
 \begin{document}
 \maketitle
 \input{content}
+\appendix
+\printbibliography[heading = bibintoc, title = {References}]
 \end{document}

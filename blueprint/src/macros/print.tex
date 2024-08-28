@@ -11,6 +11,16 @@
 
 
 % Dummy macros that make sense only for web version.
+
+\declaretheorem[numberwithin=chapter]{theorem}
+\declaretheorem[sibling=theorem]{proposition}
+\declaretheorem[sibling=theorem]{corollary}
+\declaretheorem[sibling=theorem]{remark}
+\declaretheorem[sibling=theorem]{lemma}
+\declaretheorem[sibling=theorem]{definition}
+\declaretheorem[sibling=theorem]{example}
+
+% Dummy macros that make sense only for web version.
 \newcommand{\lean}[1]{}
 \newcommand{\discussion}[1]{}
 \newcommand{\leanok}{}
@@ -21,9 +31,9 @@
 % It uses LaTeX3 programming, this is why we use the expl3 package.
 \ExplSyntaxOn
 \NewDocumentCommand{\uses}{m}
- {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+{\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
   \ignorespaces}
 \NewDocumentCommand{\proves}{m}
- {\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
+{\clist_map_inline:nn{#1}{\vphantom{\ref{##1}}}%
   \ignorespaces}
 \ExplSyntaxOff

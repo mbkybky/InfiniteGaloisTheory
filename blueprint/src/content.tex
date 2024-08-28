@@ -5,3 +5,93 @@
 % If you want to split the blueprint content into several files then
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
+
+\section{Infinite Galois theory}
+\label{section-infinite-galois}
+
+\noindent
+The Galois group comes with a canonical topology.
+
+\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMJ}{Lemma 0BMJ}]{stacks-project}
+	\label{lemma-galois-profinite}
+	Let $E/F$ be a Galois extension. Endow $\text{Gal}(E/F)$ with the coarsest
+	topology such that
+	$$
+	\text{Gal}(E/F) \times E \longrightarrow E
+	$$
+	is continuous when $E$ is given the discrete topology. Then
+	\begin{enumerate}
+		\item for any topological space $X$ and map $X \to \text{Aut}(E/F)$
+		such that the action $X \times E \to E$ is continuous the induced map
+		$X \to \text{Gal}(E/F)$ is continuous,
+		\item this topology turns $\text{Gal}(E/F)$ into
+		a profinite topological group.
+	\end{enumerate}
+\end{lemma}
+
+
+
+\begin{lemma}
+	\label{lemma-galois-infinite}
+	Let $L/M/K$ be a tower of fields. Assume both $L/K$ and
+	$M/K$ are Galois. Then there is a canonical surjective continuous
+	homomorphism $c : \text{Gal}(L/K) \to \text{Gal}(M/K)$.
+\end{lemma}
+
+
+
+\noindent
+Here is a more standard way to think about
+the Galois group of an infinite Galois extension.
+
+\begin{lemma}
+	\label{lemma-infinite-galois-limit}
+	Let $L/K$ be a Galois extension with Galois group $G$.
+	Let $\Lambda$ be the set of finite Galois subextensions,
+	i.e., $\lambda \in \Lambda$ corresponds to $L/L_\lambda/K$
+	with $L_\lambda/K$ finite Galois with Galois group $G_\lambda$.
+	Define a partial ordering on $\Lambda$ by the rule
+	$\lambda \geq \lambda'$ if and only if
+	$L_\lambda \supset L_{\lambda'}$. Then
+	\begin{enumerate}
+		\item $\Lambda$ is a directed partially ordered set,
+		\item $L_\lambda$ is a system of $K$-extensions over $\Lambda$
+		and $L = \colim L_\lambda$,
+		\item $G_\lambda$ is an inverse system of finite groups over $\Lambda$,
+		the transition maps are surjective, and
+		$$
+		G = \lim_{\lambda \in \Lambda} G_\lambda
+		$$
+		as a profinite group, and
+		\item each of the projections $G \to G_\lambda$ is continuous and surjective.
+	\end{enumerate}
+\end{lemma}
+
+\begin{theorem}[Fundamental theorem of infinite Galois theory]
+	\label{theorem-inifinite-galois-theory}
+	Let $L/K$ be a Galois extension. Let $G = \text{Gal}(L/K)$
+	be the Galois group viewed as a profinite topological group
+	(Lemma \ref{lemma-galois-profinite}). Then we have $K = L^G$ and the map
+	$$
+	\{\text{closed subgroups of }G\}
+	\longrightarrow
+	\{\text{subextensions }L/M/K\},\quad
+	H \longmapsto L^H
+	$$
+	is a bijection whose inverse maps $M$ to $\text{Gal}(L/M)$.
+	The finite subextensions $M$ correspond exactly to the open
+	subgroups $H \subset G$. The normal closed subgroups $H$ of $G$
+	correspond exactly to subextensions $M$ Galois over $K$.
+\end{theorem}
+
+\begin{lemma}
+	\label{lemma-ses-infinite-galois}
+	Let $L/M/K$ be a tower of fields. Assume $L/K$ and $M/K$ are Galois.
+	Then we obtain a short exact sequence
+	$$
+	1 \to \text{Gal}(L/M) \to \text{Gal}(L/K) \to \text{Gal}(M/K) \to 1
+	$$
+	of profinite topological groups.
+\end{lemma}
+
+
