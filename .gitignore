@@ -1,1 +1,8 @@
 /.lake
+/blueprint/print
+/blueprint/web
+
+*.synctex.gz
+*.bbl
+/blueprint/src/print.pdf
+/blueprint/src/print-blx.bib
