@@ -6,7 +6,41 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
-\section{Infinite Galois theory}
+\chapter{Profinite Group}
+
+\begin{definition}
+	\lean{ProfiniteGrp}
+	\leanok
+	A profinite group is a topological group that is compact and totally disconnected.
+\end{definition}
+
+\begin{lemma}
+	If $G$ is a profinite topological group, $H$ is a topological group that is isomorphic to $G$, then $G$ is profinite.
+\end{lemma}
+
+\begin{lemma}
+	Product of (arbitrarily many) profinite groups is profinite.
+\end{lemma}
+
+\begin{lemma}
+	If $G$ is a profinite topological group, then any closed subgroup of $G$ is profinite.
+\end{lemma}
+
+\begin{lemma}
+	If $G$ is a profinite topological group, $H$ is a closed subgroup of $G$, then the homogeneous space G / H is compact and totally disconnected. Moreover, if $H$ is normal, then $G / H$ is a profinite topological group.
+\end{lemma}
+
+\begin{lemma}
+	A subgroup of a profinite topological group is open if and only if it is closed and has finite index.
+\end{lemma}
+
+\begin{theorem}
+	A topological group is profinite if and only if it is the projective limit of finite groups, each given the discrete topology.
+\end{theorem}
+
+
+
+\chapter{Infinite Galois theory}
 \label{section-infinite-galois}
 
 \noindent
@@ -31,7 +65,7 @@ The Galois group comes with a canonical topology.
 
 
 
-\begin{lemma}
+\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMK}{Lemma 0BMK}]{stacks-project}
 	\label{lemma-galois-infinite}
 	Let $L/M/K$ be a tower of fields. Assume both $L/K$ and
 	$M/K$ are Galois. Then there is a canonical surjective continuous
@@ -44,7 +78,7 @@ The Galois group comes with a canonical topology.
 Here is a more standard way to think about
 the Galois group of an infinite Galois extension.
 
-\begin{lemma}
+\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BU2}{Lemma 0BU2}]{stacks-project}
 	\label{lemma-infinite-galois-limit}
 	Let $L/K$ be a Galois extension with Galois group $G$.
 	Let $\Lambda$ be the set of finite Galois subextensions,
@@ -67,7 +101,7 @@ the Galois group of an infinite Galois extension.
 	\end{enumerate}
 \end{lemma}
 
-\begin{theorem}[Fundamental theorem of infinite Galois theory]
+\begin{theorem}[Fundamental theorem of infinite Galois theory]\cite[\href{https://stacks.math.columbia.edu/tag/0BML}{Theorem 0BML}]{stacks-project}
 	\label{theorem-inifinite-galois-theory}
 	Let $L/K$ be a Galois extension. Let $G = \text{Gal}(L/K)$
 	be the Galois group viewed as a profinite topological group
@@ -84,7 +118,7 @@ the Galois group of an infinite Galois extension.
 	correspond exactly to subextensions $M$ Galois over $K$.
 \end{theorem}
 
-\begin{lemma}
+\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMM}{Lemma 0BMM}]{stacks-project}
 	\label{lemma-ses-infinite-galois}
 	Let $L/M/K$ be a tower of fields. Assume $L/K$ and $M/K$ are Galois.
 	Then we obtain a short exact sequence
