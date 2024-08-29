@@ -1,1 +1,1 @@
-import InfiniteGaloisTheory.ProFinite.Basic
+import InfiniteGaloisTheory.Basic

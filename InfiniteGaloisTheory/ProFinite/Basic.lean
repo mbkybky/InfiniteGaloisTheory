@@ -12,6 +12,9 @@ import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.FieldTheory.KrullTopology
 
 set_option linter.unusedTactic false
+
+set_option autoImplicit false
+
 /-!
 
 # Category of Profinite Groups
