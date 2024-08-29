@@ -10,6 +10,7 @@ import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.FieldTheory.KrullTopology
+import InfiniteGaloisTheory.MissingLemmas.Topology
 
 set_option linter.unusedTactic false
 
@@ -122,13 +123,10 @@ def ofFiniteGrp (G : FiniteGrp) : ProfiniteGrp :=
   letI : TopologicalGroup G := {}
   of G
 
-def ofEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H]
-    [Group H] [TopologicalGroup H] (e : G ≃* H) (he : Continuous e) (he' : Continuous e.symm) :
-    ProfiniteGrp.{v} :=
-    let e' : G ≃ₜ H :=
-    { e with }
-    letI : CompactSpace H := Homeomorph.compactSpace e'
-    letI : TotallyDisconnectedSpace H := (totallyDisconnectedSpace_iff H).mpr ((Homeomorph.range_coe e') ▸ ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e')).mpr Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop))
+def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H] [Group H] [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
+    letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
+    letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
+    letI : TotallyDisconnectedSpace H := Homeomorph.TotallyDisconnectedSpace e.toHomeomorph
     .of H
 
 def ofClosedSubgroup {G : ProfiniteGrp}

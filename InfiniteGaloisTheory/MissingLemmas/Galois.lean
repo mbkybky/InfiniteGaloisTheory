@@ -31,7 +31,7 @@ noncomputable def AlgHom.fieldRange_toAlgEquiv {E : IntermediateField K L} (σ :
   map_add' x y := Subtype.val_inj.mp (σ.toRingHom.map_add x y)
   commutes' x := Subtype.val_inj.mp (commutes σ x)
 
-variable {K L : Type*} [Field K] [Field L] [Algebra K L] {E : IntermediateField K L}
+variable {K L : Type*} [Field K] [Field L] [Algebra K L] (E : IntermediateField K L)
 
 theorem AlgHom.fieldRange_toAlgEquiv_apply (σ : E →ₐ[K] L) (x : E) :
   (AlgHom.fieldRange_toAlgEquiv σ) x = σ x := rfl
@@ -110,5 +110,8 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
     restrictNormal_commutes σ (fixedField H) ⟨x, hx⟩
   rw [← hs]
   exact Subtype.val_inj.mpr (h ⟨x, hx⟩)
+
+/- If in `L/E/K`, `L/K` and `E/K` are Galois, then `Gal(L/E)` is Normal in `Gal(L/K)` -/
+instance IsGalois.fixingSubgroup_Normal_of_Galois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := sorry
 
 end Galois
