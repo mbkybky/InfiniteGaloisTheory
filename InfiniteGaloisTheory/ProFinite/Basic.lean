@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan
 -/
 
 
@@ -69,7 +69,7 @@ instance (G H : FiniteGrp) : MonoidHomClass (G ⟶ H) G H :=
 
 end FiniteGrp
 
-namespace ProfiniteGroup
+namespace ProfiniteGrp
 
 instance : CoeSort ProfiniteGrp (Type u) where
   coe G := G.toProfinite
@@ -119,6 +119,15 @@ def ofFiniteGrp (G : FiniteGrp) : ProfiniteGrp :=
   letI : TopologicalGroup G := {}
   of G
 
+def ofEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H]
+    [Group H] [TopologicalGroup H] (e : G ≃* H) (he : Continuous e) (he' : Continuous e.symm) :
+    ProfiniteGrp.{v} :=
+    let e' : G ≃ₜ H :=
+    { e with }
+    letI : CompactSpace H := Homeomorph.compactSpace e'
+    letI : TotallyDisconnectedSpace H := (totallyDisconnectedSpace_iff H).mpr ((Homeomorph.range_coe e') ▸ ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e')).mpr Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop))
+    .of H
+
 def ofClosedSubgroup {G : ProfiniteGrp}
     (H : Subgroup G) (hH : IsClosed (H : Set G)) : ProfiniteGrp :=
   letI : CompactSpace H := ClosedEmbedding.compactSpace (f := H.subtype)
@@ -149,6 +158,8 @@ instance (j : J) : TopologicalGroup (F.obj j) where
 
 instance : TopologicalSpace (Π j : J, F.obj j) :=
   Pi.topologicalSpace
+
+/-Concretely constructing the limit of topological group-/
 
 def G_ : Subgroup (Π j : J, F.obj j) where
   carrier := {x | ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j}
@@ -189,34 +200,83 @@ instance : CompactSpace (G_ F) := ClosedEmbedding.compactSpace (f := (G_ F).subt
 
 def limitOfFiniteGrp : ProfiniteGrp := of (G_ F)
 
--- should be correct?
+
+/-- verify that the limit constructed above satisfies the universal property-/
+@[simps]
+def limitOfFiniteGrpCone : Limits.Cone (F ⋙ fromFiniteGrp) :=
+  { pt := limitOfFiniteGrp F
+    π :=
+    { app := fun j => {
+      toFun := fun x => x.1 j
+      map_one' := rfl
+      map_mul' := fun x y => rfl
+      continuous_toFun := by
+        dsimp
+        have triv : Continuous fun (x : ↑(((Functor.const J).obj (limitOfFiniteGrp F)).obj j).toProfinite.toTop) => x.1 :=  continuous_iff_le_induced.mpr fun U a => a
+        have : Continuous fun (x1 : (j : J) → ↑(F.obj j).carrier) => x1 j := continuous_apply j
+        exact Continuous.comp this triv
+    }
+      naturality := by
+        intro i j f
+        simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map, Category.id_comp, Functor.comp_map]
+        congr
+        exact funext fun x ↦ (x.2 f).symm
+        } }
+
+@[simps]
+def limitOfFiniteGrpConeIsLimit : Limits.IsLimit (limitOfFiniteGrpCone F) :=
+  { lift := fun cone => {
+    toFun := by
+      intro pt
+      use fun j => (cone.π.1 j) pt
+      intro i j πij
+      have := cone.π.2 πij
+      simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map,
+        Category.id_comp, Functor.comp_map] at this
+      simp [this]
+      rfl
+    map_one' := by
+      apply SetCoe.ext
+      simp only [Functor.const_obj_obj, Functor.comp_obj, OneMemClass.coe_one, Pi.one_apply,
+        OneHom.toFun_eq_coe, OneHom.coe_mk, id_eq, Functor.const_obj_map, Functor.comp_map,
+        MonoidHom.toOneHom_coe, MonoidHom.coe_mk, eq_mpr_eq_cast, cast_eq, map_one]
+      rfl
+    map_mul' := fun x y => by
+      apply SetCoe.ext
+      simp only [Functor.const_obj_obj, Functor.comp_obj, OneMemClass.coe_one, Pi.one_apply,
+        OneHom.toFun_eq_coe, OneHom.coe_mk, id_eq, Functor.const_obj_map, Functor.comp_map,
+        MonoidHom.toOneHom_coe, MonoidHom.coe_mk, eq_mpr_eq_cast, cast_eq, map_mul]
+      rfl
+    continuous_toFun := by
+      dsimp
+      apply continuous_induced_rng.mpr
+      show  Continuous (fun pt ↦ (fun j ↦ (cone.π.app j) pt))
+      apply continuous_pi
+      intro j
+      exact (cone.π.1 j).continuous_toFun
+      }
+    fac := fun cone j => by
+      dsimp
+      ext pt
+      simp only [comp_apply]
+      rfl
+    uniq := by
+      dsimp
+      intro cone g hyp
+      ext pt
+      refine Subtype.ext <| funext fun j => ?_
+      change _ = cone.π.app _ _
+      rw [←hyp j]
+      rfl
+    }
+
 instance : Limits.HasLimit (F ⋙ fromFiniteGrp) where
   exists_limit := Nonempty.intro
-    { cone :=
-      { pt := limitOfFiniteGrp F
-        π :=
-        { app := fun j => {
-          toFun := fun x => x.1 j
-          map_one' := rfl
-          map_mul' := fun x y => rfl
-          continuous_toFun := by
-            dsimp
-            have triv : Continuous fun (x : ↑(((Functor.const J).obj (limitOfFiniteGrp F)).obj j).toProfinite.toTop) => x.1 :=  continuous_iff_le_induced.mpr fun U a => a
-            have : Continuous fun (x1 : (j : J) → ↑(F.obj j).carrier) => x1 j := continuous_apply j
-            exact Continuous.comp this triv
-        }
-          naturality := by
-            intro i j f
-            simp
-            congr
-            exact funext fun x ↦ (x.2 f).symm
-            } }
-      isLimit :=
-      { lift := sorry
-        fac := sorry
-        uniq := sorry } }
+    { cone := limitOfFiniteGrpCone F
+      isLimit := limitOfFiniteGrpConeIsLimit F
+      }
 
 end
 
 
-end ProfiniteGroup
+end ProfiniteGrp
