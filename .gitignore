@@ -4,5 +4,8 @@
 
 *.synctex.gz
 *.bbl
+*.paux
 /blueprint/src/print.pdf
 /blueprint/src/print-blx.bib
+
+.DS_Store

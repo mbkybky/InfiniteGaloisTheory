@@ -10,6 +10,9 @@
 \usepackage{hyperref}
 \usepackage[showmore, dep_graph]{blueprint}
 
+
+\usepackage[backend=bibtex,sorting=nyt]{biblatex}
+
 %\usepackage[backend=bibtex,sorting=nyt]{biblatex}
 
 
@@ -27,6 +30,10 @@
 \maketitle
 \input{content}
 
-\bibliographystyle{plain}
-\bibliography{ref}
+% \bibliographystyle{plain}
+% \bibliography{ref}
+
+\appendix
+\printbibliography[heading = bibintoc, title = {References}]
+
 \end{document}
