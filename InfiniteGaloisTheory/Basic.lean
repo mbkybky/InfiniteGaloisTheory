@@ -23,27 +23,12 @@ def FiniteIntermediateField := {L : (IntermediateField k K) | (FiniteDimensional
 
 instance : PartialOrder (FiniteIntermediateField k K) := inferInstance
 
-def Gal_inclusion {L₁ L₂ : (FiniteIntermediateField k K)ᵒᵖ} (le : L₂.unop ≤ L₁.unop): (L₁.unop ≃ₐ[k] L₁.unop) →* (L₂.unop ≃ₐ[k] L₂.unop) := by sorry
-
-/-by
-    let coeL₁ := ((fun a ↦ ↑a) (L₁.unop))
-    letI : IsGalois k coeL₁ := sorry
-    letI : FiniteDimensional k coeL₁ := sorry
-    set coeG := coeL₁ ≃ₐ[k] coeL₁
-    let coeL₂ := (IntermediateField.restrict h.1.1.1)
-    letI : IsGalois k coeL₂ := sorry
-    letI : IsGalois k ↥coeL₂ := sorry
-    let H : Subgroup (coeL₁ ≃ₐ[k] coeL₁) := coeL₂.fixingSubgroup
-    let f1 : (L₁.unop ≃ₐ[k] L₁.unop) ≃* (coeL₁ ≃ₐ[k] coeL₁) := MulEquiv.refl (L₁.unop ≃ₐ[k] L₁.unop)
-    letI : H.Normal := IsGalois.fixingSubgroup_Normal_of_Galois coeL₂
-    let f2 := QuotientGroup.mk' H
-    let f3 := (IsGalois.normal_aut_equiv_quotient H)
-    have eq : IntermediateField.fixedField H = coeL₂ := sorry
-    let f4 : ((IntermediateField.fixedField H) ≃ₐ[k] (IntermediateField.fixedField H)) ≃* (coeL₂ ≃ₐ[k] coeL₂) :=
-      sorry
-    let f5 : (coeL₂ ≃ₐ[k] coeL₂) ≃* (L₂.unop ≃ₐ[k] L₂.unop) := sorry
-    #check (f5.toMonoidHom.comp f4.toMonoidHom).comp f3.symm.toMonoidHom
-    sorry-/
+noncomputable def Gal_inclusion {L₁ L₂ : (FiniteIntermediateField k K)ᵒᵖ} (le : L₂.unop ≤ L₁.unop): (L₁.unop ≃ₐ[k] L₁.unop) →* (L₂.unop ≃ₐ[k] L₂.unop) :=
+  letI := L₂.1.2.2
+  letI : Normal k L₂.unop := IsGalois.to_normal
+  letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion le)
+  letI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  AlgEquiv.restrictNormalHom (F := k) (K₁ := L₁.unop) L₂.unop
 
 /-noncomputable example : (FiniteIntermediateField k K)ᵒᵖ ⥤ FiniteGrp.{u} where
   obj := fun L => {
