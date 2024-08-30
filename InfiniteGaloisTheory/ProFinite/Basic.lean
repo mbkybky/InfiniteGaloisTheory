@@ -40,7 +40,7 @@ structure ProfiniteGrp where
 @[pp_with_univ]
 structure FiniteGrp where
   toGrp : Grp
-  [isFinite : Fintype toGrp]
+  [isFinite : Finite toGrp]
 
 namespace FiniteGrp
 
@@ -49,15 +49,15 @@ instance : CoeSort FiniteGrp.{u} (Type u) where
 
 instance (G : FiniteGrp) : Group G := inferInstanceAs $ Group G.toGrp
 
-instance (G : FiniteGrp) : Fintype G := G.isFinite
+instance (G : FiniteGrp) : Finite G := G.isFinite
 
 instance : Category FiniteGrp := InducedCategory.category FiniteGrp.toGrp
 
 instance : ConcreteCategory FiniteGrp := InducedCategory.concreteCategory FiniteGrp.toGrp
 
-def of (G : Type u) [Group G] [Fintype G] : FiniteGrp where
+def of (G : Type u) [Group G] [Finite G] : FiniteGrp where
   toGrp := Grp.of G
-  isFinite := inferInstanceAs $ Fintype G
+  isFinite := inferInstanceAs $ Finite G
 
 instance (G H : FiniteGrp) : FunLike (G ⟶ H) G H :=
   inferInstanceAs $ FunLike (G →* H) G H
