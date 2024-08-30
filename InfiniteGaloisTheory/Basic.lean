@@ -279,11 +279,97 @@ noncomputable def HomtoLimit : (K ≃ₐ[k] K) →*
     simp only [map_mul]
     rfl
 
-theorem HomtoLimit_inj : Function.Injective (HomtoLimit (k := k) (K := K)) := by sorry
+lemma restrict_eq (σ : (K ≃ₐ[k] K)) (x : K) (Lx : FiniteGaloisIntermediateField k K)
+  (hLx : x ∈ Lx.carrier) : σ x = ↑(((AlgEquiv.restrictNormalHom ↥Lx) σ) ⟨x, hLx⟩) := by
+  change σ x = ((AlgEquiv.restrictNormal σ Lx) ⟨x,hLx⟩).1
+  have := AlgEquiv.restrictNormal_commutes σ Lx ⟨x,hLx⟩
+  convert this
+  exact id this.symm
+
+theorem HomtoLimit_inj [IsGalois k K] : Function.Injective (HomtoLimit (k := k) (K := K)) := by
+  intro σ₁ σ₂ heq
+  ext x
+  have : HomtoLimit.toFun σ₁ = HomtoLimit.toFun σ₂ := heq
+  unfold HomtoLimit at this
+  push_cast at this
+  apply_fun Subtype.val at this
+  dsimp at this
+  rcases (union_eq_univ' (k := k) x) with ⟨Lx,hLx⟩
+  have : (fun (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) ↦ (AlgEquiv.restrictNormalHom L.unop) σ₁)
+    (Opposite.op Lx) =
+    (fun (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) ↦ (AlgEquiv.restrictNormalHom L.unop) σ₂)
+    (Opposite.op Lx) := by rw [this]
+  dsimp at this
+  have : ((AlgEquiv.restrictNormalHom ↥Lx) σ₁) ⟨x,hLx⟩ =
+    ((AlgEquiv.restrictNormalHom ↥Lx) σ₂) ⟨x,hLx⟩ := by rw [this]
+  apply_fun Subtype.val at this
+  convert this
+  all_goals apply restrict_eq
 
 #check algEquivEquivAlgHom
 
-theorem HomtoLimit_surj : Function.Surjective (HomtoLimit (k := k) (K := K)) := by sorry
+set_option synthInstance.maxHeartbeats 50000 in
+lemma HomtoLimit_lift' [IsGalois k K]
+  (g : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))).toProfinite.toTop)
+  (x : K) {L : (FiniteGaloisIntermediateField k K)} (hL : x ∈ L)
+  {L' : (FiniteGaloisIntermediateField k K)} (hL' : x ∈ L') (le : L ≤ L'):
+  ((g.1 (Opposite.op L)).1 ⟨x,hL⟩).1 = ((g.1 (Opposite.op L')).1 ⟨x,hL'⟩).1
+  := by
+  letI : Algebra L (Opposite.unop (Opposite.op L')) := RingHom.toAlgebra (Subsemiring.inclusion le)
+  letI : IsScalarTower k ↥L ↥(Opposite.unop (Opposite.op L')) :=
+    IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  let hom : (Opposite.op L') ⟶ (Opposite.op L) := opHomOfLE le
+  have : (finGalMap hom) (g.1 (Opposite.op L')) = g.1 (Opposite.op L):= g.2 hom
+
+  sorry
+
+lemma HomtoLimit_lift [IsGalois k K]
+  (g : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))).toProfinite.toTop)
+  (x : K) (L : (FiniteGaloisIntermediateField k K)) (hL : x ∈ L) :
+    (g.1 (Opposite.op L)).1 ⟨x,hL⟩ =
+    ((g.1 (Opposite.op (Classical.choose (union_eq_univ' (k := k) x)))).1
+      ⟨x,(Classical.choose_spec (union_eq_univ' (k := k) x))⟩).1
+      := by
+    let Lx := Classical.choose (union_eq_univ' (k := k) x)
+    let hLx := Classical.choose_spec (union_eq_univ' (k := k) x)
+    show ((g.1 (Opposite.op L)).1 ⟨x,hL⟩).1 = ((g.1 (Opposite.op Lx)).1 ⟨x,hLx⟩).1
+    let Lm'' := (L.1 ⊔ Lx.1)
+    letI : FiniteDimensional k Lm'' := IntermediateField.finiteDimensional_sup L.1 Lx.1
+    let Lm' := normalClosure k Lm'' K
+    let Lm : (FiniteGaloisIntermediateField k K) := {
+    Lm' with
+    fin_dim := normalClosure.is_finiteDimensional k Lm'' K
+    is_gal := IsGalois.normalClosure k Lm'' K
+    }
+    have Lm''_le : Lm'' ≤ Lm.1 := IntermediateField.le_normalClosure Lm''
+    have L_le : L ≤ Lm := by
+      change L.1 ≤ Lm.1
+      exact le_trans (SemilatticeSup.le_sup_left L.1 Lx.1) Lm''_le
+    have Lx_le : Lx ≤ Lm := by
+      change Lx.1 ≤ Lm.1
+      exact le_trans (SemilatticeSup.le_sup_right L.1 Lx.1) Lm''_le
+    have trans1 : ((g.1 (Opposite.op L)).1 ⟨x,hL⟩).1 = ((g.1 (Opposite.op Lm)).1 ⟨x,(L_le hL)⟩).1 :=
+      HomtoLimit_lift' g x hL (L_le hL) L_le
+    have trans2 : ((g.1 (Opposite.op Lx)).1 ⟨x,hLx⟩).1 = ((g.1 (Opposite.op Lm)).1 ⟨x,(L_le hL)⟩).1 :=
+      HomtoLimit_lift' g x hLx (L_le hL) Lx_le
+    rw [trans1,trans2]
+
+theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k) (K := K)) := by
+  intro g
+
+  let σ : K →ₐ[k] K := {
+    toFun := fun x => ((g.1 (Opposite.op (Classical.choose (union_eq_univ' (k := k) x)))).1
+        ⟨x,(Classical.choose_spec (union_eq_univ' (k := k) x))⟩).1
+    map_one' := by
+      dsimp
+
+      sorry
+    map_mul' := sorry
+    map_zero' := sorry
+    map_add' := sorry
+    commutes' := sorry
+  }
+  sorry
 
 end FiniteGaloisIntermediateField
 
