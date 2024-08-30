@@ -47,23 +47,29 @@ namespace FiniteGrp
 instance : CoeSort FiniteGrp.{u} (Type u) where
   coe G := G.toGrp
 
-instance (G : FiniteGrp) : Group G := inferInstanceAs $ Group G.toGrp
-
-instance (G : FiniteGrp) : Finite G := G.isFinite
-
 instance : Category FiniteGrp := InducedCategory.category FiniteGrp.toGrp
 
 instance : ConcreteCategory FiniteGrp := InducedCategory.concreteCategory FiniteGrp.toGrp
 
-def of (G : Type u) [Group G] [Finite G] : FiniteGrp where
-  toGrp := Grp.of G
-  isFinite := ‹_›
+instance (G : FiniteGrp) : Group G := inferInstanceAs $ Group G.toGrp
+
+instance (G : FiniteGrp) : Finite G := G.isFinite
 
 instance (G H : FiniteGrp) : FunLike (G ⟶ H) G H :=
   inferInstanceAs $ FunLike (G →* H) G H
 
 instance (G H : FiniteGrp) : MonoidHomClass (G ⟶ H) G H :=
   inferInstanceAs $ MonoidHomClass (G →* H) G H
+
+def of (G : Type u) [Group G] [Finite G] : FiniteGrp where
+  toGrp := Grp.of G
+  isFinite := ‹_›
+
+def ofHom {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) : of X ⟶ of Y :=
+  Grp.ofHom f
+
+lemma ofHom_apply {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) (x : X) : ofHom f x = f x :=
+  rfl
 
 end FiniteGrp
 
