@@ -233,7 +233,7 @@ noncomputable def HomtoLimit : (K ≃ₐ[k] K) →*
     AlgHom.coe_comp, AlgHom.coe_mk, RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk,
     Function.comp_apply]
     apply_fun
-      (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k (↥(L₂.unop).toIntermediateField) K))
+      (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k (↥(L₂.unop)) K))
     simp only [AlgEquiv.apply_symm_apply]
     have eq (x) : (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₂.unop K)) x =
       ⟨x, by aesop⟩ := rfl
