@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yuyang Zhao
 -/
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
@@ -9,10 +9,6 @@ import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.FieldTheory.KrullTopology
 import InfiniteGaloisTheory.MissingLemmas.Topology
-
-set_option linter.unusedTactic false
-
-set_option autoImplicit false
 
 /-!
 
@@ -43,24 +39,24 @@ structure ProfiniteGrp where
 
 @[pp_with_univ]
 structure FiniteGrp where
-  carrier : Grp
-  isFinite : Fintype carrier
+  toGrp : Grp
+  [isFinite : Fintype toGrp]
 
 namespace FiniteGrp
 
 instance : CoeSort FiniteGrp.{u} (Type u) where
-  coe (G : FiniteGrp) : Type u := G.carrier
+  coe G := G.toGrp
 
-instance (G : FiniteGrp) : Group G := inferInstanceAs $ Group G.carrier
+instance (G : FiniteGrp) : Group G := inferInstanceAs $ Group G.toGrp
 
 instance (G : FiniteGrp) : Fintype G := G.isFinite
 
-instance : Category FiniteGrp := InducedCategory.category FiniteGrp.carrier
+instance : Category FiniteGrp := InducedCategory.category FiniteGrp.toGrp
 
-instance : ConcreteCategory FiniteGrp := InducedCategory.concreteCategory FiniteGrp.carrier
+instance : ConcreteCategory FiniteGrp := InducedCategory.concreteCategory FiniteGrp.toGrp
 
 def of (G : Type u) [Group G] [Fintype G] : FiniteGrp where
-  carrier := Grp.of G
+  toGrp := Grp.of G
   isFinite := inferInstanceAs $ Fintype G
 
 instance (G H : FiniteGrp) : FunLike (G ⟶ H) G H :=
@@ -82,14 +78,9 @@ instance (G : ProfiniteGrp) : TopologicalGroup G := G.isTopologicalGroup
 
 def of (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G]
     [CompactSpace G] [TotallyDisconnectedSpace G] : ProfiniteGrp where
-  toProfinite := {
-    toTop := .of G
-    is_compact := inferInstanceAs $ CompactSpace G
-    is_hausdorff := inferInstanceAs $ T2Space G
-    prop := inferInstanceAs $ TotallyDisconnectedSpace G
-  }
-  isGroup := inferInstanceAs $ Group G
-  isTopologicalGroup := inferInstanceAs $ TopologicalGroup G
+  toProfinite := .of G
+  isGroup := ‹_›
+  isTopologicalGroup := ‹_›
 
 instance : Category ProfiniteGrp where
   Hom A B := ContinuousMonoidHom A B
@@ -122,10 +113,10 @@ def ofFiniteGrp (G : FiniteGrp) : ProfiniteGrp :=
   of G
 
 def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H] [Group H] [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
-    letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
-    letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
-    letI : TotallyDisconnectedSpace H := Homeomorph.TotallyDisconnectedSpace e.toHomeomorph
-    .of H
+  letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
+  letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
+  letI : TotallyDisconnectedSpace H := Homeomorph.TotallyDisconnectedSpace e.toHomeomorph
+  .of H
 
 def ofClosedSubgroup {G : ProfiniteGrp}
     (H : Subgroup G) (hH : IsClosed (H : Set G)) : ProfiniteGrp :=
@@ -135,9 +126,10 @@ def ofClosedSubgroup {G : ProfiniteGrp}
       isClosed_range := by simpa }
   of H
 
-def fromFiniteGrp : FiniteGrp ⥤ ProfiniteGrp where
-  obj := fun G => ofFiniteGrp G
-  map := fun f => ⟨f,by continuity⟩
+instance : CategoryTheory.HasForget₂ FiniteGrp ProfiniteGrp where
+  forget₂ :=
+  { obj := ofFiniteGrp
+    map := fun f => ⟨f, by continuity⟩ }
 
 section
 
@@ -199,41 +191,40 @@ instance : CompactSpace (G_ F) := ClosedEmbedding.compactSpace (f := (G_ F).subt
 
 def limitOfFiniteGrp : ProfiniteGrp := of (G_ F)
 
-
 /-- verify that the limit constructed above satisfies the universal property-/
 @[simps]
-def limitOfFiniteGrpCone : Limits.Cone (F ⋙ fromFiniteGrp) :=
-  { pt := limitOfFiniteGrp F
-    π :=
-    { app := fun j => {
+def limitOfFiniteGrpCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
+  pt := limitOfFiniteGrp F
+  π :=
+  { app := fun j => {
       toFun := fun x => x.1 j
       map_one' := rfl
       map_mul' := fun x y => rfl
       continuous_toFun := by
         dsimp
-        have triv : Continuous fun (x : ↑(((Functor.const J).obj (limitOfFiniteGrp F)).obj j).toProfinite.toTop) => x.1 :=  continuous_iff_le_induced.mpr fun U a => a
-        have : Continuous fun (x1 : (j : J) → ↑(F.obj j).carrier) => x1 j := continuous_apply j
-        exact Continuous.comp this triv
+        have triv : Continuous fun x : ((Functor.const J).obj (limitOfFiniteGrp F)).obj j ↦ x.1 :=
+          continuous_iff_le_induced.mpr fun U a => a
+        have : Continuous fun (x1 : (j : J) → F.obj j) ↦ x1 j := continuous_apply j
+        exact this.comp triv
     }
-      naturality := by
-        intro i j f
-        simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map, Category.id_comp, Functor.comp_map]
-        congr
-        exact funext fun x ↦ (x.2 f).symm
-        } }
+    naturality := by
+      intro i j f
+      simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map, Category.id_comp, Functor.comp_map]
+      congr
+      exact funext fun x ↦ (x.2 f).symm
+  }
 
 @[simps]
-def limitOfFiniteGrpConeIsLimit : Limits.IsLimit (limitOfFiniteGrpCone F) :=
-  { lift := fun cone => {
-    toFun := by
-      intro pt
-      use fun j => (cone.π.1 j) pt
-      intro i j πij
-      have := cone.π.2 πij
-      simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map,
-        Category.id_comp, Functor.comp_map] at this
-      simp [this]
-      rfl
+def limitOfFiniteGrpConeIsLimit : Limits.IsLimit (limitOfFiniteGrpCone F) where
+  lift cone := {
+    toFun := fun pt ↦
+      { val := fun j => (cone.π.1 j) pt
+        property := fun i j πij ↦ by
+          have := cone.π.2 πij
+          simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map,
+            Category.id_comp, Functor.comp_map] at this
+          simp [this]
+          rfl }
     map_one' := by
       apply SetCoe.ext
       simp only [Functor.const_obj_obj, Functor.comp_obj, OneMemClass.coe_one, Pi.one_apply,
@@ -253,29 +244,27 @@ def limitOfFiniteGrpConeIsLimit : Limits.IsLimit (limitOfFiniteGrpCone F) :=
       apply continuous_pi
       intro j
       exact (cone.π.1 j).continuous_toFun
-      }
-    fac := fun cone j => by
-      dsimp
-      ext pt
-      simp only [comp_apply]
-      rfl
-    uniq := by
-      dsimp
-      intro cone g hyp
-      ext pt
-      refine Subtype.ext <| funext fun j => ?_
-      change _ = cone.π.app _ _
-      rw [←hyp j]
-      rfl
-    }
+  }
+  fac cone j := by
+    dsimp
+    ext pt
+    simp only [comp_apply]
+    rfl
+  uniq := by
+    dsimp
+    intro cone g hyp
+    ext pt
+    refine Subtype.ext <| funext fun j => ?_
+    change _ = cone.π.app _ _
+    rw [←hyp j]
+    rfl
 
-instance : Limits.HasLimit (F ⋙ fromFiniteGrp) where
+instance : Limits.HasLimit (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
   exists_limit := Nonempty.intro
     { cone := limitOfFiniteGrpCone F
       isLimit := limitOfFiniteGrpConeIsLimit F
-      }
+    }
 
 end
-
 
 end ProfiniteGrp
