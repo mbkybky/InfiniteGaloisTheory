@@ -6,6 +6,29 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
+\chapter{Mising Lemma in Mathlib}
+
+\section{Galois}
+
+\begin{lemma}
+	\lean{IntermediateField.subgroup_equiv_aut}
+	\leanok
+	If $H$ is a subgroup of $Gal(L/K)$, then $Gal(L / fixedField H)$ is isomorphic to $H$.
+\end{lemma}
+
+\begin{lemma}
+	\lean{AlgHom.toAlgEquiv_fieldRange}
+	\leanok
+	Let $ K, L, E $ be fields and $ L $ and $ E $ are $ K $-algebras, $\sigma : L \to E $ is an $ K $-algebra homomorphism, them there is a $ K $-algebra isomomorphism between $ L $ and $ E $.
+\end{lemma}
+
+%\begin{lemma}
+%	\lean{}
+%	\leanok
+%\end{lemma}
+
+
+
 \chapter{Profinite Group}
 
 \begin{definition}
@@ -23,11 +46,21 @@
 \end{lemma}
 
 \begin{lemma}
-	If $G$ is a profinite topological group, then any closed subgroup of $G$ is profinite.
+	If $G$ is a profinite topological group, then every neighborhood of the identity contains an open normal subgroup.
 \end{lemma}
 
+\begin{theorem}
+	If $G$ is a profinite topological group, $H$ is a subgroup of $G$, then the following three statements
+	are equivalent.
+	\begin{itemize}
+		\item[(i)] $ H $ is closed.
+		\item[(ii)] $ H $ is profinite.
+		\item[(iii)] $ H $ is the intersection of a family of open subgroups.
+	\end{itemize}
+\end{theorem}
+
 \begin{lemma}
-	If $G$ is a profinite topological group, $H$ is a closed subgroup of $G$, then the homogeneous space G / H is compact and totally disconnected. Moreover, if $H$ is normal, then $G / H$ is a profinite topological group.
+	If $G$ is a profinite topological group, $H$ is a closed subgroup of $G$, then the homogeneous space $G / H$ is compact and totally disconnected. Moreover, if $H$ is normal, then $G / H$ is a profinite topological group.
 \end{lemma}
 
 \begin{lemma}
