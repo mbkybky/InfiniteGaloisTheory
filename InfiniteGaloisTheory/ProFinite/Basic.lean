@@ -82,6 +82,23 @@ def of (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G]
   isGroup := ‹_›
   isTopologicalGroup := ‹_›
 
+def ofProfinite (G : Profinite) [Group G] [TopologicalGroup G] : ProfiniteGrp where
+  toProfinite := G
+  isGroup := inferInstanceAs $ Group G
+  isTopologicalGroup := inferInstanceAs $ TopologicalGroup G
+
+def Pi.profiniteGrp {α : Type u} (β : α → ProfiniteGrp) : ProfiniteGrp :=
+  let pitype := Pi.profinite fun (a : α) => (β a).toProfinite
+  letI (a : α): Group (β a).toProfinite := (β a).isGroup
+  letI : Group pitype := by
+    unfold_let; dsimp [Pi.profinite]
+    exact Pi.group
+  letI : TopologicalGroup pitype := by
+    unfold_let; dsimp [Pi.profinite]
+    letI (a : α): TopologicalGroup (β a).toProfinite := (β a).isTopologicalGroup
+    exact Pi.topologicalGroup
+  ofProfinite pitype
+
 instance : Category ProfiniteGrp where
   Hom A B := ContinuousMonoidHom A B
   id A := ContinuousMonoidHom.id A
