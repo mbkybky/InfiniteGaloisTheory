@@ -236,8 +236,18 @@ lemma HomtoLimit_lift' [IsGalois k K]
     IsScalarTower.of_algebraMap_eq (congrFun rfl)
   let hom : (Opposite.op L') ⟶ (Opposite.op L) := opHomOfLE le
   have := g.2 hom
-
-  sorry
+  rw [←this]
+  unfold finGalFunctor
+  simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  unfold finGalMap
+  dsimp
+  change (AlgEquiv.restrictNormal (g.1 (Opposite.op L')) L ⟨x, hL⟩).1 = ((g.1 (Opposite.op L')).1 ⟨x, hL'⟩).1
+  have comm := AlgEquiv.restrictNormal_commutes (g.1 (Opposite.op L')) L ⟨x, hL⟩
+  have : ((algebraMap ↥L ↥L') ⟨x, hL⟩) = ⟨x,hL'⟩ := by rfl
+  rw [this] at comm
+  simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  rw [←comm]
+  rfl
 
 lemma HomtoLimit_lift [IsGalois k K]
   (g : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))).toProfinite.toTop)
