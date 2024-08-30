@@ -108,12 +108,10 @@ instance (L : FiniteGaloisIntermediateField k K) : IsGalois k L :=
 variable {k K}
 
 lemma injective_toIntermediateField : Function.Injective
-    fun (L : FiniteGaloisIntermediateField k K) => L.toIntermediateField := by
-  intro L1 L2 eq
+    fun (L : FiniteGaloisIntermediateField k K) ↦ L.toIntermediateField := by
+  rintro ⟨⟩ ⟨⟩ eq
   dsimp at eq
-  ext : 1
-  show L1.toIntermediateField.carrier = L2.toIntermediateField.carrier
-  rw [eq]
+  simp [eq]
 
 instance : PartialOrder (FiniteGaloisIntermediateField k K) :=
   PartialOrder.lift FiniteGaloisIntermediateField.toIntermediateField injective_toIntermediateField
@@ -160,7 +158,7 @@ lemma union_eq_univ'' (x y : K) [IsGalois k K] : ∃ L : (FiniteGaloisIntermedia
     x ∈ L.carrier ∧ y ∈ L.carrier := by
   let L' := normalClosure k (IntermediateField.adjoin k ({x,y} : Set K)) K
   letI : FiniteDimensional k (IntermediateField.adjoin k ({x,y} : Set K)) := by
-    have hS : ∀ z ∈ ({x,y} : Set K), IsIntegral k z := fun z _ =>
+    have hS : ∀ z ∈ ({x, y} : Set K), IsIntegral k z := fun z _ =>
       IsAlgebraic.isIntegral (Algebra.IsAlgebraic.isAlgebraic z)
     exact IntermediateField.finiteDimensional_adjoin hS
   let L : (FiniteGaloisIntermediateField k K) := {
