@@ -31,11 +31,15 @@ In `K/k`
 * `finGalFunctor` : Mapping `FiniteGaloisIntermediateField` ordered by inverse inclusion to its
   corresponding Galois Group as FiniteGrp
 
-* `union`
+* `union_eq_univ` : In `K/k`, the union of all the `FiniteGaloisIntermediateField` is equal to `K`,
+  Furthermore, there is also a `FiniteGaloisIntermediateField` containing any tuple `(x,y)`
 
-* `Hom Gal → lim`
+* `HomtoLimit` : Based on the canonical projection from `Gal(K/k)` to any `Gal(L/k)`
+  where `L` is `FiniteGaloisIntermediateField`, it can be easily verified that
+  the projections are compatible with the morphisms on `FiniteGaloisIntermediateField`
+  (ordered by inverse inclusion)
 
-* `continuousMulEquiv`
+* `ContinuousMulEquiv`
 
 * `Profinite`
 
