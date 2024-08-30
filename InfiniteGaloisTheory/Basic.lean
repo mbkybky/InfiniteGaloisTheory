@@ -48,7 +48,16 @@ of an inverse function of an AlgEquiv composite with another AlgEquiv
 
 suppress_compilation
 
-theorem IsScalarTower.algEquivRestrictNormalHom (F K₁ K₂ K₃ : Type*)
+theorem AlgEquiv.restrictNormalHom_id (F K : Type*)
+    [Field F] [Field K] [Algebra F K] [Normal F K] :
+    AlgEquiv.restrictNormalHom (F := F) (K₁ := K) K = MonoidHom.id (K ≃ₐ[F] K) := by
+  ext f x
+  dsimp [restrictNormalHom]
+  apply (algebraMap K K).injective
+  rw [AlgEquiv.restrictNormal_commutes]
+  simp
+
+theorem IsScalarTower.algEquivRestrictNormalHom_eq (F K₁ K₂ K₃ : Type*)
     [Field F] [Field K₁] [Field K₂] [Field K₃]
     [Algebra F K₁] [Algebra F K₂] [Algebra F K₃] [Algebra K₁ K₂] [Algebra K₁ K₃] [Algebra K₂ K₃]
     [IsScalarTower F K₁ K₃] [IsScalarTower F K₁ K₂] [IsScalarTower F K₂ K₃] [IsScalarTower K₁ K₂ K₃]
@@ -57,7 +66,7 @@ theorem IsScalarTower.algEquivRestrictNormalHom (F K₁ K₂ K₃ : Type*)
       (AlgEquiv.restrictNormalHom (F := F) (K₁ := K₂) K₁).comp
         (AlgEquiv.restrictNormalHom (F := F) (K₁ := K₃) K₂) := by
   ext f x
-  dsimp [AlgEquiv.restrictNormalHom, MonoidHom.mk'_apply, MonoidHom.coe_comp]
+  dsimp [AlgEquiv.restrictNormalHom]
   apply (algebraMap K₁ K₃).injective
   conv_rhs => rw [IsScalarTower.algebraMap_eq K₁ K₂ K₃]
   simp only [AlgEquiv.restrictNormal_commutes, RingHom.coe_comp, Function.comp_apply,
@@ -114,20 +123,8 @@ def finGalMap
   FiniteGrp.ofHom (AlgEquiv.restrictNormalHom (F := k) (K₁ := L₁.unop) L₂.unop)
 
 lemma finGalMap.map_id (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) :
-    (finGalMap (𝟙 L)) = 𝟙 (L.unop.finGal) := by
-  unfold finGalMap AlgEquiv.restrictNormalHom
-  congr
-  ext x y : 2
-  simp only [AlgEquiv.restrictNormal, AlgHom.restrictNormal', AlgHom.restrictNormal,
-    AlgEquiv.toAlgHom_eq_coe, AlgEquiv.coe_ofBijective, AlgHom.coe_comp, AlgHom.coe_coe,
-    Function.comp_apply]
-  apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k (L.unop) (L.unop)))
-  simp only [MonoidHom.mk'_apply, AlgEquiv.coe_ofBijective, AlgHom.coe_comp, AlgHom.coe_coe,
-    Function.comp_apply, AlgEquiv.apply_symm_apply, types_id_apply]
-  ext
-  simp only [AlgHom.restrictNormalAux, AlgHom.coe_coe, AlgEquiv.ofInjectiveField, AlgHom.coe_mk,
-    RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk, AlgEquiv.ofInjective_apply,
-    IsScalarTower.coe_toAlgHom', Algebra.id.map_eq_id, RingHom.id_apply]
+    (finGalMap (𝟙 L)) = 𝟙 L.unop.finGal :=
+  AlgEquiv.restrictNormalHom_id _ _
 
 lemma finGalMap.map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
     (f : L₁ ⟶ L₂) (g : L₂ ⟶ L₃) : finGalMap (f ≫ g) = finGalMap f ≫ finGalMap g := by
@@ -142,7 +139,7 @@ lemma finGalMap.map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)�
   haveI : IsScalarTower k L₃ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
   haveI : IsScalarTower k L₃ L₂ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
   haveI : IsScalarTower L₃ L₂ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-  apply IsScalarTower.algEquivRestrictNormalHom k L₃ L₂ L₁
+  apply IsScalarTower.algEquivRestrictNormalHom_eq k L₃ L₂ L₁
 
 def finGalFunctor : (FiniteGaloisIntermediateField k K)ᵒᵖ ⥤ FiniteGrp.{u} where
   obj L := L.unop.finGal
