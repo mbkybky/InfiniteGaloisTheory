@@ -89,22 +89,70 @@ lemma finGalMap.map_id (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) :
     RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk, AlgEquiv.ofInjective_apply,
     IsScalarTower.coe_toAlgHom', Algebra.id.map_eq_id, RingHom.id_apply]
 
+set_option maxHeartbeats 500000 in
+set_option synthInstance.maxHeartbeats 50000 in
 lemma finGalMap.map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
     (f : L₁ ⟶ L₂) (g : L₂ ⟶ L₃) : finGalMap (f ≫ g) = (finGalMap f) ≫ (finGalMap g) := by
-  unfold finGalMap AlgEquiv.restrictNormalHom
-  congr
-  ext x y : 2
-  simp only [AlgEquiv.restrictNormal, AlgHom.restrictNormal', AlgHom.restrictNormal,
-    AlgEquiv.toAlgHom_eq_coe, AlgEquiv.coe_ofBijective, AlgHom.coe_comp, AlgHom.coe_coe,
-    Function.comp_apply]
+  unfold finGalMap
+  letI : Algebra L₃.unop L₂.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom g.1)
+  letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom f.1)
   letI : Algebra L₃.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom (f ≫ g).1)
   letI : IsScalarTower k L₃.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  letI : IsScalarTower L₃.unop L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  letI : IsScalarTower k L₃.unop L₂.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  letI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+
+
+  refine DFunLike.ext _ _ fun (σ : AlgEquiv _ _ _) => ?_
+  change AlgEquiv.restrictNormal σ L₃.unop =
+    AlgEquiv.restrictNormal (AlgEquiv.restrictNormal σ L₂.unop) L₃.unop
+  refine AlgEquiv.ext fun x => ?_
+  dsimp only [AlgEquiv.restrictNormal, AlgHom.restrictNormal', AlgEquiv.toAlgHom_eq_coe,
+    AlgHom.restrictNormal, AlgHom.restrictNormalAux, AlgHom.coe_coe, AlgEquiv.coe_ofBijective,
+    AlgHom.coe_comp, AlgHom.coe_mk, RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk,
+    Function.comp_apply]
   apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₁.unop))
   simp only [AlgEquiv.apply_symm_apply]
-  ext
-  unfold AlgHom.restrictNormalAux AlgEquiv.ofInjectiveField
+  have eq (x) : (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₁.unop)) x =
+    ⟨⟨x, leOfHom (f ≫ g).1 x.2⟩, by aesop⟩ := rfl
+  conv_rhs => rw [eq]
+  ext : 2
+  dsimp only
+  symm
+  have eq (x) : (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₂.unop L₁.unop)) x =
+    ⟨⟨x, leOfHom f.1 x.2⟩, by aesop⟩ := rfl
+  simp_rw [eq]
+  have eq (x) : (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₂.unop)) x =
+    ⟨⟨x, leOfHom g.1 x.2⟩, by aesop⟩ := rfl
+  simp_rw [eq]
 
-  sorry
+  dsimp only [SetLike.coe_sort_coe, IsScalarTower.coe_toAlgHom', id_eq, eq_mpr_eq_cast, cast_eq,
+    eq_mp_eq_cast]
+  generalize_proofs h1 h2 h3 h4 h5 h6
+  change ((AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₂.unop)).symm
+    ⟨(AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₂.unop L₁.unop)).symm
+      ⟨σ ⟨x, leOfHom (f ≫ g).1 x.2⟩, h4⟩, h5⟩).1 = _
+  suffices eq : (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₂.unop)).symm
+    ⟨(AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₂.unop L₁.unop)).symm
+      ⟨σ ⟨x, leOfHom (f ≫ g).1 x.2⟩, h4⟩, h5⟩ =
+    ⟨σ ⟨x, _⟩, by
+      simp only [AlgHom.mem_range, IsScalarTower.coe_toAlgHom', Subtype.exists] at h5
+      obtain ⟨a, ha, eq⟩ := h5
+      apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₂.unop L₁.unop)) at eq
+      simp only [AlgEquiv.apply_symm_apply] at eq
+      rw [Subtype.ext_iff] at eq
+      simp only at eq
+      erw [← eq]
+      exact ha⟩ by
+    rw [eq]
+    rfl
+
+  apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₂.unop))
+  simp only [AlgEquiv.apply_symm_apply]
+  ext : 1
+  apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₂.unop L₁.unop))
+  simp only [AlgEquiv.apply_symm_apply]
+  rfl
 
 noncomputable def finGalFunctor : (FiniteGaloisIntermediateField k K)ᵒᵖ ⥤ FiniteGrp.{u} where
   obj L := L.unop.finGal
