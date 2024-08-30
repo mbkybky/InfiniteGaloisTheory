@@ -37,14 +37,19 @@
 \begin{theorem}
 	\lean{IsGalois.normal_aut_equiv_quotient}
 	\leanok
-	If $H$ is a normal Subgroup of $Gal(L / K)$, then $Gal(fixedField H / K)$ is isomorphic to $Gal(L / K) ⧸ H$.
+	If $H$ is a normal Subgroup of $Gal(L / K)$, then $Gal(fixedField H / K)$ is isomorphic to $\gal(L / K) / H$.
 \end{theorem}
 
 \begin{theorem}
+	\lean{IsGalois.fixingSubgroup_conjugate_of_map}
+	\leanok
 	If $E$ is an intermediateField of a Galois extension $L / K$, then for any $ \sigma \in \gal(L / K) $, $ \gal(L / \sigma(E)) = \sigma^{-1}\gal(L / K)\sigma $.
 \end{theorem}
 
 \begin{theorem}
+	\lean{IsGalois.fixingSubgroup_normal_of_isGalois}
+	\leanok
+	\uses{IsGalois.fixingSubgroup_conjugate_of_map}
 	Let $E$ be an intermediateField of a Galois extension $L / K$. If $ E / K $ is  
 	Galois extension, then $ \gal(L / E) $ is a normal subgroup of $ \gal(L / K) $.
 \end{theorem}

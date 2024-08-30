@@ -43,7 +43,7 @@ theorem normalClosure.eq_self_of_invariant_under_embedding {K L : Type*} [Field 
   rw [normalClosure, mem_mk, Subalgebra.mem_toSubsemiring, mem_toSubalgebra] at hx
   exact iSup_le (fun σ ↦ (h σ).le) hx
 
-/-- If `E` is an intermediateField of a normal extension `L / K`, and `E` remains invariant
+/-- If `E` is an intermediate field of a normal extension `L / K`, and `E` remains invariant
 under every `K`-algebra embedding `σ : E →ₐ[K] L`, then `E / K` is normal. -/
 theorem Normal.of_intermediateField_invariant_under_embedding [Normal K L]
     (E : IntermediateField K L) (h : ∀ σ : E →ₐ[K] L, σ.fieldRange = E) : Normal K E := by
@@ -116,7 +116,7 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
 
 open scoped Pointwise
 
-instance IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) : E.fixingSubgroup = (MulAut.conj σ⁻¹) • ((IntermediateField.map σ E).fixingSubgroup) := by
+theorem IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) : E.fixingSubgroup = (MulAut.conj σ⁻¹) • ((IntermediateField.map σ E).fixingSubgroup) := by
   ext τ
   have h1 : τ ∈ (MulAut.conj σ⁻¹ • (IntermediateField.map σ E).fixingSubgroup : Subgroup (L ≃ₐ[K] L)) ↔ ∀ x : ((IntermediateField.map σ E) : IntermediateField K L), σ (τ (σ⁻¹ x)) = x := by
     rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, map_inv, inv_inv, MulAut.smul_def, MulAut.conj_apply]; exact Iff.rfl
@@ -126,21 +126,22 @@ instance IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) : E.fixin
     exact ⟨fun ⟨y, hy, heq⟩ ↦ ⟨⟨y, hy⟩, heq.symm⟩, fun ⟨⟨y, hy⟩, heq⟩ ↦ ⟨y, hy, heq.symm⟩⟩)
   rw [h1, h2]
   exact ⟨
-    fun h ↦ (fun x ↦ (by obtain ⟨y, hy⟩ := (h3 x).mp x.2; rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])), 
-    fun h ↦ (fun x ↦ (by 
+    fun h ↦ (fun x ↦ (by obtain ⟨y, hy⟩ := (h3 x).mp x.2; rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])),
+    fun h ↦ (fun x ↦ (by
       have : σ (τ (σ⁻¹ (σ x))) = σ x := h ⟨σ x, (h3 (σ x)).mpr ⟨x, rfl⟩⟩
       rw [show σ⁻¹ (σ x) = x from by exact σ.left_inv x, EmbeddingLike.apply_eq_iff_eq] at this
       exact this))⟩
 
-instance normal_of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G} (h : ∀ g : G, (MulAut.conj g) • H = H) : H.Normal := by
+theorem Subgroup.Normal.of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G} (h : ∀ g : G, (MulAut.conj g) • H = H) : H.Normal := by
   constructor
   intro n hn g
-  rw [← h g, Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ← map_inv, MulAut.smul_def, MulAut.conj_apply, inv_inv, mul_assoc, mul_assoc, mul_left_inv, mul_one, ← mul_assoc, mul_left_inv, one_mul]
+  rw [← h g, Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ← map_inv, MulAut.smul_def, MulAut.conj_apply, inv_inv, mul_assoc, mul_assoc, inv_mul_cancel, mul_one, ← mul_assoc, inv_mul_cancel, one_mul]
   exact hn
 
-/- If in `L/E/K`, `L/K` and `E/K` are Galois, then `Gal(L/E)` is Normal in `Gal(L/K)` -/
+/-- Let `E` be an intermediateField of a Galois extension `L / K`. If `E / K` is
+Galois extension, then `E.fixingSubgroup` is a normal subgroup of `Gal(L / K)` -/
 instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := by
-  apply normal_of_conjugate_fixed
+  apply Subgroup.Normal.of_conjugate_fixed
   intro σ
   have : E = ((IntermediateField.map (σ⁻¹ : L ≃ₐ[K] L) E) : IntermediateField K L) := by
     apply (IntermediateField.normal_iff_forall_map_eq'.mp _ σ⁻¹).symm
