@@ -1,3 +1,8 @@
+/-
+Copyright (c) 2024 Jujian Zhang. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan
+-/
 import Mathlib.FieldTheory.Galois
 
 open Algebra
@@ -6,10 +11,10 @@ section Galois
 
 open IntermediateField AlgEquiv QuotientGroup
 
-variable {K L : Type*} [Field K] [Field L] [Algebra K L] [FiniteDimensional K L]
+variable {K L : Type*} [Field K] [Field L] [Algebra K L]
 
 /-- If `H` is a subgroup of `Gal(L/K)`, then `Gal(L / fixedField H)` is isomorphic to `H`. -/
-def IntermediateField.subgroup_equiv_aut (H : Subgroup (L ≃ₐ[K] L)) :
+def IntermediateField.subgroup_equiv_aut [FiniteDimensional K L] (H : Subgroup (L ≃ₐ[K] L)) :
     (L ≃ₐ[fixedField H] L) ≃* H where
   toFun ϕ := ⟨ϕ.restrictScalars _, le_of_eq (fixingSubgroup_fixedField H) ϕ.commutes⟩
   invFun ϕ := { toRingEquiv (ϕ : L ≃ₐ[K] L) with
@@ -19,8 +24,8 @@ def IntermediateField.subgroup_equiv_aut (H : Subgroup (L ≃ₐ[K] L)) :
   map_mul' _ _ := by ext; rfl
 
 /-- The `AlgEquiv` induced by an `AlgHom` from the domain of definition to the `fieldRange`. -/
-noncomputable def AlgHom.fieldRange_toAlgEquiv {E : IntermediateField K L} (σ : E →ₐ[K] L) :
-    E ≃ₐ[K] σ.fieldRange where
+noncomputable def AlgHom.toAlgEquiv_fieldRange {E : Type*} [Field E] [Algebra K E] (σ : L →ₐ[K] E) :
+    L ≃ₐ[K] σ.fieldRange where
   toFun x := ⟨σ x, by simp only [AlgHom.mem_fieldRange, exists_apply_eq_apply]⟩
   invFun y := Classical.choose (AlgHom.mem_fieldRange.mp y.2)
   left_inv x := have hs : Function.Injective σ := RingHom.injective σ
@@ -33,8 +38,8 @@ noncomputable def AlgHom.fieldRange_toAlgEquiv {E : IntermediateField K L} (σ :
 
 variable {K L : Type*} [Field K] [Field L] [Algebra K L] (E : IntermediateField K L)
 
-theorem AlgHom.fieldRange_toAlgEquiv_apply (σ : E →ₐ[K] L) (x : E) :
-  (AlgHom.fieldRange_toAlgEquiv σ) x = σ x := rfl
+theorem AlgHom.toAlgEquiv_fieldRange_apply (σ : E →ₐ[K] L) (x : E) :
+  (AlgHom.toAlgEquiv_fieldRange σ) x = σ x := rfl
 
 theorem AlgEquiv.liftNormal_intermediateField_commutes [Normal K L] {E F : IntermediateField K L}
     (σ : E ≃ₐ[K] F) (x : E) : (AlgEquiv.liftNormal σ L) x = σ x := by
@@ -67,16 +72,16 @@ theorem Normal.of_intermediateField_mem_invariant_under_embedding [Normal K L]
   apply le_antisymm
   · intro y hy
     rcases AlgHom.mem_fieldRange.mp hy with ⟨x, hx⟩
-    apply Set.mem_of_eq_of_mem _ (h (liftNormal (AlgHom.fieldRange_toAlgEquiv σ) L) x)
+    apply Set.mem_of_eq_of_mem _ (h (liftNormal (AlgHom.toAlgEquiv_fieldRange σ) L) x)
     have h : x.1 = algebraMap E L x := rfl
     rw [← hx, h, liftNormal_commutes]
     rfl
   · intro y hy
-    let τ := liftNormal (AlgHom.fieldRange_toAlgEquiv σ) L
+    let τ := liftNormal (AlgHom.toAlgEquiv_fieldRange σ) L
     let x : E := ⟨τ⁻¹ y, Set.mem_of_eq_of_mem rfl (h τ⁻¹ ⟨y, hy⟩)⟩
     rw [AlgHom.mem_fieldRange]
     use x
-    have hx : σ x = algebraMap (σ.fieldRange) L ((AlgHom.fieldRange_toAlgEquiv σ) x) := rfl
+    have hx : σ x = algebraMap (σ.fieldRange) L ((AlgHom.toAlgEquiv_fieldRange σ) x) := rfl
     have hxt : (algebraMap E L) x = τ⁻¹ y := rfl
     have ht : τ (τ⁻¹ y) = (τ * τ⁻¹) y := rfl
     rw [hx, ← liftNormal_commutes, hxt, ht, mul_inv_cancel]
@@ -111,7 +116,8 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
   rw [← hs]
   exact Subtype.val_inj.mpr (h ⟨x, hx⟩)
 
-/- If in `L/E/K`, `L/K` and `E/K` are Galois, then `Gal(L/E)` is Normal in `Gal(L/K)` -/
+/-- If `L / E / K` is a twoer of field extensions, then `Gal(L / E)` is a normal subgroup
+of `Gal(L / K)` -/
 instance IsGalois.fixingSubgroup_Normal_of_Galois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := sorry
 
 end Galois

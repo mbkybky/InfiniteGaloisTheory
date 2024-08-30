@@ -6,6 +6,29 @@
 % the current file can be a simple sequence of \input. Otherwise It
 % can start with a \section or \chapter for instance.
 
+\chapter{Mising Lemma in Mathlib}
+
+\section{Galois}
+
+\begin{lemma}
+	\lean{IntermediateField.subgroup_equiv_aut}
+	\leanok
+	If $H$ is a subgroup of $Gal(L/K)$, then $Gal(L / fixedField H)$ is isomorphic to $H$.
+\end{lemma}
+
+\begin{lemma}
+	\lean{AlgHom.toAlgEquiv_fieldRange}
+	\leanok
+	Let $ K, L, E $ be fields and $ L $ and $ E $ are $ K $-algebras, $\sigma : L \to E $ is an $ K $-algebra homomorphism, them there is a $ K $-algebra isomomorphism between $ L $ and $ E $.
+\end{lemma}
+
+%\begin{lemma}
+%	\lean{}
+%	\leanok
+%\end{lemma}
+
+
+
 \chapter{Profinite Group}
 
 \begin{definition}
@@ -15,6 +38,8 @@
 \end{definition}
 
 \begin{lemma}
+	\lean{ProfiniteGrp.ofHomeoMulEquivProfiniteGrp}
+	\leanok
 	If $G$ is a profinite topological group, $H$ is a topological group that is isomorphic to $G$, then $G$ is profinite.
 \end{lemma}
 
@@ -23,11 +48,23 @@
 \end{lemma}
 
 \begin{lemma}
+	\lean{ProfiniteGrp.ofClosedSubgroup}
+	\leanok
 	If $G$ is a profinite topological group, then any closed subgroup of $G$ is profinite.
 \end{lemma}
 
+\begin{theorem}
+	If $G$ is a profinite topological group, $H$ is a subgroup of $G$, then the following three statements
+	are equivalent.
+	\begin{itemize}
+		\item[(i)] $ H $ is closed.
+		\item[(ii)] $ H $ is profinite.
+		\item[(iii)] $ H $ is the intersection of a family of open subgroups.
+	\end{itemize}
+\end{theorem}
+
 \begin{lemma}
-	If $G$ is a profinite topological group, $H$ is a closed subgroup of $G$, then the homogeneous space G / H is compact and totally disconnected. Moreover, if $H$ is normal, then $G / H$ is a profinite topological group.
+	If $G$ is a profinite topological group, $H$ is a closed subgroup of $G$, then the homogeneous space $G / H$ is compact and totally disconnected. Moreover, if $H$ is normal, then $G / H$ is a profinite topological group.
 \end{lemma}
 
 \begin{lemma}
@@ -35,6 +72,7 @@
 \end{lemma}
 
 \begin{theorem}
+	\lean{ProfiniteGrp.instHasLimitCompFiniteGrpFromFiniteGrp}
 	A topological group is profinite if and only if it is the projective limit of finite groups, each given the discrete topology.
 \end{theorem}
 
@@ -51,15 +89,15 @@ The Galois group comes with a canonical topology.
 	Let $E/F$ be a Galois extension. Endow $\text{Gal}(E/F)$ with the coarsest
 	topology such that
 	$$
-	\text{Gal}(E/F) \times E \longrightarrow E
+		\text{Gal}(E/F) \times E \longrightarrow E
 	$$
 	is continuous when $E$ is given the discrete topology. Then
 	\begin{enumerate}
 		\item for any topological space $X$ and map $X \to \text{Aut}(E/F)$
-		such that the action $X \times E \to E$ is continuous the induced map
-		$X \to \text{Gal}(E/F)$ is continuous,
+		      such that the action $X \times E \to E$ is continuous the induced map
+		      $X \to \text{Gal}(E/F)$ is continuous,
 		\item this topology turns $\text{Gal}(E/F)$ into
-		a profinite topological group.
+		      a profinite topological group.
 	\end{enumerate}
 \end{lemma}
 
@@ -90,13 +128,13 @@ the Galois group of an infinite Galois extension.
 	\begin{enumerate}
 		\item $\Lambda$ is a directed partially ordered set,
 		\item $L_\lambda$ is a system of $K$-extensions over $\Lambda$
-		and $L = \colim L_\lambda$,
+		      and $L = \colim L_\lambda$,
 		\item $G_\lambda$ is an inverse system of finite groups over $\Lambda$,
-		the transition maps are surjective, and
-		$$
-		G = \lim_{\lambda \in \Lambda} G_\lambda
-		$$
-		as a profinite group, and
+		      the transition maps are surjective, and
+		      $$
+			      G = \lim_{\lambda \in \Lambda} G_\lambda
+		      $$
+		      as a profinite group, and
 		\item each of the projections $G \to G_\lambda$ is continuous and surjective.
 	\end{enumerate}
 \end{lemma}
@@ -107,10 +145,10 @@ the Galois group of an infinite Galois extension.
 	be the Galois group viewed as a profinite topological group
 	(Lemma \ref{lemma-galois-profinite}). Then we have $K = L^G$ and the map
 	$$
-	\{\text{closed subgroups of }G\}
-	\longrightarrow
-	\{\text{subextensions }L/M/K\},\quad
-	H \longmapsto L^H
+		\{\text{closed subgroups of }G\}
+		\longrightarrow
+		\{\text{subextensions }L/M/K\},\quad
+		H \longmapsto L^H
 	$$
 	is a bijection whose inverse maps $M$ to $\text{Gal}(L/M)$.
 	The finite subextensions $M$ correspond exactly to the open
@@ -123,7 +161,7 @@ the Galois group of an infinite Galois extension.
 	Let $L/M/K$ be a tower of fields. Assume $L/K$ and $M/K$ are Galois.
 	Then we obtain a short exact sequence
 	$$
-	1 \to \text{Gal}(L/M) \to \text{Gal}(L/K) \to \text{Gal}(M/K) \to 1
+		1 \to \text{Gal}(L/M) \to \text{Gal}(L/K) \to \text{Gal}(M/K) \to 1
 	$$
 	of profinite topological groups.
 \end{lemma}

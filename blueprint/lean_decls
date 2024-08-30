@@ -1,1 +1,4 @@
 ProfiniteGrp
+ProfiniteGrp.ofHomeoMulEquivProfiniteGrp
+ProfiniteGrp.ofClosedSubgroup
+ProfiniteGrp.instHasLimitCompFiniteGrpFromFiniteGrp
