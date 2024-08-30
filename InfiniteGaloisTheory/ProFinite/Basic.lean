@@ -57,7 +57,7 @@ instance : ConcreteCategory FiniteGrp := InducedCategory.concreteCategory Finite
 
 def of (G : Type u) [Group G] [Finite G] : FiniteGrp where
   toGrp := Grp.of G
-  isFinite := inferInstanceAs $ Finite G
+  isFinite := ‹_›
 
 instance (G H : FiniteGrp) : FunLike (G ⟶ H) G H :=
   inferInstanceAs $ FunLike (G →* H) G H
