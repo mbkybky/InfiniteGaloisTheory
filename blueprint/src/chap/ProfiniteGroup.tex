@@ -1,0 +1,46 @@
+\chapter{Profinite Group}
+
+\begin{definition}
+	\lean{ProfiniteGrp}
+	\leanok
+	A profinite group is a topological group that is compact and totally disconnected.
+\end{definition}
+
+\begin{lemma}
+	\lean{ProfiniteGrp.ofHomeoMulEquivProfiniteGrp}
+	\leanok
+	If $G$ is a profinite topological group, $H$ is a topological group that is isomorphic to $G$, then $G$ is profinite.
+\end{lemma}
+
+\begin{lemma}
+	Product of (arbitrarily many) profinite groups is profinite.
+\end{lemma}
+
+\begin{lemma}
+	\lean{ProfiniteGrp.ofClosedSubgroup}
+	\leanok
+	If $G$ is a profinite topological group, then any closed subgroup of $G$ is profinite.
+\end{lemma}
+
+\begin{theorem}
+	If $G$ is a profinite topological group, $H$ is a subgroup of $G$, then the following three statements
+	are equivalent.
+	\begin{itemize}
+		\item[(i)] $ H $ is closed.
+		\item[(ii)] $ H $ is profinite.
+		\item[(iii)] $ H $ is the intersection of a family of open subgroups.
+	\end{itemize}
+\end{theorem}
+
+\begin{lemma}
+	If $G$ is a profinite topological group, $H$ is a closed subgroup of $G$, then the homogeneous space $G / H$ is compact and totally disconnected. Moreover, if $H$ is normal, then $G / H$ is a profinite topological group.
+\end{lemma}
+
+\begin{lemma}
+	A subgroup of a profinite topological group is open if and only if it is closed and has finite index.
+\end{lemma}
+
+\begin{theorem}
+	\lean{ProfiniteGrp.instHasLimitCompFiniteGrpFromFiniteGrp}
+	A topological group is profinite if and only if it is the projective limit of finite groups, each given the discrete topology.
+\end{theorem}

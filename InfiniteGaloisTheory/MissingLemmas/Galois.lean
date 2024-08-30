@@ -11,17 +11,7 @@ section Galois
 
 open IntermediateField AlgEquiv QuotientGroup
 
-variable {K L : Type*} [Field K] [Field L] [Algebra K L]
-
-/-- If `H` is a subgroup of `Gal(L/K)`, then `Gal(L / fixedField H)` is isomorphic to `H`. -/
-def IntermediateField.subgroup_equiv_aut [FiniteDimensional K L] (H : Subgroup (L ≃ₐ[K] L)) :
-    (L ≃ₐ[fixedField H] L) ≃* H where
-  toFun ϕ := ⟨ϕ.restrictScalars _, le_of_eq (fixingSubgroup_fixedField H) ϕ.commutes⟩
-  invFun ϕ := { toRingEquiv (ϕ : L ≃ₐ[K] L) with
-    commutes' := (ge_of_eq (fixingSubgroup_fixedField H)) ϕ.mem }
-  left_inv _ := by ext; rfl
-  right_inv _ := by ext; rfl
-  map_mul' _ _ := by ext; rfl
+variable {K L : Type*} [Field K] [Field L] [Algebra K L] (E : IntermediateField K L)
 
 /-- The `AlgEquiv` induced by an `AlgHom` from the domain of definition to the `fieldRange`. -/
 noncomputable def AlgHom.toAlgEquiv_fieldRange {E : Type*} [Field E] [Algebra K E] (σ : L →ₐ[K] E) :
@@ -35,8 +25,6 @@ noncomputable def AlgHom.toAlgEquiv_fieldRange {E : Type*} [Field E] [Algebra K 
   map_mul' x y := Subtype.val_inj.mp (σ.toRingHom.map_mul x y)
   map_add' x y := Subtype.val_inj.mp (σ.toRingHom.map_add x y)
   commutes' x := Subtype.val_inj.mp (commutes σ x)
-
-variable {K L : Type*} [Field K] [Field L] [Algebra K L] (E : IntermediateField K L)
 
 theorem AlgHom.toAlgEquiv_fieldRange_apply (σ : E →ₐ[K] L) (x : E) :
   (AlgHom.toAlgEquiv_fieldRange σ) x = σ x := rfl
@@ -55,16 +43,16 @@ theorem normalClosure.eq_self_of_invariant_under_embedding {K L : Type*} [Field 
   rw [normalClosure, mem_mk, Subalgebra.mem_toSubsemiring, mem_toSubalgebra] at hx
   exact iSup_le (fun σ ↦ (h σ).le) hx
 
-/-- If `E` is an intermediateField of a normal extension `K/L`, and `E` remains invariant
-under every `K`-algebra embedding `E →ₐ[K] L`, then `E/K` is normal. -/
+/-- If `E` is an intermediateField of a normal extension `K / L`, and `E` remains invariant
+under every `K`-algebra embedding `E →ₐ[K] L`, then `E / K` is normal. -/
 theorem Normal.of_intermediateField_invariant_under_embedding [Normal K L]
     (E : IntermediateField K L) (h : ∀ σ : E →ₐ[K] L, σ.fieldRange = E) : Normal K E := by
   have hn := normalClosure.normal K E L
   rw [normalClosure.eq_self_of_invariant_under_embedding E h] at hn
   exact hn
 
-/-- If `E` is an intermediateField of a normal extension `K/L`, and every element in `E`
-remains in `E` after the action of every element in the Galois group, then `E/K` is normal. -/
+/-- If `E` is an intermediateField of a normal extension `K / L`, and every element in `E`
+remains in `E` after the action of every element in the Galois group, then `E / K` is normal. -/
 theorem Normal.of_intermediateField_mem_invariant_under_embedding [Normal K L]
     (E : IntermediateField K L) (h : ∀ σ : L ≃ₐ[K] L, ∀ x : E, σ x.1 ∈ E) : Normal K E := by
   apply Normal.of_intermediateField_invariant_under_embedding E
@@ -86,6 +74,16 @@ theorem Normal.of_intermediateField_mem_invariant_under_embedding [Normal K L]
     have ht : τ (τ⁻¹ y) = (τ * τ⁻¹) y := rfl
     rw [hx, ← liftNormal_commutes, hxt, ht, mul_inv_cancel]
     rfl
+
+/-- If `H` is a subgroup of `Gal(L/K)`, then `Gal(L / fixedField H)` is isomorphic to `H`. -/
+def IntermediateField.subgroup_equiv_aut [FiniteDimensional K L] (H : Subgroup (L ≃ₐ[K] L)) :
+    (L ≃ₐ[fixedField H] L) ≃* H where
+  toFun ϕ := ⟨ϕ.restrictScalars _, le_of_eq (fixingSubgroup_fixedField H) ϕ.commutes⟩
+  invFun ϕ := { toRingEquiv (ϕ : L ≃ₐ[K] L) with
+    commutes' := (ge_of_eq (fixingSubgroup_fixedField H)) ϕ.mem }
+  left_inv _ := by ext; rfl
+  right_inv _ := by ext; rfl
+  map_mul' _ _ := by ext; rfl
 
 /-- If `H` is a normal Subgroup of `Gal(L/K)`, then `fixedField H` is Galois over `K`. -/
 instance IsGalois.of_fixedField_normal_subgroup [IsGalois K L]
