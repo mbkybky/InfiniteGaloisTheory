@@ -114,8 +114,37 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
   rw [← hs]
   exact Subtype.val_inj.mpr (h ⟨x, hx⟩)
 
-/-- If `L / E / K` is a twoer of field extensions, then `Gal(L / E)` is a normal subgroup
-of `Gal(L / K)` -/
-instance IsGalois.fixingSubgroup_Normal_of_Galois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := sorry
+open scoped Pointwise
+
+instance IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) : E.fixingSubgroup = (MulAut.conj σ⁻¹) • ((IntermediateField.map σ E).fixingSubgroup) := by
+  ext τ
+  have h1 : τ ∈ (MulAut.conj σ⁻¹ • (IntermediateField.map σ E).fixingSubgroup : Subgroup (L ≃ₐ[K] L)) ↔ ∀ x : ((IntermediateField.map σ E) : IntermediateField K L), σ (τ (σ⁻¹ x)) = x := by
+    rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, map_inv, inv_inv, MulAut.smul_def, MulAut.conj_apply]; exact Iff.rfl
+  have h2 : τ ∈ E.fixingSubgroup ↔ ∀ x : E, τ x = x := by exact Iff.rfl
+  have h3 : ∀ x : L, (x ∈ ((IntermediateField.map σ E) : IntermediateField K L) ↔ ∃ y : E, x = σ y) := fun x ↦ (by
+    show (∃ (y : L), (y ∈ E) ∧ (σ.toFun y = x)) ↔ (∃ y : E, x = σ y)
+    exact ⟨fun ⟨y, hy, heq⟩ ↦ ⟨⟨y, hy⟩, heq.symm⟩, fun ⟨⟨y, hy⟩, heq⟩ ↦ ⟨y, hy, heq.symm⟩⟩)
+  rw [h1, h2]
+  exact ⟨
+    fun h ↦ (fun x ↦ (by obtain ⟨y, hy⟩ := (h3 x).mp x.2; rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])), 
+    fun h ↦ (fun x ↦ (by 
+      have : σ (τ (σ⁻¹ (σ x))) = σ x := h ⟨σ x, (h3 (σ x)).mpr ⟨x, rfl⟩⟩
+      rw [show σ⁻¹ (σ x) = x from by exact σ.left_inv x, EmbeddingLike.apply_eq_iff_eq] at this
+      exact this))⟩
+
+instance normal_of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G} (h : ∀ g : G, (MulAut.conj g) • H = H) : H.Normal := by
+  constructor
+  intro n hn g
+  rw [← h g, Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ← map_inv, MulAut.smul_def, MulAut.conj_apply, inv_inv, mul_assoc, mul_assoc, mul_left_inv, mul_one, ← mul_assoc, mul_left_inv, one_mul]
+  exact hn
+
+/- If in `L/E/K`, `L/K` and `E/K` are Galois, then `Gal(L/E)` is Normal in `Gal(L/K)` -/
+instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := by
+  apply normal_of_conjugate_fixed
+  intro σ
+  have : E = ((IntermediateField.map (σ⁻¹ : L ≃ₐ[K] L) E) : IntermediateField K L) := by
+    apply (IntermediateField.normal_iff_forall_map_eq'.mp _ σ⁻¹).symm
+    infer_instance
+  nth_rw 1 [this]; rw [IsGalois.fixingSubgroup_conjugate_of_map E σ⁻¹, inv_inv]
 
 end Galois
