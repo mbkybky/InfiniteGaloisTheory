@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yuyang Zhao
 -/
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
@@ -34,13 +34,14 @@ variable (k K : Type u) [Field k] [Field K] [Algebra k K] -- [IsGalois k K]
 
 @[ext]
 structure FiniteGaloisIntermediateField extends IntermediateField k K where
-  fin_dim : FiniteDimensional k toIntermediateField
-  is_gal : IsGalois k toIntermediateField
+  [fin_dim : FiniteDimensional k toIntermediateField]
+  [is_gal : IsGalois k toIntermediateField]
 
 namespace FiniteGaloisIntermediateField
 
-instance : CoeSort (FiniteGaloisIntermediateField k K) (Type u) where
-  coe L := L.toIntermediateField
+instance : SetLike (FiniteGaloisIntermediateField k K) K where
+  coe L := L.carrier
+  coe_injective' := by rintro ⟨⟩ ⟨⟩; simp
 
 instance (L : FiniteGaloisIntermediateField k K) : FiniteDimensional k L :=
   L.fin_dim
@@ -111,7 +112,7 @@ lemma finGalMap.map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)�
     AlgHom.restrictNormal, AlgHom.restrictNormalAux, AlgHom.coe_coe, AlgEquiv.coe_ofBijective,
     AlgHom.coe_comp, AlgHom.coe_mk, RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk,
     Function.comp_apply]
-  apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₁.unop))
+  apply_fun AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₁.unop)
   simp only [AlgEquiv.apply_symm_apply]
   have eq (x) : (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₁.unop)) x =
     ⟨⟨x, leOfHom (f ≫ g).1 x.2⟩, by aesop⟩ := rfl
