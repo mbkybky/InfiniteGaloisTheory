@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Jingting Wang
 -/
 import Mathlib.FieldTheory.Galois
 
@@ -43,15 +43,15 @@ theorem normalClosure.eq_self_of_invariant_under_embedding {K L : Type*} [Field 
   rw [normalClosure, mem_mk, Subalgebra.mem_toSubsemiring, mem_toSubalgebra] at hx
   exact iSup_le (fun σ ↦ (h σ).le) hx
 
-/-- If `E` is an intermediateField of a normal extension `K / L`, and `E` remains invariant
-under every `K`-algebra embedding `E →ₐ[K] L`, then `E / K` is normal. -/
+/-- If `E` is an intermediate field of a normal extension `L / K`, and `E` remains invariant
+under every `K`-algebra embedding `σ : E →ₐ[K] L`, then `E / K` is normal. -/
 theorem Normal.of_intermediateField_invariant_under_embedding [Normal K L]
     (E : IntermediateField K L) (h : ∀ σ : E →ₐ[K] L, σ.fieldRange = E) : Normal K E := by
   have hn := normalClosure.normal K E L
   rw [normalClosure.eq_self_of_invariant_under_embedding E h] at hn
   exact hn
 
-/-- If `E` is an intermediateField of a normal extension `K / L`, and every element in `E`
+/-- If `E` is an intermediate field of a normal extension `K / L`, and every element in `E`
 remains in `E` after the action of every element in the Galois group, then `E / K` is normal. -/
 theorem Normal.of_intermediateField_mem_invariant_under_embedding [Normal K L]
     (E : IntermediateField K L) (h : ∀ σ : L ≃ₐ[K] L, ∀ x : E, σ x.1 ∈ E) : Normal K E := by
@@ -75,7 +75,7 @@ theorem Normal.of_intermediateField_mem_invariant_under_embedding [Normal K L]
     rw [hx, ← liftNormal_commutes, hxt, ht, mul_inv_cancel]
     rfl
 
-/-- If `H` is a subgroup of `Gal(L/K)`, then `Gal(L / fixedField H)` is isomorphic to `H`. -/
+/-- If `H` is a subgroup of `Gal(L / K)`, then `Gal(L / fixedField H)` is isomorphic to `H`. -/
 def IntermediateField.subgroup_equiv_aut [FiniteDimensional K L] (H : Subgroup (L ≃ₐ[K] L)) :
     (L ≃ₐ[fixedField H] L) ≃* H where
   toFun ϕ := ⟨ϕ.restrictScalars _, le_of_eq (fixingSubgroup_fixedField H) ϕ.commutes⟩
@@ -85,7 +85,7 @@ def IntermediateField.subgroup_equiv_aut [FiniteDimensional K L] (H : Subgroup (
   right_inv _ := by ext; rfl
   map_mul' _ _ := by ext; rfl
 
-/-- If `H` is a normal Subgroup of `Gal(L/K)`, then `fixedField H` is Galois over `K`. -/
+/-- If `H` is a normal Subgroup of `Gal(L / K)`, then `fixedField H` is Galois over `K`. -/
 instance IsGalois.of_fixedField_normal_subgroup [IsGalois K L]
     (H : Subgroup (L ≃ₐ[K] L)) [hn : Subgroup.Normal H] : IsGalois K (fixedField H) where
   to_isSeparable := isSeparable_tower_bot_of_isSeparable K (fixedField H) L
@@ -95,8 +95,8 @@ instance IsGalois.of_fixedField_normal_subgroup [IsGalois K L]
     calc _ = (σ * σ⁻¹ * τ.1 * σ) x.1 := by rw [mul_inv_cancel]; rfl
       _ = _ := by nth_rw 2 [← x.2 ⟨_ , (Subgroup.Normal.conj_mem hn τ.1 τ.2 σ⁻¹)⟩]; rfl
 
-/-- If `H` is a normal Subgroup of `Gal(L/K)`, then `Gal(fixedField H/K)` is isomorphic to
-`Gal(L/K)⧸H`. -/
+/-- If `H` is a normal Subgroup of `Gal(L / K)`, then `Gal(fixedField H / K)` is isomorphic to
+`Gal(L / K) ⧸ H`. -/
 noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [IsGalois K L]
     (H : Subgroup (L ≃ₐ[K] L)) [Subgroup.Normal H] :
     ((fixedField H) ≃ₐ[K] (fixedField H)) ≃* (L ≃ₐ[K] L) ⧸ H := by
@@ -114,8 +114,38 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
   rw [← hs]
   exact Subtype.val_inj.mpr (h ⟨x, hx⟩)
 
-/-- If `L / E / K` is a twoer of field extensions, then `Gal(L / E)` is a normal subgroup
-of `Gal(L / K)` -/
-instance IsGalois.fixingSubgroup_Normal_of_Galois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := sorry
+open scoped Pointwise
+
+theorem IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) : E.fixingSubgroup = (MulAut.conj σ⁻¹) • ((IntermediateField.map σ E).fixingSubgroup) := by
+  ext τ
+  have h1 : τ ∈ (MulAut.conj σ⁻¹ • (IntermediateField.map σ E).fixingSubgroup : Subgroup (L ≃ₐ[K] L)) ↔ ∀ x : ((IntermediateField.map σ E) : IntermediateField K L), σ (τ (σ⁻¹ x)) = x := by
+    rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, map_inv, inv_inv, MulAut.smul_def, MulAut.conj_apply]; exact Iff.rfl
+  have h2 : τ ∈ E.fixingSubgroup ↔ ∀ x : E, τ x = x := by exact Iff.rfl
+  have h3 : ∀ x : L, (x ∈ ((IntermediateField.map σ E) : IntermediateField K L) ↔ ∃ y : E, x = σ y) := fun x ↦ (by
+    show (∃ (y : L), (y ∈ E) ∧ (σ.toFun y = x)) ↔ (∃ y : E, x = σ y)
+    exact ⟨fun ⟨y, hy, heq⟩ ↦ ⟨⟨y, hy⟩, heq.symm⟩, fun ⟨⟨y, hy⟩, heq⟩ ↦ ⟨y, hy, heq.symm⟩⟩)
+  rw [h1, h2]
+  exact ⟨
+    fun h ↦ (fun x ↦ (by obtain ⟨y, hy⟩ := (h3 x).mp x.2; rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])),
+    fun h ↦ (fun x ↦ (by
+      have : σ (τ (σ⁻¹ (σ x))) = σ x := h ⟨σ x, (h3 (σ x)).mpr ⟨x, rfl⟩⟩
+      rw [show σ⁻¹ (σ x) = x from by exact σ.left_inv x, EmbeddingLike.apply_eq_iff_eq] at this
+      exact this))⟩
+
+theorem Subgroup.Normal.of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G} (h : ∀ g : G, (MulAut.conj g) • H = H) : H.Normal := by
+  constructor
+  intro n hn g
+  rw [← h g, Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ← map_inv, MulAut.smul_def, MulAut.conj_apply, inv_inv, mul_assoc, mul_assoc, inv_mul_cancel, mul_one, ← mul_assoc, inv_mul_cancel, one_mul]
+  exact hn
+
+/-- Let `E` be an intermediateField of a Galois extension `L / K`. If `E / K` is
+Galois extension, then `E.fixingSubgroup` is a normal subgroup of `Gal(L / K)` -/
+instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := by
+  apply Subgroup.Normal.of_conjugate_fixed
+  intro σ
+  have : E = ((IntermediateField.map (σ⁻¹ : L ≃ₐ[K] L) E) : IntermediateField K L) := by
+    apply (IntermediateField.normal_iff_forall_map_eq'.mp _ σ⁻¹).symm
+    infer_instance
+  nth_rw 1 [this]; rw [IsGalois.fixingSubgroup_conjugate_of_map E σ⁻¹, inv_inv]
 
 end Galois

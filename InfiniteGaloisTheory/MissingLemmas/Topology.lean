@@ -5,6 +5,7 @@ Authors: Jujian Zhang, Yongle Hu, Nailin Guan
 -/
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
+import Mathlib.Topology.Category.Profinite.Basic
 
 universe u v
 
@@ -18,3 +19,5 @@ protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A] {B : 
   (totallyDisconnectedSpace_iff B).mpr ((Homeomorph.range_coe e) ▸ ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e)).mpr tdc))
 
 end Homeomorph
+
+def Pi.profinite {α : Type u} (β : α → Profinite) : Profinite := .of (Π (a : α), β a)

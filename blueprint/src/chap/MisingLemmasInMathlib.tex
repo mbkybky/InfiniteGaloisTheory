@@ -9,12 +9,67 @@
 \end{lemma}
 
 \begin{lemma}
-	\lean{}
+	\lean{Normal.of_intermediateField_invariant_under_embedding}
 	\leanok
+	If $E$ is an intermediateField of a normal extension $L / K$, and $E$ remains invariant under every $K$-algebra embedding $\sigma : E \to L$, then $E / K$ is normal.
 \end{lemma}
+
+\begin{theorem}
+	\lean{Normal.of_intermediateField_mem_invariant_under_embedding}
+	\leanok
+	\uses{AlgHom.toAlgEquiv_fieldRange}
+	\uses{Normal.of_intermediateField_invariant_under_embedding}
+	If $E$ is an intermediate field of a normal extension $K / L$, and every element in $E$ remains in $E$ after the action of every element in the Galois group, then $E / K$ is normal.
+\end{theorem}
 
 \begin{theorem}
 	\lean{IntermediateField.subgroup_equiv_aut}
 	\leanok
-	If $H$ is a subgroup of $Gal(L/K)$, then $Gal(L / fixedField H)$ is isomorphic to $H$.
+	If $H$ is a subgroup of $\gal(L/K)$, then $\gal(L / \inv (H))$ is isomorphic to $H$.
 \end{theorem}
+
+\begin{theorem}
+	\lean{IsGalois.of_fixedField_normal_subgroup}
+	\leanok
+	If $H$ is a normal Subgroup of $Gal(L/K)$, then $\inv (H)$ is Galois over $K$.
+\end{theorem}
+
+\begin{theorem}
+	\lean{IsGalois.normal_aut_equiv_quotient}
+	\leanok
+	If $H$ is a normal Subgroup of $Gal(L / K)$, then $Gal(fixedField H / K)$ is isomorphic to $\gal(L / K) / H$.
+\end{theorem}
+
+\begin{theorem}
+	\lean{IsGalois.fixingSubgroup_conjugate_of_map}
+	\leanok
+	If $E$ is an intermediateField of a Galois extension $L / K$, then for any $ \sigma \in \gal(L / K) $, $ \gal(L / \sigma(E)) = \sigma^{-1}\gal(L / K)\sigma $.
+\end{theorem}
+
+\begin{theorem}
+	\lean{IsGalois.fixingSubgroup_normal_of_isGalois}
+	\leanok
+	\uses{IsGalois.fixingSubgroup_conjugate_of_map}
+	Let $E$ be an intermediateField of a Galois extension $L / K$. If $ E / K $ is  
+	Galois extension, then $ \gal(L / E) $ is a normal subgroup of $ \gal(L / K) $.
+\end{theorem}
+
+\section{Topology}
+
+\begin{lemma}
+	Let $ X $ and $ Y $ be topological spaces. Assume that $ X $ is homeomorphic to $ Y $, then $ Y $ is totally disconnected if $ X $ is totally disconnected.
+\end{lemma}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
