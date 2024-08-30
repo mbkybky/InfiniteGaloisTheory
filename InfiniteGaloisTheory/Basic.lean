@@ -31,11 +31,15 @@ In `K/k`
 * `finGalFunctor` : Mapping `FiniteGaloisIntermediateField` ordered by inverse inclusion to its
   corresponding Galois Group as FiniteGrp
 
-* `union`
+* `union_eq_univ` : In `K/k`, the union of all the `FiniteGaloisIntermediateField` is equal to `K`,
+  Furthermore, there is also a `FiniteGaloisIntermediateField` containing any tuple `(x,y)`
 
-* `Hom Gal → lim`
+* `HomtoLimit` : Based on the canonical projection from `Gal(K/k)` to any `Gal(L/k)`
+  where `L` is `FiniteGaloisIntermediateField`, it can be easily verified that
+  the projections are compatible with the morphisms on `FiniteGaloisIntermediateField`
+  (ordered by inverse inclusion)
 
-* `continuousMulEquiv`
+* `ContinuousMulEquiv`
 
 * `Profinite`
 
@@ -240,12 +244,22 @@ lemma HomtoLimit_lift' [IsGalois k K]
     IsScalarTower.of_algebraMap_eq (congrFun rfl)
   let hom : (Opposite.op L') ⟶ (Opposite.op L) := opHomOfLE le
   have := g.2 hom
-
-  sorry
+  rw [←this]
+  unfold finGalFunctor
+  simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  unfold finGalMap
+  dsimp
+  change (AlgEquiv.restrictNormal (g.1 (Opposite.op L')) L ⟨x, hL⟩).1 = ((g.1 (Opposite.op L')).1 ⟨x, hL'⟩).1
+  have comm := AlgEquiv.restrictNormal_commutes (g.1 (Opposite.op L')) L ⟨x, hL⟩
+  have : ((algebraMap ↥L ↥L') ⟨x, hL⟩) = ⟨x,hL'⟩ := by rfl
+  rw [this] at comm
+  simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  rw [←comm]
+  rfl
 
 lemma HomtoLimit_lift [IsGalois k K]
   (g : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))).toProfinite.toTop)
-  (x : K) (L : (FiniteGaloisIntermediateField k K)) (hL : x ∈ L) :
+  (x : K) {L : (FiniteGaloisIntermediateField k K)} (hL : x ∈ L) :
     (g.1 (Opposite.op L)).1 ⟨x,hL⟩ =
     ((g.1 (Opposite.op (Classical.choose (union_eq_univ' (k := k) x)))).1
       ⟨x,(Classical.choose_spec (union_eq_univ' (k := k) x))⟩).1
@@ -274,18 +288,43 @@ lemma HomtoLimit_lift [IsGalois k K]
       HomtoLimit_lift' g x hLx (L_le hL) Lx_le
     rw [trans1,trans2]
 
+def bot : FiniteGaloisIntermediateField k K := {
+  (⊥ : IntermediateField k K) with
+  fin_dim := Subalgebra.finite_bot
+  is_gal := isGalois_bot
+  }
+
 theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k) (K := K)) := by
   intro g
-
   let σ : K →ₐ[k] K := {
     toFun := fun x => ((g.1 (Opposite.op (Classical.choose (union_eq_univ' (k := k) x)))).1
         ⟨x,(Classical.choose_spec (union_eq_univ' (k := k) x))⟩).1
     map_one' := by
       dsimp
-
-      sorry
+      have h1 : 1 ∈ (bot (k := k) (K := K)).carrier := by exact bot.one_mem'
+      have := HomtoLimit_lift g 1 h1
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at this
+      rw [←this]
+      have : ((g.1 (Opposite.op bot)).1 ⟨1, h1⟩) = 1 := by simp only [AlgEquiv.toEquiv_eq_coe,
+        EquivLike.coe_coe, MulEquivClass.map_eq_one_iff, Submonoid.mk_eq_one]
+      dsimp at this
+      rw [this]
+      rfl
     map_mul' := sorry
-    map_zero' := sorry
+    map_zero' := by
+      dsimp
+      have h0 : 0 ∈ (bot (k := k) (K := K)).carrier := by exact bot.zero_mem'
+      have := HomtoLimit_lift g 0 h0
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at this
+      rw [←this]
+      have : ((g.1 (Opposite.op bot)).1 ⟨0,h0⟩) = 0 := by
+        simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, AddEquivClass.map_eq_zero_iff]
+        rfl
+      dsimp at this
+      rw [this]
+      rfl
     map_add' := sorry
     commutes' := sorry
   }
