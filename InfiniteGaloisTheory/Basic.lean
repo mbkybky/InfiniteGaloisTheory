@@ -73,6 +73,15 @@ theorem IsScalarTower.algEquivRestrictNormalHom_eq (F K₁ K₂ K₃ : Type*)
     EmbeddingLike.apply_eq_iff_eq]
   exact IsScalarTower.algebraMap_apply K₁ K₂ K₃ x
 
+theorem IsScalarTower.algEquivRestrictNormalHom_apply (F K₁ K₂ : Type*) {K₃ : Type*}
+    [Field F] [Field K₁] [Field K₂] [Field K₃]
+    [Algebra F K₁] [Algebra F K₂] [Algebra F K₃] [Algebra K₁ K₂] [Algebra K₁ K₃] [Algebra K₂ K₃]
+    [IsScalarTower F K₁ K₃] [IsScalarTower F K₁ K₂] [IsScalarTower F K₂ K₃] [IsScalarTower K₁ K₂ K₃]
+    [Normal F K₁] [Normal F K₂] (f : K₃ ≃ₐ[F] K₃) :
+    AlgEquiv.restrictNormalHom K₁ f =
+      (AlgEquiv.restrictNormalHom K₁) (AlgEquiv.restrictNormalHom K₂ f) := by
+  rw [IsScalarTower.algEquivRestrictNormalHom_eq F K₁ K₂ K₃, MonoidHom.comp_apply]
+
 open CategoryTheory Topology
 
 universe u
@@ -172,22 +181,19 @@ lemma union_eq_univ'' (x y : K) [IsGalois k K] : ∃ L : (FiniteGaloisIntermedia
 
 lemma union_eq_univ' (x : K) [IsGalois k K] : ∃ L : (FiniteGaloisIntermediateField k K),
     x ∈ L.carrier := by
-  rcases (union_eq_univ'' (k := k) (K := K) x 1) with ⟨L,hL⟩
+  rcases (union_eq_univ'' (k := k) (K := K) x 1) with ⟨L, hL⟩
   exact ⟨L,hL.1⟩
 
 noncomputable def HomtoLimit : (K ≃ₐ[k] K) →*
     ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K)) where
-  toFun σ := ⟨fun L => (AlgEquiv.restrictNormalHom L.unop) σ, by
-    intro L₁ L₂ π
-    unfold finGalFunctor
-    dsimp
-    unfold finGalMap
-    symm
-    letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom π.1)
-    letI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-    letI : IsScalarTower L₂.unop L₁.unop K := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-    rw [IsScalarTower.algEquivRestrictNormalHom_eq k L₂.unop L₁.unop K]
-    rfl ⟩
+  toFun σ :=
+  { val := fun L => (AlgEquiv.restrictNormalHom L.unop) σ
+    property := fun L₁ L₂ π ↦ by
+      dsimp [finGalFunctor, finGalMap]
+      letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom π.1)
+      letI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+      letI : IsScalarTower L₂.unop L₁.unop K := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+      apply (IsScalarTower.algEquivRestrictNormalHom_apply k L₂.unop L₁.unop σ).symm }
   map_one' := by
     simp only [map_one]
     rfl
