@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yuyang Zhao
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yuyang Zhao, Youle Fang
 -/
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
@@ -287,6 +287,21 @@ instance : Limits.HasLimit (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
     { cone := limitOfFiniteGrpCone F
       isLimit := limitOfFiniteGrpConeIsLimit F
     }
+
+end
+
+section
+
+def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
+  {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp where
+    obj := fun ⟨H, _, _⟩ =>
+      let Q := P ⧸ H
+      letI : Finite Q := sorry
+      FiniteGrp.of Q
+    map := fun {H K} fHK =>
+      let ⟨H, _, _⟩ := H
+      let ⟨K, _, _⟩ := K
+      QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
 
 end
 
