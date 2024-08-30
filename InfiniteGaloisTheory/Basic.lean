@@ -91,6 +91,18 @@ lemma finGalMap.map_id (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) :
 
 lemma finGalMap.map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
     (f : L₁ ⟶ L₂) (g : L₂ ⟶ L₃) : finGalMap (f ≫ g) = (finGalMap f) ≫ (finGalMap g) := by
+  unfold finGalMap AlgEquiv.restrictNormalHom
+  congr
+  ext x y : 2
+  simp only [AlgEquiv.restrictNormal, AlgHom.restrictNormal', AlgHom.restrictNormal,
+    AlgEquiv.toAlgHom_eq_coe, AlgEquiv.coe_ofBijective, AlgHom.coe_comp, AlgHom.coe_coe,
+    Function.comp_apply]
+  letI : Algebra L₃.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom (f ≫ g).1)
+  letI : IsScalarTower k L₃.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  apply_fun (AlgEquiv.ofInjectiveField (IsScalarTower.toAlgHom k L₃.unop L₁.unop))
+  simp only [AlgEquiv.apply_symm_apply]
+  ext
+  unfold AlgHom.restrictNormalAux AlgEquiv.ofInjectiveField
 
   sorry
 
