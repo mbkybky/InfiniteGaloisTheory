@@ -235,7 +235,7 @@ lemma HomtoLimit_lift' [IsGalois k K]
   letI : IsScalarTower k ↥L ↥(Opposite.unop (Opposite.op L')) :=
     IsScalarTower.of_algebraMap_eq (congrFun rfl)
   let hom : (Opposite.op L') ⟶ (Opposite.op L) := opHomOfLE le
-  have : (finGalMap hom) (g.1 (Opposite.op L')) = g.1 (Opposite.op L):= g.2 hom
+  have := g.2 hom
 
   sorry
 
