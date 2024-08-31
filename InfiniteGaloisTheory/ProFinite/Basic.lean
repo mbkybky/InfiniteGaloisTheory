@@ -168,12 +168,7 @@ instance (j : J) : TopologicalSpace (F.obj j) := ⊥
 
 instance (j : J) : DiscreteTopology (F.obj j) := ⟨rfl⟩
 
-instance (j : J) : TopologicalGroup (F.obj j) where
-  continuous_mul := by continuity
-  continuous_inv := by continuity
-
-instance : TopologicalSpace (Π j : J, F.obj j) :=
-  Pi.topologicalSpace
+instance (j : J) : TopologicalGroup (F.obj j) := {}
 
 /-Concretely constructing the limit of topological group-/
 
