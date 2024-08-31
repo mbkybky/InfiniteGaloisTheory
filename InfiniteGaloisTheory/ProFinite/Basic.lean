@@ -362,7 +362,7 @@ lemma preimage_mk_eq_coset {G : Type u} [Group G] {H : Subgroup G} (i : G ⧸ H)
 def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfiniteGrp P) where
   toFun := fun p => {
     val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
-    property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ πab => by
+    property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ _ => by
       unfold diagramOfProfiniteGrp; rfl
   }
   map_one' := Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
@@ -374,12 +374,38 @@ def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfinite
     intro ⟨H, hH, hHO⟩
     dsimp
     apply Continuous.mk
-    intro s s_isopen
+    intro s _
     rw [← (Set.biUnion_preimage_singleton QuotientGroup.mk s)]
     apply isOpen_iUnion; intro i
     apply isOpen_iUnion; intro ih
     rw [preimage_mk_eq_coset]
     exact IsOpen.leftCoset hHO (Quotient.out' i)
+
+
+#check canonicalMap
+#check instTopologicalSpaceSubtype
+
+theorem denseCanonicalMap (P : ProfiniteGrp) : Dense (canonicalMap P).range.carrier := dense_iff_inter_open.mpr
+  fun U hUO hUNonempty => (by
+    unfold limitOfFiniteGrp at U
+    unfold ProfiniteGrp.of at U
+    simp only [Set.coe_setOf, Set.mem_setOf_eq, CompHausLike.coe_of] at U
+    unfold G_ at U
+    let uDefault := hUNonempty.some
+    let uDefaultSpec := hUNonempty.some_mem
+
+    -- let NormalOpenType := { x : Subgroup P // x.Normal ∧ IsOpen (x: Set P) }
+    -- let piFun := (j : NormalOpenType) → (P.diagramOfProfiniteGrp.obj j).toGrp
+    -- let property_piFun : piFun → Prop := fun x ↦ ∀ (a : NormalOpenType) (b : NormalOpenType) (π : a ⟶ b), (P.diagramOfProfiniteGrp.map π) (x a) = x b
+    rcases hUO with ⟨s, hsO, hsv⟩
+
+    let uMemPiOpen := isOpen_pi_iff.mp hsO
+    simp_rw [← hsv] at uDefaultSpec
+    rw [Set.mem_preimage] at uDefaultSpec
+    specialize uMemPiOpen _ uDefaultSpec
+    rcases uMemPiOpen with ⟨J, fJ, h⟩
+    sorry
+  )
 
 end
 
