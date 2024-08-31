@@ -301,6 +301,24 @@ def diagramOfProfiniteGrp (P : ProfiniteGrp) :
       let ⟨K, _, _⟩ := K
       QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
 
+open Pointwise
+lemma preimage_mk_eq_coset {G : Type u} [Group G] {H : Subgroup G} (i : G ⧸ H) : QuotientGroup.mk ⁻¹' {i} = (Quotient.out' i) • ↑H := by
+  ext x
+  simp only [Set.mem_preimage, Set.mem_singleton_iff]
+  constructor
+  · intro hxi
+    rw [← hxi]
+    let ⟨t, ht⟩ := QuotientGroup.mk_out'_eq_mul H x
+    rw [ht]
+    use t⁻¹
+    simp only [SetLike.mem_coe, inv_mem_iff, SetLike.coe_mem, smul_eq_mul, mul_inv_cancel_right, and_self]
+  intro ⟨t, hht, ht⟩
+  simp only [smul_eq_mul] at ht
+  have : i = QuotientGroup.mk (Quotient.out' i) := by exact Eq.symm (QuotientGroup.out_eq' i)
+  rw [this]
+  refine QuotientGroup.eq.mpr ?h.mpr.a
+  rw [← ht]; simp only [mul_inv_rev, inv_mul_cancel_right, inv_mem_iff]; exact hht
+
 def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfiniteGrp P) where
   toFun := fun p => {
     val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
@@ -313,16 +331,15 @@ def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfinite
     dsimp
     apply continuous_induced_rng.mpr
     apply continuous_pi
+    intro ⟨H, hH, hHO⟩
     dsimp
-    intro ⟨H, _, _⟩
-    dsimp
-    convert continuous_quotient_mk'
-    sorry
-
-end
-
-
-section
+    apply Continuous.mk
+    intro s s_isopen
+    rw [← (Set.biUnion_preimage_singleton QuotientGroup.mk s)]
+    apply isOpen_iUnion; intro i
+    apply isOpen_iUnion; intro ih
+    rw [preimage_mk_eq_coset]
+    exact IsOpen.leftCoset hHO (Quotient.out' i)
 
 end
 
