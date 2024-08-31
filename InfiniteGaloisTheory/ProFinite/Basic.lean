@@ -135,7 +135,8 @@ def ofFiniteGrp (G : FiniteGrp) : ProfiniteGrp :=
   letI : TopologicalGroup G := {}
   of G
 
-def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H] [Group H] [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
+def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H] [Group H]
+    [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
   letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
   letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
   letI : TotallyDisconnectedSpace H := Homeomorph.TotallyDisconnectedSpace e.toHomeomorph

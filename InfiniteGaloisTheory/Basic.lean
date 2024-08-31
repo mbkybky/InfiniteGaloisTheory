@@ -321,11 +321,7 @@ theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k
       have hy := HomtoLimit_lift g y hyL
       have hxy := HomtoLimit_lift g (x * y) hxyL
       simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
-        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hx
-      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
-        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hy
-      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
-        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hxy
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hx hy hxy
       rw [←hx,←hy, ←hxy]
       have : (⟨x * y, hxyL⟩ : L) = (⟨x, hxL⟩ : L) * (⟨y, hyL⟩ : L) := rfl
       rw [this, map_mul]
@@ -352,11 +348,7 @@ theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k
       have hy := HomtoLimit_lift g y hyL
       have hxy := HomtoLimit_lift g (x + y) hxyL
       simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
-        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hx
-      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
-        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hy
-      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
-        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hxy
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hx hy hxy
       rw [←hx,←hy, ←hxy]
       have : (⟨x + y, hxyL⟩ : L) = (⟨x, hxL⟩ : L) + (⟨y, hyL⟩ : L) := rfl
       rw [this, map_add]
@@ -404,6 +396,10 @@ theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k
     IntermediateField.coe_toSubalgebra, AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
   symm
   apply HomtoLimit_lift
+
+noncomputable def  MulEquivtoLimit [IsGalois k K] : (K ≃ₐ[k] K) ≃*
+    ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K)) :=
+  MulEquiv.ofBijective HomtoLimit ⟨HomtoLimit_inj, HomtoLimit_surj⟩
 
 end FiniteGaloisIntermediateField
 
