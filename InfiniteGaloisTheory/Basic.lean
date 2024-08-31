@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yuyang Zhao
+Authors: Jujian Zhang, Nailin Guan, Yuyang Zhao, Yongle Hu
 -/
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
@@ -46,7 +46,8 @@ In `K/k`
 # implementation note
 
 This file compiles very slowly, mainly because the two composition of restriction as a composition
-of an inverse function of an AlgEquiv composite with another AlgEquiv
+of an inverse function of an AlgEquiv composite with another AlgEquiv. Thanks to Yuyang Zhao for
+modifying the proofs.
 
 -/
 
@@ -230,8 +231,6 @@ theorem HomtoLimit_inj [IsGalois k K] : Function.Injective (HomtoLimit (k := k) 
   convert this
   all_goals apply restrict_eq
 
-#check algEquivEquivAlgHom
-
 set_option synthInstance.maxHeartbeats 50000 in
 lemma HomtoLimit_lift' [IsGalois k K]
   (g : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))).toProfinite.toTop)
@@ -294,9 +293,11 @@ def bot : FiniteGaloisIntermediateField k K := {
   is_gal := isGalois_bot
   }
 
+instance : Algebra k (bot (k := k) (K := K)) := bot.algebra'
+
 theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k) (K := K)) := by
   intro g
-  let σ : K →ₐ[k] K := {
+  let σ' : K →ₐ[k] K := {
     toFun := fun x => ((g.1 (Opposite.op (Classical.choose (union_eq_univ' (k := k) x)))).1
         ⟨x,(Classical.choose_spec (union_eq_univ' (k := k) x))⟩).1
     map_one' := by
@@ -311,7 +312,24 @@ theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k
       dsimp at this
       rw [this]
       rfl
-    map_mul' := sorry
+    map_mul' := fun x y => by
+      simp only [Subsemiring.coe_carrier_toSubmonoid, Subalgebra.coe_toSubsemiring,
+        IntermediateField.coe_toSubalgebra, AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+      rcases (union_eq_univ'' (k := k) x y) with ⟨L,hxL,hyL⟩
+      have hxyL : (x * y) ∈ L.carrier := L.mul_mem' hxL hyL
+      have hx := HomtoLimit_lift g x hxL
+      have hy := HomtoLimit_lift g y hyL
+      have hxy := HomtoLimit_lift g (x * y) hxyL
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hx
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hy
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hxy
+      rw [←hx,←hy, ←hxy]
+      have : (⟨x * y, hxyL⟩ : L) = (⟨x, hxL⟩ : L) * (⟨y, hyL⟩ : L) := rfl
+      rw [this, map_mul]
+      rfl
     map_zero' := by
       dsimp
       have h0 : 0 ∈ (bot (k := k) (K := K)).carrier := by exact bot.zero_mem'
@@ -325,10 +343,67 @@ theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k
       dsimp at this
       rw [this]
       rfl
-    map_add' := sorry
-    commutes' := sorry
+    map_add' := fun x y => by
+      simp only [Subsemiring.coe_carrier_toSubmonoid, Subalgebra.coe_toSubsemiring,
+        IntermediateField.coe_toSubalgebra, AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+      rcases (union_eq_univ'' (k := k) x y) with ⟨L,hxL,hyL⟩
+      have hxyL : (x + y) ∈ L.carrier := L.add_mem' hxL hyL
+      have hx := HomtoLimit_lift g x hxL
+      have hy := HomtoLimit_lift g y hyL
+      have hxy := HomtoLimit_lift g (x + y) hxyL
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hx
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hy
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hxy
+      rw [←hx,←hy, ←hxy]
+      have : (⟨x + y, hxyL⟩ : L) = (⟨x, hxL⟩ : L) + (⟨y, hyL⟩ : L) := rfl
+      rw [this, map_add]
+      rfl
+    commutes' := fun z => by
+      simp only [Subsemiring.coe_carrier_toSubmonoid, Subalgebra.coe_toSubsemiring,
+        IntermediateField.coe_toSubalgebra, AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+      have hzbot : ((algebraMap k K) z) ∈ (bot (k := k) (K := K)).carrier := bot.algebraMap_mem' z
+      have hz := HomtoLimit_lift g ((algebraMap k K) z) hzbot
+      simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe, Subsemiring.coe_carrier_toSubmonoid,
+        Subalgebra.coe_toSubsemiring, IntermediateField.coe_toSubalgebra] at hz
+      rw [←hz]
+      have := (g.1 (Opposite.op bot)).commutes' z
+      dsimp at this
+      let z' : K := ((algebraMap k (bot (k := k) (K := K))) z).1
+      have coe : (algebraMap k K) z = z' := rfl
+      simp_rw [coe]
+      have hz' := ((algebraMap k (bot (k := k) (K := K))) z).2
+      have coe' : ((algebraMap k (bot (k := k) (K := K))) z) = ⟨z',hz'⟩ := rfl
+      simp_rw [coe'] at this
+      exact congrArg Subtype.val this
   }
-  sorry
+  have := Algebra.IsAlgebraic.algHom_bijective σ'
+  let σ := AlgEquiv.ofBijective σ' this
+  use σ
+  apply Subtype.val_injective
+  ext L
+  unfold_let σ
+  unfold HomtoLimit AlgEquiv.restrictNormalHom
+  simp only [MonoidHom.mk'_apply, MonoidHom.coe_mk, OneHom.coe_mk]
+  unfold AlgEquiv.restrictNormal
+  have : (AlgEquiv.ofBijective σ' this).toAlgHom = σ' := rfl
+  simp_rw [this]
+  apply AlgEquiv.ext
+  intro x
+  have : (σ'.restrictNormal' ↥(Opposite.unop L)) x = σ' x.1 := by
+    unfold AlgHom.restrictNormal'
+    simp only [AlgEquiv.coe_ofBijective]
+    have := AlgHom.restrictNormal_commutes σ' L.unop x
+    convert this
+  apply Subtype.val_injective
+  rw [this]
+  show σ'.toFun x.1  = ((g.1 L).1 x).1
+  simp only [Subsemiring.coe_carrier_toSubmonoid, Subalgebra.coe_toSubsemiring,
+    IntermediateField.coe_toSubalgebra, AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  symm
+  apply HomtoLimit_lift
 
 end FiniteGaloisIntermediateField
 
