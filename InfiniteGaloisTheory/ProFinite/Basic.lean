@@ -97,19 +97,14 @@ def ofProfinite (G : Profinite) [Group G] [TopologicalGroup G] : ProfiniteGrp wh
 def Pi.profiniteGrp {α : Type u} (β : α → ProfiniteGrp) : ProfiniteGrp :=
   let pitype := Pi.profinite fun (a : α) => (β a).toProfinite
   letI (a : α): Group (β a).toProfinite := (β a).isGroup
-  letI : Group pitype := by
-    unfold_let; dsimp [Pi.profinite]
-    exact Pi.group
-  letI : TopologicalGroup pitype := by
-    unfold_let; dsimp [Pi.profinite]
-    letI (a : α): TopologicalGroup (β a).toProfinite := (β a).isTopologicalGroup
-    exact Pi.topologicalGroup
+  letI : Group pitype := Pi.group
+  letI : TopologicalGroup pitype := Pi.topologicalGroup
   ofProfinite pitype
 
 instance : Category ProfiniteGrp where
   Hom A B := ContinuousMonoidHom A B
   id A := ContinuousMonoidHom.id A
-  comp {X Y Z} f g := ContinuousMonoidHom.comp g f
+  comp f g := ContinuousMonoidHom.comp g f
 
 instance (G H : ProfiniteGrp) : FunLike (G ⟶ H) G H :=
   inferInstanceAs $ FunLike (ContinuousMonoidHom G H) G H
@@ -295,7 +290,7 @@ end
 
 section
 
-def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
+def diagramOfProfiniteGrp (P : ProfiniteGrp) :
   {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp where
     obj := fun ⟨H, _, _⟩ =>
       let Q := P ⧸ H
@@ -305,6 +300,29 @@ def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
       let ⟨H, _, _⟩ := H
       let ⟨K, _, _⟩ := K
       QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
+
+def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfiniteGrp P) where
+  toFun := fun p => {
+    val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
+    property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ πab => by
+      unfold diagramOfProfiniteGrp; rfl
+  }
+  map_one' := Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  map_mul' := fun x y => Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  continuous_toFun := by
+    dsimp
+    apply continuous_induced_rng.mpr
+    apply continuous_pi
+    dsimp
+    intro ⟨H, _, _⟩
+    dsimp
+    convert continuous_quotient_mk'
+    sorry
+
+end
+
+
+section
 
 end
 
