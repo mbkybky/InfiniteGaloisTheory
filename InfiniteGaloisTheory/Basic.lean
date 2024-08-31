@@ -419,8 +419,25 @@ noncomputable def  MulEquivtoLimit [IsGalois k K] : (K ≃ₐ[k] K) ≃*
     ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K)) :=
   MulEquiv.ofBijective HomtoLimit ⟨HomtoLimit_inj, HomtoLimit_surj⟩
 
+#check TopologicalSpace.IsTopologicalBasis.continuous_iff
+
 lemma LimtoGalContinuous [IsGalois k K] : Continuous
-  (MulEquivtoLimit (k := k) (K := K)).symm.toEquiv := sorry
+  (MulEquivtoLimit (k := k) (K := K)).symm := by
+  apply continuous_of_continuousAt_one
+  apply continuousAt_def.mpr
+  simp only [map_one, GroupFilterBasis.nhds_one_eq]
+  intro H hH
+  rcases hH with ⟨O,hO1,hO2⟩
+  rcases hO1 with ⟨gp,hgp1,hgp2⟩
+  have op : IsOpen (⇑MulEquivtoLimit.symm ⁻¹' O) := by
+
+    sorry
+  have sub : (⇑MulEquivtoLimit.symm ⁻¹' O) ⊆ (⇑MulEquivtoLimit.symm ⁻¹' H) := fun ⦃a⦄ => fun a ↦ hO2 a
+  apply mem_nhds_iff.mpr
+  use (⇑MulEquivtoLimit.symm ⁻¹' O)
+  simp only [sub, op, Set.mem_preimage, map_one, true_and]
+  rw [←hgp2]
+  exact gp.one_mem'
 
 instance [IsGalois k K] : CompactSpace (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))) :=
   inferInstance
