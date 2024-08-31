@@ -292,7 +292,7 @@ end
 
 section
 
-def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
+def diagramOfProfiniteGrp (P : ProfiniteGrp) :
   {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp where
     obj := fun ⟨H, _, _⟩ =>
       let Q := P ⧸ H
@@ -302,6 +302,29 @@ def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
       let ⟨H, _, _⟩ := H
       let ⟨K, _, _⟩ := K
       QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
+
+def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfiniteGrp P) where
+  toFun := fun p => {
+    val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
+    property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ πab => by
+      unfold diagramOfProfiniteGrp; rfl
+  }
+  map_one' := Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  map_mul' := fun x y => Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  continuous_toFun := by
+    dsimp
+    apply continuous_induced_rng.mpr
+    apply continuous_pi
+    dsimp
+    intro ⟨H, _, _⟩
+    dsimp
+    convert continuous_quotient_mk'
+    sorry
+
+end
+
+
+section
 
 end
 
