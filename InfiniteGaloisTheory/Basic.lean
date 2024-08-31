@@ -141,7 +141,8 @@ lemma finGalMap.map_id (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) :
 lemma finGalMap.map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
     (f : L₁ ⟶ L₂) (g : L₂ ⟶ L₃) : finGalMap (f ≫ g) = finGalMap f ≫ finGalMap g := by
   suffices h : ∀ (L₁ L₂ L₃ : FiniteGaloisIntermediateField k K) (hf : L₂ ≤ L₁) (hg : L₃ ≤ L₂),
-      finGalMap (Opposite.op hf.hom ≫ Opposite.op hg.hom) = finGalMap (Opposite.op hf.hom) ≫ finGalMap (Opposite.op hg.hom) by
+      finGalMap (Opposite.op hf.hom ≫ Opposite.op hg.hom) =
+        finGalMap (Opposite.op hf.hom) ≫ finGalMap (Opposite.op hg.hom) by
     exact h _ _ _ _ _
   intro L₁ L₂ L₃ hf hg
   letI : Algebra L₃ L₂ := RingHom.toAlgebra (Subsemiring.inclusion hg)
@@ -248,7 +249,8 @@ lemma HomtoLimit_lift' [IsGalois k K]
   simp only [AlgEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
   unfold finGalMap
   dsimp
-  change (AlgEquiv.restrictNormal (g.1 (Opposite.op L')) L ⟨x, hL⟩).1 = ((g.1 (Opposite.op L')).1 ⟨x, hL'⟩).1
+  change (AlgEquiv.restrictNormal (g.1 (Opposite.op L')) L ⟨x, hL⟩).1 =
+    ((g.1 (Opposite.op L')).1 ⟨x, hL'⟩).1
   have comm := AlgEquiv.restrictNormal_commutes (g.1 (Opposite.op L')) L ⟨x, hL⟩
   have : ((algebraMap ↥L ↥L') ⟨x, hL⟩) = ⟨x,hL'⟩ := by rfl
   rw [this] at comm
@@ -283,8 +285,8 @@ lemma HomtoLimit_lift [IsGalois k K]
       exact le_trans (SemilatticeSup.le_sup_right L.1 Lx.1) Lm''_le
     have trans1 : ((g.1 (Opposite.op L)).1 ⟨x,hL⟩).1 = ((g.1 (Opposite.op Lm)).1 ⟨x,(L_le hL)⟩).1 :=
       HomtoLimit_lift' g x hL (L_le hL) L_le
-    have trans2 : ((g.1 (Opposite.op Lx)).1 ⟨x,hLx⟩).1 = ((g.1 (Opposite.op Lm)).1 ⟨x,(L_le hL)⟩).1 :=
-      HomtoLimit_lift' g x hLx (L_le hL) Lx_le
+    have trans2 : ((g.1 (Opposite.op Lx)).1 ⟨x,hLx⟩).1 =
+      ((g.1 (Opposite.op Lm)).1 ⟨x,(L_le hL)⟩).1 := HomtoLimit_lift' g x hLx (L_le hL) Lx_le
     rw [trans1,trans2]
 
 def bot : FiniteGaloisIntermediateField k K := {

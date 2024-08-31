@@ -68,7 +68,8 @@ def of (G : Type u) [Group G] [Finite G] : FiniteGrp where
 def ofHom {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) : of X ⟶ of Y :=
   Grp.ofHom f
 
-lemma ofHom_apply {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) (x : X) : ofHom f x = f x :=
+lemma ofHom_apply {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) (x : X) :
+  ofHom f x = f x :=
   rfl
 
 end FiniteGrp
@@ -233,7 +234,8 @@ def limitOfFiniteGrpCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) 
     }
     naturality := by
       intro i j f
-      simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map, Category.id_comp, Functor.comp_map]
+      simp only [Functor.const_obj_obj, Functor.comp_obj,
+        Functor.const_obj_map, Category.id_comp, Functor.comp_map]
       congr
       exact funext fun x ↦ (x.2 f).symm
   }
