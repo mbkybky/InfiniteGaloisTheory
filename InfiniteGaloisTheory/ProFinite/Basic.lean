@@ -290,4 +290,19 @@ instance : Limits.HasLimit (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
 
 end
 
+section
+
+def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
+  {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp where
+    obj := fun ⟨H, _, _⟩ =>
+      let Q := P ⧸ H
+      letI : Finite Q := sorry
+      FiniteGrp.of Q
+    map := fun {H K} fHK =>
+      let ⟨H, _, _⟩ := H
+      let ⟨K, _, _⟩ := K
+      QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
+
+end
+
 end ProfiniteGrp
