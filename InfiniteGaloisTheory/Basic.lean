@@ -39,21 +39,22 @@ In `K/k`
   the projections are compatible with the morphisms on `FiniteGaloisIntermediateField`
   (ordered by inverse inclusion)
 
-* `ContinuousMulEquiv` : Three main parts :
-  1. Injectivity : For two element of `Gal(K/k)` must be different at some `x`, as `union_eq_univ`
-     mentioned above, the coordinate at the normal closure of simple extension of `x`
-     (can be easily verified finite and galois) is different,
-     thus differnt in the subgroup of the product space.
-  2. Surjectivity : It is basically constructing an element of `Gal(K/k)`
-    by binding the compatible elements of `Gal(L/k)` where `L` is `FiniteGaloisIntermediateField`
-    A lemma is needed : for an element `g` in `lim Gal(L/k)` ordered by inverse inclusion,
-    any two `FiniteGaloisIntermediateField` `L₁ L₂` containing an element`x` of `K`,
+* `ContinuousMulEquiv` : A ContinuousMulEquiv from `Gal(K/k)` to `lim Gal(L/k)`
+    where `L` is `FiniteGaloisIntermediateField`, ordered by inverse inclusion
+  Three main parts :
+  1. Injectivity :
+    Notice that the coordinate at the normal closure of simple extension of `x`
+     is different for two element of `Gal(K/k)` mapping `x` differently.
+  2. Surjectivity :
+    A lemma is needed (lift): for an element `g` in `lim Gal(L/k)` and any two
+    `FiniteGaloisIntermediateField` `L₁ L₂` containing an element`x`,
     `g` in the coordinate of `L₁` and `L₂` maps `x` to the same element of `K`.
-    Then by defining the image of `g` in `Gal(K/k)` pointwise by arbitrarily choose an
-    `FiniteGaloisIntermediateField` `L` containing `x` and use the image of
-    `g` in the coordinate of `L` acting on `x`. By using the lemma repeatedly, we can get an AlgHom.
-    The by the bijectivity, it can be made into an element of `Gal(K/k)`
-  3. Two-sided continuity :
+    Then by defining the image of `g` in `Gal(K/k)` pointwise in `K` and use the lemma repeatedly,
+    we can get an AlgHom. Then by the bijectivity, it can be made into an element of `Gal(K/k)`
+  3. Two-sided continuity : Notice that `Gal(K/k)` is T₂,
+    `lim Gal(L/k)` ordered by inverse inclusion is Profinite thus compact, we only need the
+    continuity from `lim Gal(L/k)` to `Gal(K/k)`, which only need continuity at `1`.
+    It can be easily verified by checking the preimage of GroupFilterBasis is open.
 
 * `Profinite`
 
@@ -451,7 +452,14 @@ lemma LimtoGalContinuous [IsGalois k K] : Continuous
         (⇑MulEquivtoLimit)'' L'.fixingSubgroup.carrier := by
         set S := L'.fixingSubgroup.carrier
         set f := (MulEquivtoLimit (k := k) (K := K))
-        aesop
+        ext σ
+        constructor
+        all_goals intro h
+        · simp only [Set.mem_preimage] at h
+          use f.symm σ
+          simp only [h, MulEquiv.apply_symm_apply, and_self]
+        · rcases h with ⟨σ',h1,h2⟩
+          simp [←h2,h1]
       rw [this]
       let fix1 : Set ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → ↑(finGalFunctor.obj L).toGrp) :=
         {x : ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → ↑(finGalFunctor.obj L).toGrp)
