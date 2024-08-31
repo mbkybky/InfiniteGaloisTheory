@@ -153,7 +153,9 @@ instance : CategoryTheory.HasForget₂ FiniteGrp ProfiniteGrp where
   { obj := ofFiniteGrp
     map := fun f => ⟨f, by continuity⟩ }
 
-section
+end ProfiniteGrp
+
+section limit
 
 universe w w'
 
@@ -167,19 +169,21 @@ instance (j : J) : DiscreteTopology (F.obj j) := ⟨rfl⟩
 
 instance (j : J) : TopologicalGroup (F.obj j) := {}
 
+namespace FiniteGrp
+
 /-Concretely constructing the limit of topological group-/
 
-def G_ : Subgroup (Π j : J, F.obj j) where
+def limit : Subgroup (Π j : J, F.obj j) where
   carrier := {x | ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j}
   mul_mem' hx hy _ _ π := by simp only [Pi.mul_apply, map_mul, hx π, hy π]
   one_mem' := by simp
   inv_mem' h _ _ π := by simp [h π]
 
 @[simp]
-lemma mem_G_ (x : Π j : J, F.obj j) : x ∈ G_ F ↔ ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j :=
+lemma mem_limit (x : Π j : J, F.obj j) : x ∈ limit F ↔ ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j :=
   Iff.rfl
 
-instance : CompactSpace (G_ F) := ClosedEmbedding.compactSpace (f := (G_ F).subtype)
+instance : CompactSpace (limit F) := ClosedEmbedding.compactSpace (f := (limit F).subtype)
   { induced := rfl
     inj := Subgroup.subtype_injective _
     isClosed_range := by
@@ -198,20 +202,24 @@ instance : CompactSpace (G_ F) := ClosedEmbedding.compactSpace (f := (G_ F).subt
           Set.mem_inter_iff, Set.mem_preimage, Function.eval, Set.mem_singleton_iff,
           Set.mem_compl_iff, Set.mem_setOf_eq] at hy ⊢
         rwa [hy.1, hy.2]
-      have eq : Set.range (G_ F).subtype = ⋂ (i : J) (j : J) (π : i ⟶ j), S π := by
+      have eq : Set.range (limit F).subtype = ⋂ (i : J) (j : J) (π : i ⟶ j), S π := by
         ext x
-        simp only [Subgroup.coeSubtype, Subtype.range_coe_subtype, SetLike.mem_coe, mem_G_,
+        simp only [Subgroup.coeSubtype, Subtype.range_coe_subtype, SetLike.mem_coe, mem_limit,
           Set.mem_setOf_eq, Set.mem_iInter]
         tauto
       rw [eq]
       exact isClosed_iInter fun i => isClosed_iInter fun j => isClosed_iInter fun π => hS π }
 
-def limitOfFiniteGrp : ProfiniteGrp := of (G_ F)
+end FiniteGrp
+
+namespace ProfiniteGrp
+
+def ofFiniteGrpLimit : ProfiniteGrp := .of (FiniteGrp.limit F)
 
 /-- verify that the limit constructed above satisfies the universal property-/
 @[simps]
-def limitOfFiniteGrpCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
-  pt := limitOfFiniteGrp F
+def ofFiniteGrpLimitCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
+  pt := ofFiniteGrpLimit F
   π :=
   { app := fun j => {
       toFun := fun x => x.1 j
@@ -219,7 +227,7 @@ def limitOfFiniteGrpCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) 
       map_mul' := fun x y => rfl
       continuous_toFun := by
         dsimp
-        have triv : Continuous fun x : ((Functor.const J).obj (limitOfFiniteGrp F)).obj j ↦ x.1 :=
+        have triv : Continuous fun x : ((Functor.const J).obj (ofFiniteGrpLimit F)).obj j ↦ x.1 :=
           continuous_iff_le_induced.mpr fun U a => a
         have : Continuous fun (x1 : (j : J) → F.obj j) ↦ x1 j := continuous_apply j
         exact this.comp triv
@@ -233,7 +241,7 @@ def limitOfFiniteGrpCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) 
   }
 
 @[simps]
-def limitOfFiniteGrpConeIsLimit : Limits.IsLimit (limitOfFiniteGrpCone F) where
+def ofFiniteGrpLimitConeIsLimit : Limits.IsLimit (ofFiniteGrpLimitCone F) where
   lift cone := {
     toFun := fun pt ↦
       { val := fun j => (cone.π.1 j) pt
@@ -279,11 +287,15 @@ def limitOfFiniteGrpConeIsLimit : Limits.IsLimit (limitOfFiniteGrpCone F) where
 
 instance : Limits.HasLimit (F ⋙ forget₂ FiniteGrp ProfiniteGrp) where
   exists_limit := Nonempty.intro
-    { cone := limitOfFiniteGrpCone F
-      isLimit := limitOfFiniteGrpConeIsLimit F
+    { cone := ofFiniteGrpLimitCone F
+      isLimit := ofFiniteGrpLimitConeIsLimit F
     }
 
-end
+end ProfiniteGrp
+
+end limit
+
+namespace ProfiniteGrp
 
 section
 
@@ -355,7 +367,7 @@ lemma preimage_mk_eq_coset {G : Type u} [Group G] {H : Subgroup G} (i : G ⧸ H)
   refine QuotientGroup.eq.mpr ?h.mpr.a
   rw [← ht]; simp only [mul_inv_rev, inv_mul_cancel_right, inv_mem_iff]; exact hht
 
-def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfiniteGrp P) where
+def canonicalMap (P : ProfiniteGrp) : P ⟶ ofFiniteGrpLimit (diagramOfProfiniteGrp P) where
   toFun := fun p => {
     val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
     property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ _ => by
@@ -383,10 +395,10 @@ def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfinite
 
 theorem denseCanonicalMap (P : ProfiniteGrp) : Dense (canonicalMap P).range.carrier := dense_iff_inter_open.mpr
   fun U hUO hUNonempty => (by
-    unfold limitOfFiniteGrp at U
+    unfold ofFiniteGrpLimit at U
     unfold ProfiniteGrp.of at U
     simp only [Set.coe_setOf, Set.mem_setOf_eq, CompHausLike.coe_of] at U
-    unfold G_ at U
+    unfold FiniteGrp.limit at U
     let uDefault := hUNonempty.some
     let uDefaultSpec := hUNonempty.some_mem
 
