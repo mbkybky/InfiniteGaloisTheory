@@ -39,7 +39,21 @@ In `K/k`
   the projections are compatible with the morphisms on `FiniteGaloisIntermediateField`
   (ordered by inverse inclusion)
 
-* `ContinuousMulEquiv`
+* `ContinuousMulEquiv` : Three main parts :
+  1. Injectivity : For two element of `Gal(K/k)` must be different at some `x`, as `union_eq_univ`
+     mentioned above, the coordinate at the normal closure of simple extension of `x`
+     (can be easily verified finite and galois) is different,
+     thus differnt in the subgroup of the product space.
+  2. Surjectivity : It is basically constructing an element of `Gal(K/k)`
+    by binding the compatible elements of `Gal(L/k)` where `L` is `FiniteGaloisIntermediateField`
+    A lemma is needed : for an element `g` in `lim Gal(L/k)` ordered by inverse inclusion,
+    any two `FiniteGaloisIntermediateField` `L₁ L₂` containing an element`x` of `K`,
+    `g` in the coordinate of `L₁` and `L₂` maps `x` to the same element of `K`.
+    Then by defining the image of `g` in `Gal(K/k)` pointwise by arbitrarily choose an
+    `FiniteGaloisIntermediateField` `L` containing `x` and use the image of
+    `g` in the coordinate of `L` acting on `x`. By using the lemma repeatedly, we can get an AlgHom.
+    The by the bijectivity, it can be made into an element of `Gal(K/k)`
+  3. Two-sided continuity :
 
 * `Profinite`
 
@@ -91,7 +105,7 @@ open CategoryTheory Topology
 
 universe u
 
-variable (k K : Type u) [Field k] [Field K] [Algebra k K] -- [IsGalois k K]
+variable (k K : Type u) [Field k] [Field K] [Algebra k K]
 
 @[ext]
 structure FiniteGaloisIntermediateField extends IntermediateField k K where
@@ -160,6 +174,8 @@ def finGalFunctor : (FiniteGaloisIntermediateField k K)ᵒᵖ ⥤ FiniteGrp.{u} 
   map_id := finGalMap.map_id
   map_comp := finGalMap.map_comp
 
+--variable [IsGalois k K]
+
 lemma union_eq_univ'' (x y : K) [IsGalois k K] : ∃ L : (FiniteGaloisIntermediateField k K),
     x ∈ L.carrier ∧ y ∈ L.carrier := by
   let L' := normalClosure k (IntermediateField.adjoin k ({x,y} : Set K)) K
@@ -188,7 +204,7 @@ lemma union_eq_univ' (x : K) [IsGalois k K] : ∃ L : (FiniteGaloisIntermediateF
   rcases (union_eq_univ'' (k := k) (K := K) x 1) with ⟨L, hL⟩
   exact ⟨L,hL.1⟩
 
-noncomputable def HomtoLimit : (K ≃ₐ[k] K) →*
+noncomputable def HomtoLimit [IsGalois k K] : (K ≃ₐ[k] K) →*
     ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K)) where
   toFun σ :=
   { val := fun L => (AlgEquiv.restrictNormalHom L.unop) σ
@@ -233,7 +249,7 @@ theorem HomtoLimit_inj [IsGalois k K] : Function.Injective (HomtoLimit (k := k) 
   all_goals apply restrict_eq
 
 set_option synthInstance.maxHeartbeats 50000 in
-lemma HomtoLimit_lift' [IsGalois k K]
+lemma HomtoLimit_lift'
   (g : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))).toProfinite.toTop)
   (x : K) {L : (FiniteGaloisIntermediateField k K)} (hL : x ∈ L)
   {L' : (FiniteGaloisIntermediateField k K)} (hL' : x ∈ L') (le : L ≤ L'):
@@ -289,13 +305,13 @@ lemma HomtoLimit_lift [IsGalois k K]
       ((g.1 (Opposite.op Lm)).1 ⟨x,(L_le hL)⟩).1 := HomtoLimit_lift' g x hLx (L_le hL) Lx_le
     rw [trans1,trans2]
 
-def bot : FiniteGaloisIntermediateField k K := {
+def bot [IsGalois k K] : FiniteGaloisIntermediateField k K := {
   (⊥ : IntermediateField k K) with
   fin_dim := Subalgebra.finite_bot
   is_gal := isGalois_bot
   }
 
-instance : Algebra k (bot (k := k) (K := K)) := bot.algebra'
+instance [IsGalois k K] : Algebra k (bot (k := k) (K := K)) := bot.algebra'
 
 theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k) (K := K)) := by
   intro g
@@ -402,6 +418,26 @@ theorem HomtoLimit_surj [IsGalois k K] : Function.Surjective (HomtoLimit (k := k
 noncomputable def  MulEquivtoLimit [IsGalois k K] : (K ≃ₐ[k] K) ≃*
     ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K)) :=
   MulEquiv.ofBijective HomtoLimit ⟨HomtoLimit_inj, HomtoLimit_surj⟩
+
+lemma LimtoGalContinuous [IsGalois k K] : Continuous
+  (MulEquivtoLimit (k := k) (K := K)).symm.toEquiv := sorry
+
+instance [IsGalois k K] : CompactSpace (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))) :=
+  inferInstance
+
+instance [IsGalois k K] : Algebra.IsIntegral k K := inferInstance
+
+instance [IsGalois k K] : T2Space (K ≃ₐ[k] K) := krullTopology_t2
+
+def LimtoGalHomeo [IsGalois k K] : (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))) ≃ₜ (K ≃ₐ[k] K)
+  := Continuous.homeoOfEquivCompactToT2 LimtoGalContinuous
+
+noncomputable def  ContinuousMulEquivtoLimit [IsGalois k K] : ContinuousMulEquiv (K ≃ₐ[k] K)
+  (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))) := {
+    MulEquivtoLimit (k := k) (K := K) with
+    continuous_toFun := LimtoGalHomeo.continuous_invFun
+    continuous_invFun := LimtoGalHomeo.continuous_toFun
+  }
 
 end FiniteGaloisIntermediateField
 

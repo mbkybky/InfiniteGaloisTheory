@@ -15,8 +15,12 @@ structure ContinuousMulEquiv extends MulEquiv G H , Homeomorph G H
 
 namespace Homeomorph
 
-protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A] {B : Type v} [TopologicalSpace B] (e : Homeomorph A B) [tdc : TotallyDisconnectedSpace A] : TotallyDisconnectedSpace B :=
-  (totallyDisconnectedSpace_iff B).mpr ((Homeomorph.range_coe e) ▸ ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e)).mpr tdc))
+protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A]
+  {B : Type v} [TopologicalSpace B] (e : Homeomorph A B) [tdc : TotallyDisconnectedSpace A] :
+  TotallyDisconnectedSpace B :=
+  (totallyDisconnectedSpace_iff B).mpr
+    ((Homeomorph.range_coe e) ▸
+      ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e)).mpr tdc))
 
 end Homeomorph
 
