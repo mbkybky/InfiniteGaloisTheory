@@ -139,7 +139,7 @@ theorem Subgroup.Normal.of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G
   exact hn
 
 /-- Let `E` be an intermediateField of a Galois extension `L / K`. If `E / K` is
-Galois extension, then `E.fixingSubgroup` is a normal subgroup of `Gal(L / K)` -/
+Galois extension, then `E.fixingSubgroup` is a normal subgroup of `Gal(L / K)`. -/
 instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := by
   apply Subgroup.Normal.of_conjugate_fixed
   intro σ

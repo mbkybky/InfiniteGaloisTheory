@@ -97,19 +97,14 @@ def ofProfinite (G : Profinite) [Group G] [TopologicalGroup G] : ProfiniteGrp wh
 def Pi.profiniteGrp {α : Type u} (β : α → ProfiniteGrp) : ProfiniteGrp :=
   let pitype := Pi.profinite fun (a : α) => (β a).toProfinite
   letI (a : α): Group (β a).toProfinite := (β a).isGroup
-  letI : Group pitype := by
-    unfold_let; dsimp [Pi.profinite]
-    exact Pi.group
-  letI : TopologicalGroup pitype := by
-    unfold_let; dsimp [Pi.profinite]
-    letI (a : α): TopologicalGroup (β a).toProfinite := (β a).isTopologicalGroup
-    exact Pi.topologicalGroup
+  letI : Group pitype := Pi.group
+  letI : TopologicalGroup pitype := Pi.topologicalGroup
   ofProfinite pitype
 
 instance : Category ProfiniteGrp where
   Hom A B := ContinuousMonoidHom A B
   id A := ContinuousMonoidHom.id A
-  comp {X Y Z} f g := ContinuousMonoidHom.comp g f
+  comp f g := ContinuousMonoidHom.comp g f
 
 instance (G H : ProfiniteGrp) : FunLike (G ⟶ H) G H :=
   inferInstanceAs $ FunLike (ContinuousMonoidHom G H) G H
@@ -290,7 +285,7 @@ end
 
 section
 
-def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
+def diagramOfProfiniteGrp (P : ProfiniteGrp) :
   {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp where
     obj := fun ⟨H, _, _⟩ =>
       let Q := P ⧸ H
@@ -300,6 +295,46 @@ def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
       let ⟨H, _, _⟩ := H
       let ⟨K, _, _⟩ := K
       QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
+
+open Pointwise
+lemma preimage_mk_eq_coset {G : Type u} [Group G] {H : Subgroup G} (i : G ⧸ H) : QuotientGroup.mk ⁻¹' {i} = (Quotient.out' i) • ↑H := by
+  ext x
+  simp only [Set.mem_preimage, Set.mem_singleton_iff]
+  constructor
+  · intro hxi
+    rw [← hxi]
+    let ⟨t, ht⟩ := QuotientGroup.mk_out'_eq_mul H x
+    rw [ht]
+    use t⁻¹
+    simp only [SetLike.mem_coe, inv_mem_iff, SetLike.coe_mem, smul_eq_mul, mul_inv_cancel_right, and_self]
+  intro ⟨t, hht, ht⟩
+  simp only [smul_eq_mul] at ht
+  have : i = QuotientGroup.mk (Quotient.out' i) := by exact Eq.symm (QuotientGroup.out_eq' i)
+  rw [this]
+  refine QuotientGroup.eq.mpr ?h.mpr.a
+  rw [← ht]; simp only [mul_inv_rev, inv_mul_cancel_right, inv_mem_iff]; exact hht
+
+def canonicalMap (P : ProfiniteGrp) : P ⟶ limitOfFiniteGrp (diagramOfProfiniteGrp P) where
+  toFun := fun p => {
+    val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
+    property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ πab => by
+      unfold diagramOfProfiniteGrp; rfl
+  }
+  map_one' := Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  map_mul' := fun x y => Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  continuous_toFun := by
+    dsimp
+    apply continuous_induced_rng.mpr
+    apply continuous_pi
+    intro ⟨H, hH, hHO⟩
+    dsimp
+    apply Continuous.mk
+    intro s s_isopen
+    rw [← (Set.biUnion_preimage_singleton QuotientGroup.mk s)]
+    apply isOpen_iUnion; intro i
+    apply isOpen_iUnion; intro ih
+    rw [preimage_mk_eq_coset]
+    exact IsOpen.leftCoset hHO (Quotient.out' i)
 
 end
 
