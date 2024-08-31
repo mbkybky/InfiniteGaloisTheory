@@ -419,8 +419,7 @@ noncomputable def  MulEquivtoLimit [IsGalois k K] : (K ≃ₐ[k] K) ≃*
     ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K)) :=
   MulEquiv.ofBijective HomtoLimit ⟨HomtoLimit_inj, HomtoLimit_surj⟩
 
-#check TopologicalSpace.IsTopologicalBasis.continuous_iff
-
+set_option synthInstance.maxHeartbeats 50000 in
 lemma LimtoGalContinuous [IsGalois k K] : Continuous
   (MulEquivtoLimit (k := k) (K := K)).symm := by
   apply continuous_of_continuousAt_one
@@ -428,16 +427,82 @@ lemma LimtoGalContinuous [IsGalois k K] : Continuous
   simp only [map_one, GroupFilterBasis.nhds_one_eq]
   intro H hH
   rcases hH with ⟨O,hO1,hO2⟩
-  rcases hO1 with ⟨gp,hgp1,hgp2⟩
-  have op : IsOpen (⇑MulEquivtoLimit.symm ⁻¹' O) := by
-
-    sorry
-  have sub : (⇑MulEquivtoLimit.symm ⁻¹' O) ⊆ (⇑MulEquivtoLimit.symm ⁻¹' H) := fun ⦃a⦄ => fun a ↦ hO2 a
+  rcases hO1 with ⟨gp,⟨L,hL1,hL2⟩,hgp⟩
+  dsimp at hgp
+  have := hL1.out
+  set L' : FiniteGaloisIntermediateField k K:= {
+    normalClosure k L K with
+    fin_dim := inferInstance
+    is_gal := inferInstance
+  }
+  have lecl := IntermediateField.le_normalClosure L
+  have : L'.fixingSubgroup ≤ L.fixingSubgroup := fun σ h => (mem_fixingSubgroup_iff
+    (K ≃ₐ[k] K)).mpr (fun y hy => ((mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mp h) y (lecl hy))
+  have le1 : ⇑MulEquivtoLimit.symm ⁻¹' O ⊆ ⇑MulEquivtoLimit.symm ⁻¹' H := fun ⦃a⦄ => fun b => hO2 b
+  rw [←hgp, ←hL2] at le1
+  have le : ⇑MulEquivtoLimit.symm ⁻¹' L'.fixingSubgroup.carrier ⊆ ⇑MulEquivtoLimit.symm ⁻¹' H :=
+    fun ⦃a⦄ b ↦ le1 (this b)
   apply mem_nhds_iff.mpr
-  use (⇑MulEquivtoLimit.symm ⁻¹' O)
-  simp only [sub, op, Set.mem_preimage, map_one, true_and]
-  rw [←hgp2]
-  exact gp.one_mem'
+  use ⇑MulEquivtoLimit.symm ⁻¹' L'.fixingSubgroup.carrier
+  constructor
+  · exact le
+  · constructor
+    · have : ⇑MulEquivtoLimit.symm ⁻¹' L'.fixingSubgroup.carrier =
+        (⇑MulEquivtoLimit)'' L'.fixingSubgroup.carrier := by
+        set S := L'.fixingSubgroup.carrier
+        set f := (MulEquivtoLimit (k := k) (K := K))
+        aesop
+      rw [this]
+      let fix1 : Set ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → ↑(finGalFunctor.obj L).toGrp) :=
+        {x : ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → ↑(finGalFunctor.obj L).toGrp)
+          | x (Opposite.op L') = 1}
+      have pre : fix1 = Set.preimage (fun x => x (Opposite.op L')) {1} := by rfl
+      have C : Continuous (fun (x : (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) →
+        ↑(finGalFunctor.obj L).toGrp)=> (x (Opposite.op L'))) := continuous_apply (Opposite.op L')
+      have : (⇑MulEquivtoLimit '' L'.fixingSubgroup.carrier) = Set.preimage Subtype.val fix1 := by
+        ext x
+        constructor
+        all_goals intro h
+        · rcases h with ⟨α,hα1,hα2⟩
+          simp only [Set.mem_preimage,←hα2]
+          unfold_let fix1
+          simp only [Set.mem_setOf_eq]
+          unfold MulEquivtoLimit HomtoLimit
+          simp only [MulEquiv.ofBijective_apply, MonoidHom.coe_mk, OneHom.coe_mk]
+          apply AlgEquiv.ext
+          intro x
+          apply Subtype.val_injective
+          rw [←restrict_eq α x.1 L' x.2]
+          simp only [AlgEquiv.one_apply]
+          exact hα1 x
+        · simp only [Set.mem_preimage] at h
+          use ⇑MulEquivtoLimit.symm x
+          constructor
+          · unfold IntermediateField.fixingSubgroup
+            apply (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr
+            intro y hy
+            simp only [AlgEquiv.smul_def]
+            have fix := h.out
+            set Aut := (MulEquivtoLimit.symm x)
+            have : MulEquivtoLimit Aut = x := by
+              unfold_let Aut
+              simp only [MulEquiv.apply_symm_apply]
+            rw [←this] at fix
+            unfold MulEquivtoLimit HomtoLimit at fix
+            simp only [MulEquiv.ofBijective_apply, MonoidHom.coe_mk, OneHom.coe_mk] at fix
+            have fix_y : ((AlgEquiv.restrictNormalHom ↥L') Aut) ⟨y,hy⟩ = ⟨y,hy⟩ := by
+              simp only [fix, AlgEquiv.one_apply]
+            rw [restrict_eq Aut y L' hy, fix_y]
+          · simp only [MulEquiv.apply_symm_apply]
+      have op : IsOpen fix1 := by
+        rw [pre]
+        have : IsOpen ({1} : Set (finGalFunctor.obj (Opposite.op L')).toGrp) := by exact trivial
+        exact C.isOpen_preimage {1} this
+      rw [this]
+      exact isOpen_induced op
+    · simp only [Set.mem_preimage, map_one, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+      Subgroup.mem_toSubmonoid]
+      exact congrFun rfl
 
 instance [IsGalois k K] : CompactSpace (ProfiniteGrp.limitOfFiniteGrp (finGalFunctor (k := k) (K := K))) :=
   inferInstance
