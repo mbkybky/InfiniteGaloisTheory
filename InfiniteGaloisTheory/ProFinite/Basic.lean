@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yuyang Zhao, Youle Fang
+Authors: Jujian Zhang, Nailin Guan, Yuyang Zhao, Yongle Hu
 -/
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Algebra.Category.Grp.Basic
@@ -68,7 +68,8 @@ def of (G : Type u) [Group G] [Finite G] : FiniteGrp where
 def ofHom {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) : of X ⟶ of Y :=
   Grp.ofHom f
 
-lemma ofHom_apply {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) (x : X) : ofHom f x = f x :=
+lemma ofHom_apply {X Y : Type u} [Group X] [Finite X] [Group Y] [Finite Y] (f : X →* Y) (x : X) :
+  ofHom f x = f x :=
   rfl
 
 end FiniteGrp
@@ -96,19 +97,14 @@ def ofProfinite (G : Profinite) [Group G] [TopologicalGroup G] : ProfiniteGrp wh
 def Pi.profiniteGrp {α : Type u} (β : α → ProfiniteGrp) : ProfiniteGrp :=
   let pitype := Pi.profinite fun (a : α) => (β a).toProfinite
   letI (a : α): Group (β a).toProfinite := (β a).isGroup
-  letI : Group pitype := by
-    unfold_let; dsimp [Pi.profinite]
-    exact Pi.group
-  letI : TopologicalGroup pitype := by
-    unfold_let; dsimp [Pi.profinite]
-    letI (a : α): TopologicalGroup (β a).toProfinite := (β a).isTopologicalGroup
-    exact Pi.topologicalGroup
+  letI : Group pitype := Pi.group
+  letI : TopologicalGroup pitype := Pi.topologicalGroup
   ofProfinite pitype
 
 instance : Category ProfiniteGrp where
   Hom A B := ContinuousMonoidHom A B
   id A := ContinuousMonoidHom.id A
-  comp {X Y Z} f g := ContinuousMonoidHom.comp g f
+  comp f g := ContinuousMonoidHom.comp g f
 
 instance (G H : ProfiniteGrp) : FunLike (G ⟶ H) G H :=
   inferInstanceAs $ FunLike (ContinuousMonoidHom G H) G H
@@ -135,7 +131,8 @@ def ofFiniteGrp (G : FiniteGrp) : ProfiniteGrp :=
   letI : TopologicalGroup G := {}
   of G
 
-def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H] [Group H] [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
+def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} (H : Type v) [TopologicalSpace H] [Group H]
+    [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
   letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
   letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
   letI : TotallyDisconnectedSpace H := Homeomorph.TotallyDisconnectedSpace e.toHomeomorph
@@ -232,7 +229,8 @@ def limitOfFiniteGrpCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) 
     }
     naturality := by
       intro i j f
-      simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map, Category.id_comp, Functor.comp_map]
+      simp only [Functor.const_obj_obj, Functor.comp_obj,
+        Functor.const_obj_map, Category.id_comp, Functor.comp_map]
       congr
       exact funext fun x ↦ (x.2 f).symm
   }
