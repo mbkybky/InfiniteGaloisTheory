@@ -8,6 +8,7 @@ import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.FieldTheory.KrullTopology
+import Mathlib.Topology.Algebra.Group.Basic
 import InfiniteGaloisTheory.MissingLemmas.Topology
 
 /-!
@@ -292,16 +293,55 @@ end
 
 section
 
+open scoped Pointwise
+
+def finite_quotient_of_open_subgroup {G : ProfiniteGrp}
+    (H : Subgroup G) (hH : IsOpen (H : Set G)) : Finite (G ⧸ H) := by
+  obtain h := @CompactSpace.isCompact_univ G _ _
+  rw [isCompact_iff_finite_subcover] at h
+  have : (Set.univ : Set G) ⊆ ⋃ (i : G), i • (H : Set G) :=
+    fun g _ => Set.mem_iUnion_of_mem g ⟨1, ⟨one_mem H, by simp⟩⟩
+  specialize h (fun x : G => x • (H : Set G)) (IsOpen.smul hH) this
+  obtain ⟨t, ht⟩ := h
+  let f : t → (G ⧸ H) := fun ⟨x, _⟩ => QuotientGroup.mk x
+  apply Finite.of_surjective f
+  intro x
+  have : x.out' ∈ ⋃ i ∈ t, i • (H : Set G) := ht trivial
+  simp only [Set.mem_iUnion] at this
+  choose i hi hii using this
+  use ⟨i, hi⟩
+  rw [mem_leftCoset_iff] at hii
+  have : i⁻¹ * Quotient.out' x ∈ H := hii
+  rw [← @QuotientGroup.eq _ _ H i x.out'] at this
+  show Quotient.mk'' i = x
+  rw [Eq.symm (QuotientGroup.out_eq' x)]
+  exact this
+
+def finiteIndex_of_open_subgroup {G : ProfiniteGrp}
+    (H : Subgroup G) (hH : IsOpen (H : Set G)) : H.FiniteIndex :=
+  haveI : Finite (G ⧸ H) := finite_quotient_of_open_subgroup H hH
+  Subgroup.finiteIndex_of_finite_quotient H
+
+
+
 def convert_profinitegrp_to_diagram (P : ProfiniteGrp) :
-  {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp where
-    obj := fun ⟨H, _, _⟩ =>
-      let Q := P ⧸ H
-      letI : Finite Q := sorry
-      FiniteGrp.of Q
+  {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp := {
+    obj := fun ⟨H, _, hH⟩ =>
+      letI : Finite (P ⧸ H) := finite_quotient_of_open_subgroup H hH
+      FiniteGrp.of (P ⧸ H)
     map := fun {H K} fHK =>
       let ⟨H, _, _⟩ := H
       let ⟨K, _, _⟩ := K
       QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
+    map_id := by
+      intro ⟨x, _, _⟩
+      simp only [QuotientGroup.map_id, id_apply]
+      exact rfl
+    map_comp := by
+      intro ⟨x, _, _⟩ ⟨y, _, _⟩ ⟨z, _, _⟩ f g
+      simp only [MonoidHom.id]
+      sorry
+  }
 
 end
 
