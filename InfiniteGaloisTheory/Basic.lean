@@ -511,6 +511,48 @@ noncomputable def continuousMulEquivtoLimit [IsGalois k K] :
   continuous_toFun := limtoGalHomeo.continuous_invFun
   continuous_invFun := limtoGalHomeo.continuous_toFun
 
+noncomputable def ProfiniteGalGrp [IsGalois k K] : ProfiniteGrp :=
+  ProfiniteGrp.ofHomeoMulEquivProfiniteGrp (continuousMulEquivtoLimit (k := k) (K := K)).symm
+
+theorem restrictNormalHomContinuous (L: IntermediateField k K) [IsGalois k K] [IsGalois k L] :
+  Continuous (AlgEquiv.restrictNormalHom (F := k) (K₁ := K) L) := by
+  apply continuous_of_continuousAt_one
+  apply continuousAt_def.mpr
+  simp only [map_one]
+  rw [GroupFilterBasis.nhds_one_eq]
+  intro N hN
+  rcases hN with ⟨O,⟨gp,⟨L',hL'1,hL'2⟩,hgp⟩,hO⟩
+  rw [←hL'2] at hgp
+  dsimp at hgp
+  apply mem_nhds_iff.mpr
+  use (IntermediateField.lift L').fixingSubgroup
+  constructor
+  · have : ((IntermediateField.lift L').fixingSubgroup : Set _) ⊆
+      ⇑(AlgEquiv.restrictNormalHom (K₁ := K) { x // x ∈ L }) ⁻¹' O := by
+      simp only [← hgp, ← hL'2]
+      intro x hx
+      simp only [Set.mem_preimage, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+        Subgroup.mem_toSubmonoid]
+      unfold IntermediateField.fixingSubgroup at hx
+      unfold IntermediateField.fixingSubgroup
+      apply (mem_fixingSubgroup_iff _).mp at hx
+      apply (mem_fixingSubgroup_iff _).mpr
+      dsimp at hx ⊢
+      intro y hy
+      change (AlgEquiv.restrictNormal x L) y = y
+      have := AlgEquiv.restrictNormal_commutes x L y
+      dsimp at this
+      rw [hx y.1 ((IntermediateField.mem_lift y).mpr hy)] at this
+      exact SetLike.coe_eq_coe.mp this
+    exact fun ⦃a⦄ a_1 ↦ hO (this a_1)
+  · constructor
+    · letI fin : FiniteDimensional k ↥L' := hL'1
+      letI : FiniteDimensional k { x // x ∈ IntermediateField.lift L' } := by
+
+        sorry
+      apply IntermediateField.fixingSubgroup_isOpen
+    · exact congrFun rfl
+
 end FiniteGaloisIntermediateField
 
 /-example : ProfiniteGrp := ProfiniteGroup.of (K ≃ₐ[k] K)-/

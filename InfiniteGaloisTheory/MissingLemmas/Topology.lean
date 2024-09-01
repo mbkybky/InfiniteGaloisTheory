@@ -13,6 +13,16 @@ variable (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G] (H : T
 
 structure ContinuousMulEquiv extends MulEquiv G H , Homeomorph G H
 
+namespace ContinuousMulEquiv
+
+def symm (cme : ContinuousMulEquiv G H) : ContinuousMulEquiv H G := {
+  cme.toMulEquiv.symm with
+  continuous_toFun := cme.continuous_invFun
+  continuous_invFun := cme.continuous_toFun
+  }
+
+end ContinuousMulEquiv
+
 namespace Homeomorph
 
 protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A]
