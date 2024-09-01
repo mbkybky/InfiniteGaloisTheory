@@ -328,10 +328,10 @@ def finiteIndex_of_open_subgroup {G : ProfiniteGrp}
   haveI : Finite (G ⧸ H) := finite_quotient_of_open_subgroup H hH
   Subgroup.finiteIndex_of_finite_quotient H
 
-
+abbrev OpenNormalSubgroup (G : ProfiniteGrp) := {H : Subgroup G // H.Normal ∧ IsOpen (H : Set G)}
 
 def diagramOfProfiniteGrp (P : ProfiniteGrp) :
-  {x : Subgroup P | x.Normal ∧ IsOpen (x: Set P)} ⥤ FiniteGrp := {
+  OpenNormalSubgroup P ⥤ FiniteGrp := {
     obj := fun ⟨H, _, hH⟩ =>
       letI : Finite (P ⧸ H) := finite_quotient_of_open_subgroup H hH
       FiniteGrp.of (P ⧸ H)
@@ -348,24 +348,6 @@ def diagramOfProfiniteGrp (P : ProfiniteGrp) :
       (QuotientGroup.map_comp_map x y z (.id _) (.id _) (Subgroup.comap_id y ▸ leOfHom f)
         (Subgroup.comap_id z ▸ leOfHom g)).symm
   }
-
-open Pointwise
-lemma preimage_mk_eq_coset {G : Type u} [Group G] {H : Subgroup G} (i : G ⧸ H) : QuotientGroup.mk ⁻¹' {i} = (Quotient.out' i) • ↑H := by
-  ext x
-  simp only [Set.mem_preimage, Set.mem_singleton_iff]
-  constructor
-  · intro hxi
-    rw [← hxi]
-    let ⟨t, ht⟩ := QuotientGroup.mk_out'_eq_mul H x
-    rw [ht]
-    use t⁻¹
-    simp only [SetLike.mem_coe, inv_mem_iff, SetLike.coe_mem, smul_eq_mul, mul_inv_cancel_right, and_self]
-  intro ⟨t, hht, ht⟩
-  simp only [smul_eq_mul] at ht
-  have : i = QuotientGroup.mk (Quotient.out' i) := by exact Eq.symm (QuotientGroup.out_eq' i)
-  rw [this]
-  refine QuotientGroup.eq.mpr ?h.mpr.a
-  rw [← ht]; simp only [mul_inv_rev, inv_mul_cancel_right, inv_mem_iff]; exact hht
 
 def canonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (diagramOfProfiniteGrp P) where
   toFun := fun p => {
@@ -385,17 +367,15 @@ def canonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (diagramOfProfi
     rw [← (Set.biUnion_preimage_singleton QuotientGroup.mk s)]
     apply isOpen_iUnion; intro i
     apply isOpen_iUnion; intro ih
-    rw [preimage_mk_eq_coset]
+    rw [QuotientGroup.preimage_mk_eq_coset]
     exact IsOpen.leftCoset hHO (Quotient.out' i)
 
-theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense (canonicalMap P).range.carrier :=
+theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (canonicalMap P) :=
   dense_iff_inter_open.mpr
     fun U hUO hUNonempty => (by
-      simp only [Set.coe_setOf, Set.mem_setOf_eq, CompHausLike.coe_of] at U
       let uDefault := hUNonempty.some
       let uDefaultSpec : uDefault ∈ U := hUNonempty.some_mem
       rcases hUO with ⟨s, hsO, hsv⟩
-      dsimp [Set.coe_setOf] at s
       let uMemPiOpen := isOpen_pi_iff.mp hsO
       simp_rw [← hsv] at uDefaultSpec
       rw [Set.mem_preimage] at uDefaultSpec
@@ -408,23 +388,32 @@ theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense (canonicalMap P).range.
       haveI hMOpen : IsOpen (M : Set P) := by
         rw [Subgroup.coe_iInf]
         exact isOpen_iInter_of_finite fun ⟨i, _⟩ => i.prop.2
-      dsimp [Set.coe_setOf] at uDefault
+      let m : P.OpenNormalSubgroup := ⟨M, hM, hMOpen⟩
       rcases uDefault with ⟨spc, hspc⟩
-      let proj : P →* P ⧸ M := QuotientGroup.mk' M
-      have : Function.Surjective proj := QuotientGroup.mk'_surjective M
-      rcases this (spc ⟨M, hM, hMOpen⟩) with ⟨origin, horigin⟩
+      have : Function.Surjective (QuotientGroup.mk' M) := QuotientGroup.mk'_surjective M
+      rcases this (spc m) with ⟨origin, horigin⟩
       let map_origin := (canonicalMap P).toFun origin
       use map_origin
       constructor
       · have : map_origin.val ∈ J.toSet.pi fJ := fun a a_in_J => by
-          let M_to_Na : ⟨M, hM, hMOpen⟩ ⟶ a := (iInf_le subg ⟨a, a_in_J⟩).hom
+          let M_to_Na : m ⟶ a := (iInf_le subg ⟨a, a_in_J⟩).hom
           rw [← (P.canonicalMap.toFun origin).property M_to_Na]
-          show (P.diagramOfProfiniteGrp.map M_to_Na) (proj origin) ∈ _
+          show (P.diagramOfProfiniteGrp.map M_to_Na) (QuotientGroup.mk' M origin) ∈ _
           rw [horigin, hspc M_to_Na]
           exact (h_ok_and_in_s.1 a a_in_J).2
         exact hsv ▸ h_ok_and_in_s.2 this
       exact ⟨origin, rfl⟩
     )
+
+theorem surjectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Surjective (canonicalMap P) := by
+  have : IsClosedMap P.canonicalMap := P.canonicalMap.continuous_toFun.isClosedMap
+  haveI compact_s: IsCompact (Set.univ : Set P) := CompactSpace.isCompact_univ
+  have : IsClosed (P.canonicalMap '' Set.univ) := this _ $ IsCompact.isClosed compact_s
+  have dense_map := Dense.closure_eq $ denseCanonicalMap P
+  apply closure_eq_iff_isClosed.mpr at this
+  rw [Set.image_univ] at this
+  rw [dense_map] at this
+  exact Set.range_iff_surjective.mp (id this.symm)
 
 end
 
