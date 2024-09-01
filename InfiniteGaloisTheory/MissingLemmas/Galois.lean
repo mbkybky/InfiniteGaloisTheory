@@ -148,4 +148,13 @@ instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E
     infer_instance
   nth_rw 1 [this]; rw [IsGalois.fixingSubgroup_conjugate_of_map E σ⁻¹, inv_inv]
 
+def IntermediateField.lift_AlgEquiv (F : IntermediateField K E) : ↥F ≃ₐ[K] (IntermediateField.lift F) where
+  toFun := fun x => ⟨x.1.1,(mem_lift x.1).mpr x.2⟩
+  invFun := fun x => ⟨⟨x.1, IntermediateField.lift_le F x.2⟩,(mem_lift ⟨x.1, IntermediateField.lift_le F x.2⟩).mp x.2⟩
+  left_inv := congrFun rfl
+  right_inv := congrFun rfl
+  map_mul' := fun _ _ => rfl
+  map_add' := fun _ _ => rfl
+  commutes' := fun _ => rfl
+
 end Galois

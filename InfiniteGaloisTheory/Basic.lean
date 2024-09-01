@@ -547,9 +547,8 @@ theorem restrictNormalHomContinuous (L: IntermediateField k K) [IsGalois k K] [I
     exact fun ⦃a⦄ a_1 ↦ hO (this a_1)
   · constructor
     · letI fin : FiniteDimensional k ↥L' := hL'1
-      letI : FiniteDimensional k { x // x ∈ IntermediateField.lift L' } := by
-
-        sorry
+      letI : FiniteDimensional k { x // x ∈ IntermediateField.lift L' } :=
+        Module.Finite.equiv <| AlgEquiv.toLinearEquiv <| IntermediateField.lift_AlgEquiv L L'
       apply IntermediateField.fixingSubgroup_isOpen
     · exact congrFun rfl
 
