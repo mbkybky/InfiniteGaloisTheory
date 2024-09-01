@@ -345,65 +345,72 @@ lemma proj_lift_adjoin_simple [IsGalois k K]
     (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
     (x : K) (y : adjoin k {x})
     (L : FiniteGaloisIntermediateField k K) (h : x ∈ L.val) :
-    (proj g (adjoin k {x}) y).val = (proj g L ⟨y, adjoin_simple_le_iff.mpr h y.2⟩).val := by
-  rw [proj_lift g _ y]
+    (proj g (adjoin k {x}) y).val = (proj g L ⟨y, adjoin_simple_le_iff.mpr h y.2⟩).val :=
+  proj_lift g _ y _ _
 
-variable (k K) in
+def toAlgHomAux [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K → K :=
+  fun x ↦ (proj g (adjoin k {x}) ⟨x, subset_adjoin _ _ (by simp)⟩).val
+
+lemma toAlgHomAux_def [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+    (x : K) (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
+    toAlgHomAux g x = (proj g L ⟨x, hx⟩).val :=
+  proj_lift_adjoin_simple g _ _ L hx
+
+lemma toAlgHomAux_eq_liftNormal [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+    (x : K) (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
+    toAlgHomAux g x = (proj g L).liftNormal K x := by
+  rw [toAlgHomAux_def g x L hx]
+  exact (AlgEquiv.liftNormal_commutes (proj g L) _ ⟨x, hx⟩).symm
+
 @[simps]
 def toAlgHom [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K →ₐ[k] K where
-  toFun x := (proj g (adjoin k {x}) ⟨x, subset_adjoin _ _ (by simp)⟩).1
+  toFun := toAlgHomAux g
   map_one' := by
-    dsimp
-    rw [proj_lift_adjoin_simple g _ _ ⊥ (one_mem _)]
-    simp
-    rfl
+    rw [toAlgHomAux_eq_liftNormal g 1 ⊥ (one_mem _)]
+    rw [map_one]
   map_mul' x y := by
     dsimp
     have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
     have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    rw [proj_lift_adjoin_simple g _ _ (adjoin k {x, y}) hx]
-    rw [proj_lift_adjoin_simple g _ _ (adjoin k {x, y}) hy]
-    rw [proj_lift_adjoin_simple g _ _ (adjoin k {x, y}) (mul_mem hx hy)]
-    rw [← MulMemClass.mk_mul_mk, map_mul]
-    rfl
+    rw [toAlgHomAux_eq_liftNormal g x (adjoin k {x, y}) hx]
+    rw [toAlgHomAux_eq_liftNormal g y (adjoin k {x, y}) hy]
+    rw [toAlgHomAux_eq_liftNormal g (x * y) (adjoin k {x, y}) (mul_mem hx hy)]
+    rw [map_mul]
   map_zero' := by
     dsimp
-    rw [proj_lift_adjoin_simple g _ _ ⊥ (zero_mem _)]
-    simp
-    rfl
+    rw [toAlgHomAux_eq_liftNormal g 0 ⊥ (zero_mem _)]
+    rw [map_zero]
   map_add' x y := by
     dsimp
     have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
     have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    rw [proj_lift_adjoin_simple g _ _ (adjoin k {x, y}) hx]
-    rw [proj_lift_adjoin_simple g _ _ (adjoin k {x, y}) hy]
-    rw [proj_lift_adjoin_simple g _ _ (adjoin k {x, y}) (add_mem hx hy)]
-    rw [← AddMemClass.mk_add_mk, map_add]
-    rfl
-  commutes' z := by
+    rw [toAlgHomAux_eq_liftNormal g x (adjoin k {x, y}) hx]
+    rw [toAlgHomAux_eq_liftNormal g y (adjoin k {x, y}) hy]
+    rw [toAlgHomAux_eq_liftNormal g (x + y) (adjoin k {x, y}) (add_mem hx hy)]
+    rw [map_add]
+  commutes' x := by
     dsimp
-    rw [proj_lift_adjoin_simple g _ _ ⊥ (algebraMap_mem _ z)]
-    have := (proj g ⊥).commutes' z
-    exact congrArg Subtype.val this
+    rw [toAlgHomAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x)]
+    rw [AlgEquiv.commutes]
 
 variable (k K) in
 noncomputable def mulEquivtoLimit [IsGalois k K] :
     (K ≃ₐ[k] K) ≃* ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K) where
   toFun := homtoLimit k K
   map_mul' := map_mul _
-  invFun g := (Algebra.IsAlgebraic.algEquivEquivAlgHom _ _).symm (toAlgHom k K g)
+  invFun g := (Algebra.IsAlgebraic.algEquivEquivAlgHom _ _).symm (toAlgHom g)
   left_inv := fun f ↦ by
     ext x
     exact AlgEquiv.restrictNormal_commutes f (adjoin k {x}).val ⟨x, _⟩
   right_inv := fun g ↦ by
     apply Subtype.val_injective
     ext L
-    change (toAlgHom k K g).restrictNormal' _ = _
+    change (toAlgHom g).restrictNormal' _ = _
     apply AlgEquiv.ext
     intro x
-    have : ((toAlgHom k K g).restrictNormal' L.unop) x = (toAlgHom k K g) x.1 := by
+    have : ((toAlgHom g).restrictNormal' L.unop) x = (toAlgHom g) x.1 := by
       unfold AlgHom.restrictNormal'
-      have := AlgHom.restrictNormal_commutes (toAlgHom k K g) L.unop x
+      have := AlgHom.restrictNormal_commutes (toAlgHom g) L.unop x
       convert this
     apply Subtype.val_injective
     simp_rw [this]
