@@ -9,7 +9,7 @@ import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.FieldTheory.KrullTopology
 import Mathlib.FieldTheory.SeparableClosure
-import InfiniteGaloisTheory.ProFinite.Basic
+import InfiniteGaloisTheory.ProFinite.Limit
 import InfiniteGaloisTheory.MissingLemmas.Galois
 
 /-!

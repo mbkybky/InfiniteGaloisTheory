@@ -1,11 +1,19 @@
 import Mathlib.Algebra.Group.Subgroup.Basic
 import Mathlib.GroupTheory.QuotientGroup.Basic
 
+/-- Intersection of normal subgroups is a normal subgroup. -/
 theorem Subgroup.normal_iInf_normal {ι G : Type*} [Group G] {a : ι → Subgroup G} (norm : ∀ i : ι , (a i).Normal) : (iInf a).Normal := ⟨
   fun g g_in_iInf h => by
     rw [Subgroup.mem_iInf] at *
     exact fun i => (norm i).conj_mem g (g_in_iInf i) h
 ⟩
+
+/-- An isomorphism maps a normal Subgroup to a normal Subgroup. -/
+theorem Subgroup.map_equiv_normal {G G': Type*} [Group G] [Group G'] (f : G ≃* G')
+    (H : Subgroup G) [hn: H.Normal] : (H.map f.toMonoidHom).Normal := by
+  have h : map f.toMonoidHom ⊤ = ⊤ := map_top_of_surjective f (MulEquiv.surjective f)
+  apply normalizer_eq_top.mp
+  rw [← h, ← normalizer_eq_top.mpr hn, map_equiv_normalizer_eq H f]
 
 open Pointwise
 theorem QuotientGroup.preimage_mk_eq_coset {G : Type*} [Group G] {H : Subgroup G} (i : G ⧸ H) : QuotientGroup.mk ⁻¹' {i} = (Quotient.out' i) • ↑H := by
