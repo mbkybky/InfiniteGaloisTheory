@@ -139,6 +139,8 @@ open scoped IntermediateField
 
 variable (k K : Type*) [Field k] [Field K] [Algebra k K]
 
+
+/--The Finite Galois IntermediateField of `K/k`-/
 @[ext]
 structure FiniteGaloisIntermediateField where
   val : IntermediateField k K
@@ -166,6 +168,8 @@ variable {k K}
 lemma val_injective : Function.Injective (val (k := k) (K := K)) := by
   rintro ⟨⟩ ⟨⟩ eq
   simpa using eq
+
+/--Make the Finite Galois IntermediateField of `K/k` into an lattice-/
 
 instance (L₁ L₂ : IntermediateField k K) [IsGalois k L₁] [IsGalois k L₂] :
     IsGalois k ↑(L₁ ⊔ L₂) := {}
@@ -575,7 +579,7 @@ theorem restrictNormalHomContinuous (L : IntermediateField k K) [IsGalois k K] [
     simp only [SetLike.mem_coe] at hx ⊢
     rw [IntermediateField.mem_fixingSubgroup_iff] at hx ⊢
     intro y hy
-    change (AlgEquiv.restrictNormal x L) y = y
+    show (AlgEquiv.restrictNormal x L) y = y
     have := AlgEquiv.restrictNormal_commutes x L y
     dsimp at this
     rw [hx y.1 ((IntermediateField.mem_lift y).mpr hy)] at this
@@ -585,5 +589,3 @@ theorem restrictNormalHomContinuous (L : IntermediateField k K) [IsGalois k K] [
     · exact congrFun rfl
 
 end InfiniteGalois
-
-/-example : ProfiniteGrp := ProfiniteGroup.of (K ≃ₐ[k] K)-/
