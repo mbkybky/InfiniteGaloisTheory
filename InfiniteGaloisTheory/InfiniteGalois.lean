@@ -108,8 +108,31 @@ lemma fixedField_fixingSubgroup (L : IntermediateField k K) [IsGalois k K] :
     exact y.2
   · exact (IntermediateField.le_iff_le L.fixingSubgroup L).mpr fun ⦃x⦄ a ↦ a
 
-lemma fixingSubgroup_fixedField (H : ClosedSubgroup (K ≃ₐ[k] K)) :
-  (IntermediateField.fixedField H).fixingSubgroup = H.1 := sorry
+lemma fixingSubgroup_fixedField (H : ClosedSubgroup (K ≃ₐ[k] K)) [IsGalois k K] :
+  (IntermediateField.fixedField H).fixingSubgroup = H.1 := by
+  apply le_antisymm
+  · intro σ hσ
+    by_contra h
+    have inC : σ ∈ H.carrierᶜ := h
+    have op : IsOpen H.carrierᶜ := by
+      have := H.isClosed'
+      exact IsClosed.isOpen_compl
+    have nhd : H.carrierᶜ ∈ nhds σ := IsOpen.mem_nhds op h
+    rw [GroupFilterBasis.nhds_eq (x₀ := σ) (galGroupBasis k K)] at nhd
+    rcases nhd with ⟨b,⟨gp,⟨L,hL,eq'⟩,eq⟩,sub⟩
+    dsimp at eq
+    rw [←eq'] at eq
+    have sub : σ • b ⊆ H.carrierᶜ := Set.smul_set_subset_iff.mpr sub
+    let L' := normalClosure k L K
+    have : σ • L'.fixingSubgroup.carrier ⊆ H.carrierᶜ :=
+      fun ⦃a⦄ d ↦ sub ((Set.set_smul_subset_set_smul_iff.mpr <| eq ▸ (fun σ h =>
+      (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr fun y hy => (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mp
+      h y (IntermediateField.le_normalClosure L hy))) d)
+
+    #check restrictNormalHomContinuous L'
+    sorry
+  · exact (IntermediateField.le_iff_le H.toSubgroup (IntermediateField.fixedField H.toSubgroup)).mp
+      fun ⦃x⦄ a ↦ a
 --by_contra and find a nhds (subgroup smul) and use 22.2
 
 def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
