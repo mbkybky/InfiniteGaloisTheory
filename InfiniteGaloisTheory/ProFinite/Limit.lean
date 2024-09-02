@@ -7,7 +7,7 @@ import InfiniteGaloisTheory.ProFinite.Basic
 
 /-!
 
-# A profinite Group is projective limit of finite groups
+# A profinite Group is the projective limit of finite groups
 
 
 ## Main definitions and results
