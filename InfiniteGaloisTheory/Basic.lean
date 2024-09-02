@@ -72,6 +72,9 @@ suppress_compilation
 
 variable {F L : Type*} [Field F] [Field L] [Algebra F L]
 
+def AlgEquiv.aut_inv (ϕ : L ≃ₐ[F] L) : ϕ⁻¹ = ϕ.symm :=
+  rfl
+
 instance IntermediateField.instSMulMemClass : SMulMemClass (IntermediateField F L) F L :=
   ⟨fun _ _ hx ↦ smul_mem _ hx⟩
 
@@ -329,81 +332,94 @@ lemma restrict_eq (σ : K ≃ₐ[k] K) (x : K) (Lx : FiniteGaloisIntermediateFie
   convert this
   exact id this.symm
 
-def proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
-  (L : FiniteGaloisIntermediateField k K) : L.val ≃ₐ[k] L.val :=
-  g.val (op L)
+def proj (L : FiniteGaloisIntermediateField k K) :
+    ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K) →* (L.val ≃ₐ[k] L.val) where
+  toFun g := g.val (op L)
+  map_one' := rfl
+  map_mul' _ _ := rfl
 
 @[simp]
 lemma finGalFunctor_proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
   {L₁ L₂ : FiniteGaloisIntermediateField k K} (h : L₁ ⟶ L₂) :
-  (finGalFunctor k K).map h.op (proj g L₂) = proj g L₁ := g.prop h.op
+  (finGalFunctor k K).map h.op (proj L₂ g) = proj L₁ g :=
+  g.prop h.op
 
 lemma proj_lift
+    (L : FiniteGaloisIntermediateField k K)
     (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
-    (L : FiniteGaloisIntermediateField k K) (x : L)
+    (x : L)
     (L' : FiniteGaloisIntermediateField k K) (h : L ≤ L') :
-    (proj g L x).val = (proj g L' ⟨x, h x.2⟩).val := by
+    (proj L g x).val = (proj L' g ⟨x, h x.2⟩).val := by
   induction L with | _ L => ?_
   induction L' with | _ L' => ?_
   letI : Algebra L L' := RingHom.toAlgebra (Subsemiring.inclusion h)
   letI : IsScalarTower k L L' := IsScalarTower.of_algebraMap_eq (congrFun rfl)
   rw [← finGalFunctor_proj g h.hom]
-  change (algebraMap L' K (algebraMap L L' (AlgEquiv.restrictNormal (proj g (mk L')) L x))) = _
-  rw [AlgEquiv.restrictNormal_commutes (proj g (mk L')) L]
+  change (algebraMap L' K (algebraMap L L' (AlgEquiv.restrictNormal (proj (mk L') g) L x))) = _
+  rw [AlgEquiv.restrictNormal_commutes (proj (mk L') g) L]
   rfl
 
 lemma proj_lift_adjoin_simple [IsGalois k K]
     (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
     (x : K) (y : adjoin k {x})
     (L : FiniteGaloisIntermediateField k K) (h : x ∈ L.val) :
-    (proj g (adjoin k {x}) y).val = (proj g L ⟨y, adjoin_simple_le_iff.mpr h y.2⟩).val :=
-  proj_lift g _ y _ _
+    (proj (adjoin k {x}) g y).val = (proj L g ⟨y, adjoin_simple_le_iff.mpr h y.2⟩).val :=
+  proj_lift _ g y _ _
 
-def toAlgHomAux [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K → K :=
-  fun x ↦ (proj g (adjoin k {x}) ⟨x, subset_adjoin _ _ (by simp)⟩).val
+def toAlgEquivAux [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K → K :=
+  fun x ↦ (proj (adjoin k {x}) g ⟨x, subset_adjoin _ _ (by simp)⟩).val
 
-lemma toAlgHomAux_def [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+lemma toAlgEquivAux_def [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
     (x : K) (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
-    toAlgHomAux g x = (proj g L ⟨x, hx⟩).val :=
+    toAlgEquivAux g x = (proj L g ⟨x, hx⟩).val :=
   proj_lift_adjoin_simple g _ _ L hx
 
-lemma toAlgHomAux_eq_liftNormal [IsGalois k K]
-  (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) (x : K)
-  (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
-  toAlgHomAux g x = (proj g L).liftNormal K x := by
-  rw [toAlgHomAux_def g x L hx]
-  exact (AlgEquiv.liftNormal_commutes (proj g L) _ ⟨x, hx⟩).symm
+lemma mk_toAlgEquivAux [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+    (x : K) (L : FiniteGaloisIntermediateField k K) (hx' : toAlgEquivAux g x ∈ L.val)
+    (hx : x ∈ L.val) : (⟨toAlgEquivAux g x, hx'⟩ : L.val) = proj L g ⟨x, hx⟩ := by
+  rw [Subtype.eq_iff, Subtype.coe_mk, toAlgEquivAux_def]
+
+lemma toAlgEquivAux_eq_liftNormal [IsGalois k K]
+    (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+    (x : K) (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
+    toAlgEquivAux g x = (proj L g).liftNormal K x := by
+  rw [toAlgEquivAux_def g x L hx]
+  exact (AlgEquiv.liftNormal_commutes (proj L g) _ ⟨x, hx⟩).symm
 
 @[simps]
-def toAlgHom [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) :
-  K →ₐ[k] K where
-  toFun := toAlgHomAux g
-  map_one' := by
-    rw [toAlgHomAux_eq_liftNormal g 1 ⊥ (one_mem _)]
-    rw [map_one]
+def toAlgEquiv [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K ≃ₐ[k] K
+  where
+  toFun := toAlgEquivAux g
+  invFun := toAlgEquivAux g⁻¹
+  left_inv x := by
+    let L := adjoin k {x, toAlgEquivAux g x}
+    have hx : x ∈ L.val := subset_adjoin _ _ (by simp)
+    have hx' : toAlgEquivAux g x ∈ L.val := subset_adjoin _ _ (by simp)
+    simp [toAlgEquivAux_def _ _ L hx', mk_toAlgEquivAux g x L hx' hx, AlgEquiv.aut_inv]
+  right_inv x := by
+    let L := adjoin k {x, toAlgEquivAux g⁻¹ x}
+    have hx : x ∈ L.val := subset_adjoin _ _ (by simp)
+    have hx' : toAlgEquivAux g⁻¹ x ∈ L.val := subset_adjoin _ _ (by simp)
+    simp [toAlgEquivAux_def _ _ L hx', mk_toAlgEquivAux g⁻¹ x L hx' hx, AlgEquiv.aut_inv]
   map_mul' x y := by
     dsimp
     have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
     have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    rw [toAlgHomAux_eq_liftNormal g x (adjoin k {x, y}) hx]
-    rw [toAlgHomAux_eq_liftNormal g y (adjoin k {x, y}) hy]
-    rw [toAlgHomAux_eq_liftNormal g (x * y) (adjoin k {x, y}) (mul_mem hx hy)]
+    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx]
+    rw [toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy]
+    rw [toAlgEquivAux_eq_liftNormal g (x * y) (adjoin k {x, y}) (mul_mem hx hy)]
     rw [map_mul]
-  map_zero' := by
-    dsimp
-    rw [toAlgHomAux_eq_liftNormal g 0 ⊥ (zero_mem _)]
-    rw [map_zero]
   map_add' x y := by
     dsimp
     have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
     have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    rw [toAlgHomAux_eq_liftNormal g x (adjoin k {x, y}) hx]
-    rw [toAlgHomAux_eq_liftNormal g y (adjoin k {x, y}) hy]
-    rw [toAlgHomAux_eq_liftNormal g (x + y) (adjoin k {x, y}) (add_mem hx hy)]
+    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx]
+    rw [toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy]
+    rw [toAlgEquivAux_eq_liftNormal g (x + y) (adjoin k {x, y}) (add_mem hx hy)]
     rw [map_add]
   commutes' x := by
     dsimp
-    rw [toAlgHomAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x)]
+    rw [toAlgEquivAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x)]
     rw [AlgEquiv.commutes]
 
 variable (k K) in
@@ -411,44 +427,45 @@ noncomputable def mulEquivtoLimit [IsGalois k K] :
     (K ≃ₐ[k] K) ≃* ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K) where
   toFun := homtoLimit k K
   map_mul' := map_mul _
-  invFun g := (Algebra.IsAlgebraic.algEquivEquivAlgHom _ _).symm (toAlgHom g)
+  invFun := toAlgEquiv
   left_inv := fun f ↦ by
     ext x
     exact AlgEquiv.restrictNormal_commutes f (adjoin k {x}).val ⟨x, _⟩
   right_inv := fun g ↦ by
     apply Subtype.val_injective
     ext L
-    change (toAlgHom g).restrictNormal' _ = _
+    change (toAlgEquiv g).restrictNormal _ = _
     apply AlgEquiv.ext
     intro x
-    have : ((toAlgHom g).restrictNormal' L.unop) x = (toAlgHom g) x.1 := by
-      unfold AlgHom.restrictNormal'
-      have := AlgHom.restrictNormal_commutes (toAlgHom g) L.unop x
+    have : ((toAlgEquiv g).restrictNormal L.unop) x = (toAlgEquiv g) x.1 := by
+      have := AlgEquiv.restrictNormal_commutes (toAlgEquiv g) L.unop x
       convert this
     apply Subtype.val_injective
     simp_rw [this]
     exact proj_lift_adjoin_simple _ _ _ _ x.2
 
+lemma krullTopology_mem_nhds_one [IsGalois k K] (s : Set (K ≃ₐ[k] K)) :
+    s ∈ 𝓝 1 ↔
+      ∃ L : IntermediateField k K,
+        FiniteDimensional k L ∧ (L.fixingSubgroup : Set (K ≃ₐ[k] K)) ⊆ s := by
+  rw [GroupFilterBasis.nhds_one_eq]
+  constructor
+  · rintro ⟨-, ⟨-, ⟨L, fin, rfl⟩, rfl⟩, hL⟩
+    exact ⟨L, fin, hL⟩
+  · rintro ⟨L, fin, hL⟩
+    exact ⟨L.fixingSubgroup, ⟨L.fixingSubgroup, ⟨L, fin, rfl⟩, rfl⟩, hL⟩
+
 lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm := by
   apply continuous_of_continuousAt_one
   apply continuousAt_def.mpr
-  simp only [map_one, GroupFilterBasis.nhds_one_eq]
-  intro H hH
-  rcases hH with ⟨O,hO1,hO2⟩
-  rcases hO1 with ⟨gp,⟨L,hL1,hL2⟩,hgp⟩
-  dsimp at hgp
-  have := hL1.out
-  set L' : FiniteGaloisIntermediateField k K := {
-    val := normalClosure k L K
-    to_finiteDimensional := inferInstance
-    to_isGalois := inferInstance
-  }
+  simp only [map_one, krullTopology_mem_nhds_one]
+  intro H ⟨L, _, hO2⟩
+  set L' : FiniteGaloisIntermediateField k K := mk <| normalClosure k L K
   have lecl := IntermediateField.le_normalClosure L
   have : L'.val.fixingSubgroup ≤ L.fixingSubgroup := fun σ h => (mem_fixingSubgroup_iff
     (K ≃ₐ[k] K)).mpr (fun y hy => ((mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mp h) y (lecl hy))
-  have le1 : (mulEquivtoLimit k K).symm ⁻¹' O ⊆ (mulEquivtoLimit k K).symm ⁻¹' H :=
+  have le1 : (mulEquivtoLimit k K).symm ⁻¹' L.fixingSubgroup ⊆ (mulEquivtoLimit k K).symm ⁻¹' H :=
     fun ⦃a⦄ => fun b => hO2 b
-  rw [←hgp, ←hL2] at le1
   have le : (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup ⊆ (mulEquivtoLimit k K).symm ⁻¹' H
     := fun ⦃a⦄ b ↦ le1 (this b)
   apply mem_nhds_iff.mpr
@@ -522,55 +539,49 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
 
 instance [IsGalois k K] : T2Space (K ≃ₐ[k] K) := krullTopology_t2
 
+variable (k K)
+
 def limtoGalHomeo [IsGalois k K] :
     (ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) ≃ₜ (K ≃ₐ[k] K) :=
   Continuous.homeoOfEquivCompactToT2 limtoGalContinuous
 
 noncomputable def continuousMulEquivtoLimit [IsGalois k K] :
     ContinuousMulEquiv (K ≃ₐ[k] K) (ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) where
-  __ := mulEquivtoLimit k K
-  continuous_toFun := limtoGalHomeo.continuous_invFun
-  continuous_invFun := limtoGalHomeo.continuous_toFun
+  toMulEquiv := mulEquivtoLimit k K
+  continuous_toFun := (limtoGalHomeo _ _).continuous_invFun
+  continuous_invFun := (limtoGalHomeo _ _).continuous_toFun
 
 noncomputable def ProfiniteGalGrp [IsGalois k K] : ProfiniteGrp :=
-  ProfiniteGrp.ofHomeoMulEquivProfiniteGrp (continuousMulEquivtoLimit (k := k) (K := K)).symm
+  ProfiniteGrp.ofHomeoMulEquivProfiniteGrp (continuousMulEquivtoLimit k K).symm
 
-theorem restrictNormalHomContinuous (L: IntermediateField k K) [IsGalois k K] [IsGalois k L] :
-  Continuous (AlgEquiv.restrictNormalHom (F := k) (K₁ := K) L) := by
+variable {k K}
+
+theorem restrictNormalHomContinuous (L : IntermediateField k K) [IsGalois k K] [IsGalois k L] :
+    Continuous (AlgEquiv.restrictNormalHom (F := k) (K₁ := K) L) := by
   apply continuous_of_continuousAt_one
   apply continuousAt_def.mpr
-  simp only [map_one]
-  rw [GroupFilterBasis.nhds_one_eq]
+  rw [map_one]
   intro N hN
-  rcases hN with ⟨O,⟨gp,⟨L',hL'1,hL'2⟩,hgp⟩,hO⟩
-  rw [←hL'2] at hgp
-  dsimp at hgp
+  rw [krullTopology_mem_nhds_one] at hN
+  obtain ⟨L', hL', hO⟩ := hN
+  letI : FiniteDimensional k L' :=
+    Module.Finite.equiv <| AlgEquiv.toLinearEquiv <| IntermediateField.lift_AlgEquiv L L'
   apply mem_nhds_iff.mpr
   use (IntermediateField.lift L').fixingSubgroup
   constructor
-  · have : ((IntermediateField.lift L').fixingSubgroup : Set _) ⊆
-      ⇑(AlgEquiv.restrictNormalHom (K₁ := K) { x // x ∈ L }) ⁻¹' O := by
-      simp only [← hgp, ← hL'2]
-      intro x hx
-      simp only [Set.mem_preimage, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
-        Subgroup.mem_toSubmonoid]
-      unfold IntermediateField.fixingSubgroup at hx
-      unfold IntermediateField.fixingSubgroup
-      apply (mem_fixingSubgroup_iff _).mp at hx
-      apply (mem_fixingSubgroup_iff _).mpr
-      dsimp at hx ⊢
-      intro y hy
-      change (AlgEquiv.restrictNormal x L) y = y
-      have := AlgEquiv.restrictNormal_commutes x L y
-      dsimp at this
-      rw [hx y.1 ((IntermediateField.mem_lift y).mpr hy)] at this
-      exact SetLike.coe_eq_coe.mp this
-    exact fun ⦃a⦄ a_1 ↦ hO (this a_1)
+  · intro x hx
+    rw [Set.mem_preimage]
+    apply hO
+    simp only [SetLike.mem_coe] at hx ⊢
+    rw [IntermediateField.mem_fixingSubgroup_iff] at hx ⊢
+    intro y hy
+    change (AlgEquiv.restrictNormal x L) y = y
+    have := AlgEquiv.restrictNormal_commutes x L y
+    dsimp at this
+    rw [hx y.1 ((IntermediateField.mem_lift y).mpr hy)] at this
+    exact SetLike.coe_eq_coe.mp this
   · constructor
-    · letI fin : FiniteDimensional k ↥L' := hL'1
-      letI : FiniteDimensional k { x // x ∈ IntermediateField.lift L' } :=
-        Module.Finite.equiv <| AlgEquiv.toLinearEquiv <| IntermediateField.lift_AlgEquiv L L'
-      apply IntermediateField.fixingSubgroup_isOpen
+    · apply IntermediateField.fixingSubgroup_isOpen
     · exact congrFun rfl
 
 end InfiniteGalois
