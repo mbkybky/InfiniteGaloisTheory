@@ -57,7 +57,8 @@ In `K/k`
     continuity from `lim Gal(L/k)` to `Gal(K/k)`, which only need continuity at `1`.
     It can be easily verified by checking the preimage of GroupFilterBasis is open.
 
-* `Profinite`
+* `Profinite` ：`Gal(K/k)` is isomorphic (topological group) to `lim Gal(L/k)`
+  where `L` is `FiniteGaloisIntermediateField`, ordered by inverse inclusion, thus `Profinite`
 
 # implementation note
 
@@ -84,8 +85,8 @@ lemma IntermediateField.normal_map {F L : Type*} [Field F] [Field L] [Algebra F 
   simpa using this ((Algebra.IsAlgebraic.algEquivEquivAlgHom _ _).symm σ)
 
 @[simp]
-theorem IntermediateField.normalClosure_le_iff_of_normal {k K : Type*} [Field k] [Field K] [Algebra k K]
-    {L₁ L₂ : IntermediateField k K} [Normal k L₂] [Normal k K] :
+theorem IntermediateField.normalClosure_le_iff_of_normal {k K : Type*} [Field k] [Field K]
+  [Algebra k K] {L₁ L₂ : IntermediateField k K} [Normal k L₂] [Normal k K] :
     normalClosure k L₁ K ≤ L₂ ↔ L₁ ≤ L₂ := by
   constructor
   · intro h
@@ -253,7 +254,8 @@ def adjoin [IsGalois k K] (s : Set K) [Finite s] : FiniteGaloisIntermediateField
   to_isGalois := IsGalois.normalClosure k (IntermediateField.adjoin k (s : Set K)) K
 
 lemma adjoin_val [IsGalois k K] (s : Set K) [Finite s] :
-    (FiniteGaloisIntermediateField.adjoin k s).val = normalClosure k (IntermediateField.adjoin k s) K :=
+    (FiniteGaloisIntermediateField.adjoin k s).val =
+    normalClosure k (IntermediateField.adjoin k s) K :=
   rfl
 
 variable (k) in
@@ -268,8 +270,8 @@ lemma subset_adjoin [IsGalois k K] (s : Set K) [Finite s] :
   simp [hx]
 
 @[simp]
-theorem adjoin_le_iff [IsGalois k K] {s : Set K} [Finite s] {L : FiniteGaloisIntermediateField k K} :
-    adjoin k s ≤ L ↔ s ≤ L.val := by
+theorem adjoin_le_iff [IsGalois k K] {s : Set K} [Finite s] {L : FiniteGaloisIntermediateField k K}
+  : adjoin k s ≤ L ↔ s ≤ L.val := by
   change normalClosure _ _ _ ≤ L.val ↔ _
   rw [← IntermediateField.adjoin_le_iff, IntermediateField.normalClosure_le_iff_of_normal]
 
@@ -293,9 +295,18 @@ theorem adjoin_simple_map' [IsGalois k K] (f : K ≃ₐ[k] K) (x : K) :
     adjoin k {f x} = adjoin k {x} :=
   adjoin_simple_map (f : K →ₐ[k] K) x
 
+end FiniteGaloisIntermediateField
+
+open FiniteGaloisIntermediateField
+
+variable {k K : Type*} [Field k] [Field K] [Algebra k K]
+
+namespace InfiniteGalois
+
 variable (k K) in
 @[simps]
-noncomputable def homtoLimit : (K ≃ₐ[k] K) →* ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K) where
+noncomputable def homtoLimit : (K ≃ₐ[k] K) →* ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)
+  where
   toFun σ :=
   { val := fun L => (AlgEquiv.restrictNormalHom L.unop) σ
     property := fun L₁ L₂ π ↦ by
@@ -311,21 +322,21 @@ noncomputable def homtoLimit : (K ≃ₐ[k] K) →* ProfiniteGrp.ofFiniteGrpLimi
     simp only [map_mul]
     rfl
 
-lemma restrict_eq (σ : K ≃ₐ[k] K) (x : K) (Lx : FiniteGaloisIntermediateField k K) (hLx : x ∈ Lx.val) :
-    σ x = (AlgEquiv.restrictNormalHom Lx σ) ⟨x, hLx⟩ := by
+lemma restrict_eq (σ : K ≃ₐ[k] K) (x : K) (Lx : FiniteGaloisIntermediateField k K)
+  (hLx : x ∈ Lx.val) : σ x = (AlgEquiv.restrictNormalHom Lx σ) ⟨x, hLx⟩ := by
   change σ x = ((AlgEquiv.restrictNormal σ Lx) ⟨x, hLx⟩).1
   have := AlgEquiv.restrictNormal_commutes σ Lx ⟨x, hLx⟩
   convert this
   exact id this.symm
 
-def proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) (L : FiniteGaloisIntermediateField k K) :
-    L.val ≃ₐ[k] L.val :=
+def proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+  (L : FiniteGaloisIntermediateField k K) : L.val ≃ₐ[k] L.val :=
   g.val (op L)
 
 @[simp]
-lemma finGalFunctor_proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) {L₁ L₂ : FiniteGaloisIntermediateField k K}
-    (h : L₁ ⟶ L₂) : (finGalFunctor k K).map h.op (proj g L₂) = proj g L₁ :=
-  g.prop h.op
+lemma finGalFunctor_proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
+  {L₁ L₂ : FiniteGaloisIntermediateField k K} (h : L₁ ⟶ L₂) :
+  (finGalFunctor k K).map h.op (proj g L₂) = proj g L₁ := g.prop h.op
 
 lemma proj_lift
     (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
@@ -356,14 +367,16 @@ lemma toAlgHomAux_def [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalF
     toAlgHomAux g x = (proj g L ⟨x, hx⟩).val :=
   proj_lift_adjoin_simple g _ _ L hx
 
-lemma toAlgHomAux_eq_liftNormal [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
-    (x : K) (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
-    toAlgHomAux g x = (proj g L).liftNormal K x := by
+lemma toAlgHomAux_eq_liftNormal [IsGalois k K]
+  (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) (x : K)
+  (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
+  toAlgHomAux g x = (proj g L).liftNormal K x := by
   rw [toAlgHomAux_def g x L hx]
   exact (AlgEquiv.liftNormal_commutes (proj g L) _ ⟨x, hx⟩).symm
 
 @[simps]
-def toAlgHom [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K →ₐ[k] K where
+def toAlgHom [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) :
+  K →ₐ[k] K where
   toFun := toAlgHomAux g
   map_one' := by
     rw [toAlgHomAux_eq_liftNormal g 1 ⊥ (one_mem _)]
@@ -433,10 +446,11 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
   have lecl := IntermediateField.le_normalClosure L
   have : L'.val.fixingSubgroup ≤ L.fixingSubgroup := fun σ h => (mem_fixingSubgroup_iff
     (K ≃ₐ[k] K)).mpr (fun y hy => ((mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mp h) y (lecl hy))
-  have le1 : (mulEquivtoLimit k K).symm ⁻¹' O ⊆ (mulEquivtoLimit k K).symm ⁻¹' H := fun ⦃a⦄ => fun b => hO2 b
+  have le1 : (mulEquivtoLimit k K).symm ⁻¹' O ⊆ (mulEquivtoLimit k K).symm ⁻¹' H :=
+    fun ⦃a⦄ => fun b => hO2 b
   rw [←hgp, ←hL2] at le1
-  have le : (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup ⊆ (mulEquivtoLimit k K).symm ⁻¹' H :=
-    fun ⦃a⦄ b ↦ le1 (this b)
+  have le : (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup ⊆ (mulEquivtoLimit k K).symm ⁻¹' H
+    := fun ⦃a⦄ b ↦ le1 (this b)
   apply mem_nhds_iff.mpr
   use (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup
   constructor
@@ -559,6 +573,6 @@ theorem restrictNormalHomContinuous (L: IntermediateField k K) [IsGalois k K] [I
       apply IntermediateField.fixingSubgroup_isOpen
     · exact congrFun rfl
 
-end FiniteGaloisIntermediateField
+end InfiniteGalois
 
 /-example : ProfiniteGrp := ProfiniteGroup.of (K ≃ₐ[k] K)-/
