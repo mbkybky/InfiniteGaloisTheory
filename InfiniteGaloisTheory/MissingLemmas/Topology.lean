@@ -17,10 +17,23 @@ structure ContinuousMulEquiv extends MulEquiv G H , Homeomorph G H
 
 namespace ContinuousMulEquiv
 
+variable {G} {H}
+
 def symm (cme : ContinuousMulEquiv G H) : ContinuousMulEquiv H G := {
   cme.toMulEquiv.symm with
   continuous_toFun := cme.continuous_invFun
   continuous_invFun := cme.continuous_toFun
+  }
+
+def trans {K : Type*} [Group K] [TopologicalSpace K] [TopologicalGroup K]
+    (cme1 : ContinuousMulEquiv G H) (cme2 : ContinuousMulEquiv H K) : ContinuousMulEquiv G K := {
+  cme1.toMulEquiv.trans cme2.toMulEquiv with
+  continuous_toFun :=
+    let this := Continuous.comp cme2.continuous_toFun cme1.continuous_toFun
+    this
+  continuous_invFun :=
+    let this := Continuous.comp cme1.continuous_invFun cme2.continuous_invFun
+    this
   }
 
 end ContinuousMulEquiv
