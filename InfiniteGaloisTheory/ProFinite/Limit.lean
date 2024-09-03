@@ -270,17 +270,54 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
   have mem_μinvWOpen : ∀ w : W, ∃ Uw Vw, IsOpen Uw ∧ IsOpen Vw ∧ w ∈ Uw ∧ ⟨1, einW⟩ ∈ Vw ∧ Uw ×ˢ Vw ⊆ (μ⁻¹' W) := by
     intro w
     apply isOpen_prod_iff.mp μinvWOpen w ⟨1, einW⟩ (mem_μinvW w)
+  clear μCont mem_μinvW μinvWOpen
 
   let Uw := fun w ↦ Classical.choose (mem_μinvWOpen w)
   let spec1 := fun w ↦ Classical.choose_spec (mem_μinvWOpen w)
-  let Vw := fun w ↦ Classical.choose (spec1 w)
+  let Vw' := fun w ↦ Classical.choose (spec1 w)
   let spec2 := fun w ↦ Classical.choose_spec (spec1 w)
+  let Vw : W → Set W := fun w ↦
+  {x : W | x ∈ Vw' w ∧ (x : G) ∈ (Vw' w : Set G)⁻¹ }
+
+
+  have : ∀ w : W, IsOpen (Uw w) ∧ IsOpen (Vw w) ∧
+    w ∈ (Uw w) ∧ ⟨1, einW⟩ ∈ (Vw w) ∧ (Uw w) ×ˢ (Vw w) ⊆ (μ ⁻¹' W) ∧
+    ∀ v ∈ (Vw w : Set G) , v⁻¹ ∈ (Vw w : Set G) := by
+    intro w
+    rcases spec2 w with ⟨s1,s2,s3,s4,s5⟩
+    constructor ; exact s1
+    constructor
+    · apply IsOpen.and s2
+      have : IsOpen (Vw' w : Set G) := IsOpen.trans s2 (IsClopen.isOpen WClopen)
+      have : IsOpen (Vw' w : Set G)⁻¹ := IsOpen.inv this
+      have := (IsOpen.isOpenMap_subtype_val (IsClopen.isOpen WClopen))
+
+
+      sorry
+    constructor ; exact s3
+    constructor ; simp only [Set.mem_inv, Set.mem_image, Subtype.exists, exists_and_right, exists_eq_right, Set.mem_setOf_eq, s4, inv_one, einW, exists_const, and_self, Vw]
+    constructor
+    · intro (w1,w2) hw
+      unfold_let Vw at hw
+      simp only [Set.mem_prod, Set.mem_setOf_eq] at hw
+      have : (w1,w2) ∈ (Uw w) ×ˢ (Vw' w) := by
+        simp only [Set.mem_prod, hw.1, hw.2, and_self]
+      exact s5 this
+    · intro v vinVw
+      have : v ∈ (Vw' w : Set G) ∧ (v : G) ∈ (Vw' w : Set G)⁻¹ :=sorry
+      sorry
+
+
+
+
 
   have cover : W ⊆ ⋃ w : W, Uw w := by
     intro w winW
     simp only [Set.mem_iUnion, Set.mem_image, Subtype.exists, exists_and_right, exists_eq_right]
     use w, winW ,winW
     exact (spec2 ⟨w,winW⟩).2.2.1
+
+  have :True :=sorry
 
 
 
