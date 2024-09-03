@@ -220,21 +220,6 @@ def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
       show L₁.fixingSubgroup ≥ L₂.fixingSubgroup ↔ L₁ ≤ L₂
       rw [← fixedField_fixingSubgroup L₂, IntermediateField.le_iff_le, fixedField_fixingSubgroup L₂]
 
-lemma FiniteDimensional_of_le {L M : IntermediateField k K} (le : L ≤ M) [FiniteDimensional k M] :
-  FiniteDimensional k L := by
-  let i : L →ₐ[k] M := {
-    toFun := fun x => ⟨x.1, le x.2⟩
-    map_one' := rfl
-    map_mul' := fun _ _ => rfl
-    map_zero' := rfl
-    map_add' := fun _ _ => rfl
-    commutes' := fun _ => rfl
-  }
-  have inj : Function.Injective i := fun x y h => by
-    apply_fun Subtype.val at h
-    exact Subtype.val_injective h
-  exact FiniteDimensional.of_injective (AlgHom.toLinearMap i) inj
-
 theorem OpeniffFixbyFinite (L : IntermediateField k K) [IsGalois k K] :
   IsOpen (intermediateFieldEquivClosedSubgroup.toFun L).carrier ↔
   (FiniteDimensional k L) := by

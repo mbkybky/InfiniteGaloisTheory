@@ -157,4 +157,19 @@ def IntermediateField.lift_AlgEquiv (F : IntermediateField K E) : ↥F ≃ₐ[K]
   map_add' := fun _ _ => rfl
   commutes' := fun _ => rfl
 
+lemma FiniteDimensional_of_le {M N : IntermediateField K L} (le : M ≤ N) [FiniteDimensional K N] :
+  FiniteDimensional K M := by
+  let i : M →ₐ[K] N := {
+    toFun := fun x => ⟨x.1, le x.2⟩
+    map_one' := rfl
+    map_mul' := fun _ _ => rfl
+    map_zero' := rfl
+    map_add' := fun _ _ => rfl
+    commutes' := fun _ => rfl
+  }
+  have inj : Function.Injective i := fun x y h => by
+    apply_fun Subtype.val at h
+    exact Subtype.val_injective h
+  exact FiniteDimensional.of_injective (AlgHom.toLinearMap i) inj
+
 end Galois
