@@ -287,7 +287,43 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
   sorry
 
 def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
-(WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G :=sorry
+(WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G where
+  carrier := {x : G | ∃ n : ℕ, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n}
+  mul_mem':= by
+    intro a b ha hb
+    simp only [Set.mem_setOf_eq] at *
+    rcases ha with ⟨na, hna⟩
+    rcases hb with ⟨nb, hnb⟩
+    use na + nb
+    rw [pow_add]
+    exact Set.mul_mem_mul hna hnb
+  one_mem':= by
+    simp only [Set.mem_setOf_eq]
+    use 1
+    rw [pow_one]
+    exact (Classical.choose_spec (exist_open_symm_subnhds WClopen einW)).2.2.1
+  inv_mem':= by
+    simp only [Set.mem_setOf_eq, forall_exists_index] at *
+    intro x m hm
+    use m
+    have : ∀ n : ℕ, ∀ x : G, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n → x⁻¹ ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n := by
+      intro n
+      induction' n with k hk
+      · rw [pow_zero]
+        intro x hx
+        rw [hx]
+        exact Set.mem_one.mpr inv_one
+      · intro x hx
+        rw [add_comm]
+        rw [pow_add, pow_one] at *
+        rcases hx with ⟨a, ha, b, hb, hyp⟩
+        simp only at hyp
+        rw [← hyp, DivisionMonoid.mul_inv_rev a b]
+        apply Set.mul_mem_mul
+        · rw [(Classical.choose_spec (exist_open_symm_subnhds WClopen einW)).2.1]
+          exact Set.inv_mem_inv.mpr hb
+        · exact hk a ha
+    exact this m x hm
 
 theorem open_subgroup_subnhds_spec {G : ProfiniteGrp} {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) :
