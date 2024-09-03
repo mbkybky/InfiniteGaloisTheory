@@ -242,4 +242,14 @@ def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
       show L₁.fixingSubgroup ≥ L₂.fixingSubgroup ↔ L₁ ≤ L₂
       rw [← fixedField_fixingSubgroup L₂, IntermediateField.le_iff_le, fixedField_fixingSubgroup L₂]
 
+theorem OpeniffFixbyFinite (L : IntermediateField k K) [IsGalois k K] :
+  IsOpen (intermediateFieldEquivClosedSubgroup.toFun L).carrier ↔
+  (FiniteDimensional k L) := by
+  constructor
+  all_goals intro h
+  ·
+    sorry
+  ·
+    sorry
+
 end InfiniteGalois
