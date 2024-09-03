@@ -226,9 +226,18 @@ def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
     toFun := fun L =>
       { L.fixingSubgroup with
         isClosed' := fixingSubgroup_IsClosed L }
-    invFun := fun H => sorry --IntermediateField.fixedField
-    left_inv := sorry
-    right_inv := sorry
-    map_rel_iff' := sorry
+    invFun := fun H => IntermediateField.fixedField H.1
+    left_inv := by
+      simp only [Function.LeftInverse]
+      intro L
+      exact fixedField_fixingSubgroup L
+    right_inv := by
+      simp only [Function.RightInverse, Function.LeftInverse]
+      intro H
+      simp_rw [fixingSubgroup_fixedField H]
+    map_rel_iff' := by
+      intro L₁ L₂
+      simp only [Equiv.coe_fn_mk]
+      sorry
 
 end InfiniteGalois
