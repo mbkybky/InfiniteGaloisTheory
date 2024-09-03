@@ -247,9 +247,21 @@ theorem OpeniffFixbyFinite (L : IntermediateField k K) [IsGalois k K] :
   (FiniteDimensional k L) := by
   constructor
   all_goals intro h
-  ·
+  · have : (intermediateFieldEquivClosedSubgroup.toFun L).carrier ∈ nhds 1 :=
+      IsOpen.mem_nhds h (congrFun rfl)
+    rw [GroupFilterBasis.nhds_one_eq] at this
+    rcases this with ⟨S,⟨gp,⟨M,hM,eq'⟩,eq⟩,sub⟩
+    simp only [← eq'] at eq
+    rw [←eq] at sub
+    let L' : FiniteGaloisIntermediateField k K := {
+      normalClosure k M K with
+      to_finiteDimensional := by
+        have := hM.out
+        exact normalClosure.is_finiteDimensional k M K
+      to_isGalois := IsGalois.normalClosure k M K
+    }
     sorry
-  ·
-    sorry
+  · simp only [intermediateFieldEquivClosedSubgroup, Equiv.toFun_as_coe, Equiv.coe_fn_mk]
+    apply IntermediateField.fixingSubgroup_isOpen
 
 end InfiniteGalois
