@@ -432,114 +432,15 @@ noncomputable def mulEquivtoLimit [IsGalois k K] :
   toFun := homtoLimit k K
   map_mul' := map_mul _
   invFun := toAlgEquiv
-  left_inv := fun f ↦ by
-    ext x
-    exact AlgEquiv.restrictNormal_commutes f (adjoin k {x}).val ⟨x, _⟩
-  right_inv := fun g ↦ by
-    apply Subtype.val_injective
-    ext L
-    change (toAlgEquiv g).restrictNormal _ = _
-    apply AlgEquiv.ext
-    intro x
-    have : ((toAlgEquiv g).restrictNormal L.unop) x = (toAlgEquiv g) x.1 := by
-      have := AlgEquiv.restrictNormal_commutes (toAlgEquiv g) L.unop x
-      convert this
-    apply Subtype.val_injective
-    simp_rw [this]
-    exact proj_lift_adjoin_simple _ _ _ _ x.2
+  left_inv := sorry
+  right_inv := sorry
 
 lemma krullTopology_mem_nhds_one [IsGalois k K] (s : Set (K ≃ₐ[k] K)) :
     s ∈ 𝓝 1 ↔
       ∃ L : IntermediateField k K,
-        FiniteDimensional k L ∧ (L.fixingSubgroup : Set (K ≃ₐ[k] K)) ⊆ s := by
-  rw [GroupFilterBasis.nhds_one_eq]
-  constructor
-  · rintro ⟨-, ⟨-, ⟨L, fin, rfl⟩, rfl⟩, hL⟩
-    exact ⟨L, fin, hL⟩
-  · rintro ⟨L, fin, hL⟩
-    exact ⟨L.fixingSubgroup, ⟨L.fixingSubgroup, ⟨L, fin, rfl⟩, rfl⟩, hL⟩
+        FiniteDimensional k L ∧ (L.fixingSubgroup : Set (K ≃ₐ[k] K)) ⊆ s := sorry
 
-lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm := by
-  apply continuous_of_continuousAt_one
-  apply continuousAt_def.mpr
-  simp only [map_one, krullTopology_mem_nhds_one]
-  intro H ⟨L, _, hO2⟩
-  set L' : FiniteGaloisIntermediateField k K := mk <| normalClosure k L K
-  have lecl := IntermediateField.le_normalClosure L
-  have : L'.val.fixingSubgroup ≤ L.fixingSubgroup := fun σ h => (mem_fixingSubgroup_iff
-    (K ≃ₐ[k] K)).mpr (fun y hy => ((mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mp h) y (lecl hy))
-  have le1 : (mulEquivtoLimit k K).symm ⁻¹' L.fixingSubgroup ⊆ (mulEquivtoLimit k K).symm ⁻¹' H :=
-    fun ⦃a⦄ => fun b => hO2 b
-  have le : (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup ⊆ (mulEquivtoLimit k K).symm ⁻¹' H
-    := fun ⦃a⦄ b ↦ le1 (this b)
-  apply mem_nhds_iff.mpr
-  use (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup
-  constructor
-  · exact le
-  · constructor
-    · have : (mulEquivtoLimit k K).symm ⁻¹' L'.val.fixingSubgroup =
-          mulEquivtoLimit k K '' (L'.val.fixingSubgroup : Set (K ≃ₐ[k] K)) := by
-        set S := L'.val.fixingSubgroup.carrier
-        set f := mulEquivtoLimit k K
-        ext σ
-        constructor
-        all_goals intro h
-        · simp only [Set.mem_preimage] at h
-          use f.symm σ
-          simp only [h, MulEquiv.apply_symm_apply, and_self]
-        · rcases h with ⟨σ',h1,h2⟩
-          simp [←h2,h1]
-      rw [this]
-      let fix1 : Set ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → (finGalFunctor _ _).obj L) :=
-        {x : ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → (finGalFunctor _ _).obj L)
-          | x (op L') = 1}
-      have pre : fix1 = Set.preimage (fun x => x (op L')) {1} := by rfl
-      have C : Continuous (fun (x : (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) →
-        (finGalFunctor _ _).obj L) ↦ x (op L')) := continuous_apply (op L')
-      have : mulEquivtoLimit k K '' L'.val.fixingSubgroup = Set.preimage Subtype.val fix1 := by
-        ext x
-        constructor
-        all_goals intro h
-        · rcases h with ⟨α,hα1,hα2⟩
-          simp only [Set.mem_preimage,←hα2]
-          unfold_let fix1
-          simp only [Set.mem_setOf_eq]
-          unfold mulEquivtoLimit homtoLimit
-          simp only [MonoidHom.coe_mk, OneHom.coe_mk, MulEquiv.coe_mk, Equiv.coe_fn_mk]
-          apply AlgEquiv.ext
-          intro x
-          apply Subtype.val_injective
-          rw [← restrict_eq α x.1 L' x.2]
-          simp only [AlgEquiv.one_apply]
-          exact hα1 x
-        · simp only [Set.mem_preimage] at h
-          use (mulEquivtoLimit _ _).symm x
-          constructor
-          · unfold IntermediateField.fixingSubgroup
-            apply (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr
-            intro y hy
-            simp only [AlgEquiv.smul_def]
-            have fix := h.out
-            set Aut := (mulEquivtoLimit _ _).symm x
-            have : mulEquivtoLimit _ _ Aut = x := by
-              unfold_let Aut
-              simp only [MulEquiv.apply_symm_apply]
-            rw [←this] at fix
-            unfold mulEquivtoLimit homtoLimit at fix
-            simp only [MonoidHom.coe_mk, OneHom.coe_mk, MulEquiv.coe_mk, Equiv.coe_fn_mk] at fix
-            have fix_y : AlgEquiv.restrictNormalHom L' Aut ⟨y, hy⟩ = ⟨y, hy⟩ := by
-              simp only [fix, AlgEquiv.one_apply]
-            rw [restrict_eq Aut y L' hy, fix_y]
-          · simp only [MulEquiv.apply_symm_apply]
-      have op : IsOpen fix1 := by
-        rw [pre]
-        have : IsOpen ({1} : Set ((finGalFunctor _ _).obj (op L'))) := by exact trivial
-        exact C.isOpen_preimage {1} this
-      rw [this]
-      exact isOpen_induced op
-    · simp only [Set.mem_preimage, map_one, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
-      Subgroup.mem_toSubmonoid]
-      exact congrFun rfl
+lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm := sorry
 
 instance [IsGalois k K] : T2Space (K ≃ₐ[k] K) := krullTopology_t2
 
@@ -561,31 +462,6 @@ noncomputable def ProfiniteGalGrp [IsGalois k K] : ProfiniteGrp :=
 variable {k K}
 
 theorem restrictNormalHomContinuous (L : IntermediateField k K) [IsGalois k K] [IsGalois k L] :
-    Continuous (AlgEquiv.restrictNormalHom (F := k) (K₁ := K) L) := by
-  apply continuous_of_continuousAt_one
-  apply continuousAt_def.mpr
-  rw [map_one]
-  intro N hN
-  rw [krullTopology_mem_nhds_one] at hN
-  obtain ⟨L', hL', hO⟩ := hN
-  letI : FiniteDimensional k L' :=
-    Module.Finite.equiv <| AlgEquiv.toLinearEquiv <| IntermediateField.lift_AlgEquiv L L'
-  apply mem_nhds_iff.mpr
-  use (IntermediateField.lift L').fixingSubgroup
-  constructor
-  · intro x hx
-    rw [Set.mem_preimage]
-    apply hO
-    simp only [SetLike.mem_coe] at hx ⊢
-    rw [IntermediateField.mem_fixingSubgroup_iff] at hx ⊢
-    intro y hy
-    show (AlgEquiv.restrictNormal x L) y = y
-    have := AlgEquiv.restrictNormal_commutes x L y
-    dsimp at this
-    rw [hx y.1 ((IntermediateField.mem_lift y).mpr hy)] at this
-    exact SetLike.coe_eq_coe.mp this
-  · constructor
-    · apply IntermediateField.fixingSubgroup_isOpen
-    · exact congrFun rfl
+    Continuous (AlgEquiv.restrictNormalHom (F := k) (K₁ := K) L) := sorry
 
 end InfiniteGalois
