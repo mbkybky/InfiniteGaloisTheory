@@ -251,6 +251,53 @@ theorem OpeniffFixbyFinite (L : IntermediateField k K) [IsGalois k K] :
   · simp only [intermediateFieldEquivClosedSubgroup, Equiv.toFun_as_coe, Equiv.coe_fn_mk]
     apply IntermediateField.fixingSubgroup_isOpen
 
+theorem NormaliffGalois (L : IntermediateField k K) [IsGalois k K] :
+  Subgroup.Normal (intermediateFieldEquivClosedSubgroup.toFun L).1 ↔
+  IsGalois k L := by
+  constructor
+  all_goals intro h
+  ·
+    let f : L → IntermediateField k K :=
+      fun x => (normalClosure k (IntermediateField.adjoin k {x.1}) K)
+    have n : Normal k ↥(⨆ (i : L), f i):= IntermediateField.normal_iSup k K f
+    have : (⨆ (l : L), f l) = L := by
+      apply le_antisymm
+      · apply iSup_le
+        intro l
+        unfold_let f
+        dsimp
 
+        sorry
+      · intro l hl
+        apply le_iSup f ⟨l,hl⟩
+        unfold_let f
+        dsimp
+        apply IntermediateField.le_normalClosure
+        exact IntermediateField.mem_adjoin_simple_self k l
+    rw [this] at n
+    letI : Algebra.IsSeparable k L := Algebra.isSeparable_tower_bot_of_isSeparable k L K
+    apply IsGalois.mk
+  · have : (intermediateFieldEquivClosedSubgroup.toFun L).1 =
+      (AlgEquiv.restrictNormalHom L).ker := by
+      ext σ
+      show σ ∈ L.fixingSubgroup ↔ (AlgEquiv.restrictNormalHom L) σ = 1
+      have iff1 : σ ∈ fixingSubgroup (K ≃ₐ[k] K) (L : Set K) ↔ ∀ y ∈ (L : Set K), σ • y = y := by
+        apply mem_fixingSubgroup_iff
+      apply Iff.trans iff1
+      simp only [SetLike.mem_coe, AlgEquiv.smul_def]
+      show (∀ y ∈ L, σ y = y) ↔ (σ.restrictNormal L) = 1
+      constructor
+      all_goals intro hyp
+      · ext x
+        simp only [AlgEquiv.one_apply, SetLike.coe_eq_coe]
+        apply Subtype.val_injective
+        rw [←hyp x.1 x.2]
+        exact AlgEquiv.restrictNormal_commutes σ L x
+      · intro y hy
+        have : σ y = σ.restrictNormal L ⟨y,hy⟩ :=
+          (AlgEquiv.restrictNormal_commutes σ L ⟨y,hy⟩).symm
+        rw [this,hyp, AlgEquiv.one_apply]
+    rw [this]
+    exact MonoidHom.normal_ker (AlgEquiv.restrictNormalHom L)
 
 end InfiniteGalois
