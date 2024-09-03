@@ -222,7 +222,7 @@ lemma fixingSubgroup_fixedField (H : ClosedSubgroup (K ≃ₐ[k] K)) [IsGalois k
       fun ⦃x⦄ a ↦ a
 
 def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
-  IntermediateField k K ≃o ClosedSubgroup (K ≃ₐ[k] K)ᵒᵈ where
+  IntermediateField k K ≃o (ClosedSubgroup (K ≃ₐ[k] K))ᵒᵈ where
     toFun := fun L =>
       { L.fixingSubgroup with
         isClosed' := fixingSubgroup_IsClosed L }
@@ -235,9 +235,11 @@ def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
       simp only [Function.RightInverse, Function.LeftInverse]
       intro H
       simp_rw [fixingSubgroup_fixedField H]
+      rfl
     map_rel_iff' := by
       intro L₁ L₂
       simp only [Equiv.coe_fn_mk]
-      sorry
+      show L₁.fixingSubgroup ≥ L₂.fixingSubgroup ↔ L₁ ≤ L₂
+      rw [← fixedField_fixingSubgroup L₂, IntermediateField.le_iff_le, fixedField_fixingSubgroup L₂]
 
 end InfiniteGalois
