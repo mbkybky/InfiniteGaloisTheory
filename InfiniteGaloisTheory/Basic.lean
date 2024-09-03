@@ -331,7 +331,7 @@ noncomputable def homtoLimit : (K ≃ₐ[k] K) →* ProfiniteGrp.ofFiniteGrpLimi
 
 lemma restrict_eq (σ : K ≃ₐ[k] K) (x : K) (Lx : FiniteGaloisIntermediateField k K)
   (hLx : x ∈ Lx.val) : σ x = (AlgEquiv.restrictNormalHom Lx σ) ⟨x, hLx⟩ := by
-  change σ x = ((AlgEquiv.restrictNormal σ Lx) ⟨x, hLx⟩).1
+  show σ x = ((AlgEquiv.restrictNormal σ Lx) ⟨x, hLx⟩).1
   have := AlgEquiv.restrictNormal_commutes σ Lx ⟨x, hLx⟩
   convert this
   exact id this.symm
