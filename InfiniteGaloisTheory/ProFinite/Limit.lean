@@ -255,4 +255,50 @@ theorem surjectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Surjective (can
 
 end
 
+section ProfiniteGrp
+namespace ProfiniteGrp
+open scoped Pointwise
+
+theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
+(WClopen : IsClopen W) (einW : 1 ∈ W) :∃ V : Set G, IsOpen V ∧ V = V⁻¹ ∧ 1 ∈ V ∧ V ⊆ W ∧ W * V ⊆ W := by
+  let μ : W × W → G := fun (x, y) ↦ x * y
+  have μCont : Continuous μ :=by continuity
+  have mem_μinvW : ∀ w : W, (w, ⟨1, einW⟩) ∈ μ⁻¹' W := by
+    intro w
+    simp only [Set.mem_preimage, mul_one, Subtype.coe_prop, μ]
+  have μinvWOpen : IsOpen (μ⁻¹' W) := μCont.isOpen_preimage W <| IsClopen.isOpen WClopen
+  have mem_μinvWOpen : ∀ w : W, ∃ Uw Vw, IsOpen Uw ∧ IsOpen Vw ∧ w ∈ Uw ∧ ⟨1, einW⟩ ∈ Vw ∧ Uw ×ˢ Vw ⊆ (μ⁻¹' W) := by
+    intro w
+    apply isOpen_prod_iff.mp μinvWOpen w ⟨1, einW⟩ (mem_μinvW w)
+
+  let Uw := fun w ↦ Classical.choose (mem_μinvWOpen w)
+  let spec1 := fun w ↦ Classical.choose_spec (mem_μinvWOpen w)
+  let Vw := fun w ↦ Classical.choose (spec1 w)
+  let spec2 := fun w ↦ Classical.choose_spec (spec1 w)
+
+  have cover : W ⊆ ⋃ w : W, Uw w := by
+    intro w winW
+    simp only [Set.mem_iUnion, Set.mem_image, Subtype.exists, exists_and_right, exists_eq_right]
+    use w, winW ,winW
+    exact (spec2 ⟨w,winW⟩).2.2.1
+
+
+
+  sorry
+
+def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
+(WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G :=sorry
+
+theorem open_subgroup_subnhds_spec {G : ProfiniteGrp} {W : Set G}
+(WClopen : IsClopen W) (einW : 1 ∈ W) :
+IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
+((open_subgroup_subnhds WClopen einW) : Set G) ⊆ W :=sorry
+
+def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
+(UOpen : IsClopen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=sorry
+
+theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
+(UOpen : IsClopen U) (einU : 1 ∈ U) : ((OpenNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U :=sorry
+
+end ProfiniteGrp
 end ProfiniteGrp
