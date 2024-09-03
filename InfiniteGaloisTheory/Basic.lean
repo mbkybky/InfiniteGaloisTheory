@@ -78,6 +78,18 @@ def AlgEquiv.aut_inv (ϕ : L ≃ₐ[F] L) : ϕ⁻¹ = ϕ.symm :=
 instance IntermediateField.instSMulMemClass : SMulMemClass (IntermediateField F L) F L :=
   ⟨fun _ _ hx ↦ smul_mem _ hx⟩
 
+open scoped Topology in
+lemma krullTopology_mem_nhds_one (s : Set (L ≃ₐ[F] L)) :
+    s ∈ 𝓝 1 ↔
+      ∃ S : IntermediateField F L,
+        FiniteDimensional F S ∧ (S.fixingSubgroup : Set (L ≃ₐ[F] L)) ⊆ s := by
+  rw [GroupFilterBasis.nhds_one_eq]
+  constructor
+  · rintro ⟨-, ⟨-, ⟨S, fin, rfl⟩, rfl⟩, hS⟩
+    exact ⟨S, fin, hS⟩
+  · rintro ⟨S, fin, hS⟩
+    exact ⟨S.fixingSubgroup, ⟨S.fixingSubgroup, ⟨S, fin, rfl⟩, rfl⟩, hS⟩
+
 @[simp]
 lemma IntermediateField.normal_map {F L : Type*} [Field F] [Field L] [Algebra F L] [Normal F L]
     (K : IntermediateField F L) (σ : L →ₐ[F] L) :
@@ -138,7 +150,6 @@ open CategoryTheory Topology Opposite
 open scoped IntermediateField
 
 variable (k K : Type*) [Field k] [Field K] [Algebra k K]
-
 
 /--The Finite Galois IntermediateField of `K/k`-/
 @[ext]
@@ -447,17 +458,6 @@ noncomputable def mulEquivtoLimit [IsGalois k K] :
     apply Subtype.val_injective
     simp_rw [this]
     exact proj_lift_adjoin_simple _ _ _ _ x.2
-
-lemma krullTopology_mem_nhds_one [IsGalois k K] (s : Set (K ≃ₐ[k] K)) :
-    s ∈ 𝓝 1 ↔
-      ∃ L : IntermediateField k K,
-        FiniteDimensional k L ∧ (L.fixingSubgroup : Set (K ≃ₐ[k] K)) ⊆ s := by
-  rw [GroupFilterBasis.nhds_one_eq]
-  constructor
-  · rintro ⟨-, ⟨-, ⟨L, fin, rfl⟩, rfl⟩, hL⟩
-    exact ⟨L, fin, hL⟩
-  · rintro ⟨L, fin, hL⟩
-    exact ⟨L.fixingSubgroup, ⟨L.fixingSubgroup, ⟨L, fin, rfl⟩, rfl⟩, hL⟩
 
 lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm := by
   apply continuous_of_continuousAt_one
