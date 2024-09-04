@@ -3,7 +3,6 @@ Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jujian Zhang, Nailin Guan, Yuyang Zhao, Yongle Hu
 -/
-import InfiniteGaloisTheory.ProFinite.Basic
 import InfiniteGaloisTheory.ProFinite.Limit
 /-!
 
@@ -121,68 +120,125 @@ open scoped Pointwise
 theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) :∃ V : Set G, IsOpen V ∧ V = V⁻¹ ∧ 1 ∈ V ∧ V ⊆ W ∧ W * V ⊆ W
 := by
-  let μ : W × W → G := fun (x, y) ↦ x * y
-  have μCont : Continuous μ :=by continuity
-  have mem_μinvW : ∀ w : W, (w, ⟨1, einW⟩) ∈ μ⁻¹' W := by
+  let μ : G × G → G := fun (x, y) ↦ x * y
+  have μCont : Continuous μ := continuous_mul
+
+  let μinvW := μ⁻¹' W ∩ (W ×ˢ W)
+  have μinvWsubWp : μinvW ⊆ (W ×ˢ W) := Set.inter_subset_right
+
+  have mem_μinvW : ∀ w : W, ((w : G), 1) ∈ μinvW := by
     intro w
-    simp only [Set.mem_preimage, mul_one, Subtype.coe_prop, μ]
-  have μinvWOpen : IsOpen (μ⁻¹' W) := μCont.isOpen_preimage W <| IsClopen.isOpen WClopen
-  have mem_μinvWOpen : ∀ w : W, ∃ Uw Vw, IsOpen Uw ∧ IsOpen Vw ∧ w ∈ Uw ∧
-    ⟨1, einW⟩ ∈ Vw ∧ Uw ×ˢ Vw ⊆ (μ⁻¹' W) := by
+    unfold_let μinvW
+    simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod]
+    constructor ; simp only [mul_one, Subtype.coe_prop, μ]
+    constructor ; simp only [Subtype.coe_prop]
+    exact einW
+
+  have μinvWOpen : IsOpen μinvW := by
+    unfold_let μinvW
+    apply IsOpen.inter
+    apply μCont.isOpen_preimage W <| IsClopen.isOpen WClopen
+    apply IsOpen.prod <;> (apply IsClopen.isOpen WClopen)
+
+  have mem_μinvWOpen : ∀ w : W, ∃ (Uw : Set G) (Vw : Set G), IsOpen Uw ∧ IsOpen Vw ∧ (w : G)  ∈ Uw ∧
+    1 ∈ Vw ∧ Uw ×ˢ Vw ⊆ μinvW := by
     intro w
-    apply isOpen_prod_iff.mp μinvWOpen w ⟨1, einW⟩ (mem_μinvW w)
+    apply isOpen_prod_iff.mp μinvWOpen w 1 (mem_μinvW w)
+
   clear μCont mem_μinvW μinvWOpen
 
   let Uw := fun w ↦ Classical.choose (mem_μinvWOpen w)
   let spec1 := fun w ↦ Classical.choose_spec (mem_μinvWOpen w)
   let Vw' := fun w ↦ Classical.choose (spec1 w)
   let spec2 := fun w ↦ Classical.choose_spec (spec1 w)
-  let Vw : W → Set W := fun w ↦
-  {x : W | x ∈ Vw' w ∧ (x : G) ∈ (Vw' w : Set G)⁻¹ }
+  let Vw := fun w ↦ (Vw' w) ∩ (Vw' w)⁻¹
 
-
-  have : ∀ w : W, IsOpen (Uw w) ∧ IsOpen (Vw w) ∧
-    w ∈ (Uw w) ∧ ⟨1, einW⟩ ∈ (Vw w) ∧ (Uw w) ×ˢ (Vw w) ⊆ (μ ⁻¹' W) ∧
-    ∀ v ∈ (Vw w : Set G) , v⁻¹ ∈ (Vw w : Set G) := by
+  have spec3 : ∀ w : W, (Uw w) ⊆ W ∧ (Vw' w) ⊆ W :=by
     intro w
-    rcases spec2 w with ⟨s1,s2,s3,s4,s5⟩
-    constructor ; exact s1
+    rcases spec2 w with ⟨_,_,_,_,s5⟩
+    have : (Uw w) ×ˢ (Vw' w) ⊆ W ×ˢ W :=by
+      intro g gin
+      exact μinvWsubWp (s5 gin)
+    rw [Set.prod_subset_prod_iff] at this
+    rcases this with _ | empty | empty
+    assumption
+    repeat
+    rw [Set.eq_empty_iff_forall_not_mem] at empty
+    tauto
+
+  have spec4 : ∀ w : W, IsOpen (Vw w) ∧ 1 ∈ (Vw w) ∧  (Vw w) = (Vw w)⁻¹ ∧ (Vw w) ⊆ W := by
+    intro w
+    rcases spec2 w with ⟨_,s2,_,s4,_⟩
+    rcases spec3 w with ⟨_,s7⟩
     constructor
-    · apply IsOpen.and s2
-      have : IsOpen (Vw' w : Set G) := IsOpen.trans s2 (IsClopen.isOpen WClopen)
-      have : IsOpen (Vw' w : Set G)⁻¹ := IsOpen.inv this
-      have := (IsOpen.isOpenMap_subtype_val (IsClopen.isOpen WClopen))
-
-
-      sorry
-    constructor ; exact s3
-    constructor ; simp only [Set.mem_inv, Set.mem_image, Subtype.exists, exists_and_right, exists_eq_right, Set.mem_setOf_eq, s4, inv_one, einW, exists_const, and_self, Vw]
+    · apply IsOpen.inter s2 (IsOpen.inv s2)
     constructor
-    · intro (w1,w2) hw
-      unfold_let Vw at hw
-      simp only [Set.mem_prod, Set.mem_setOf_eq] at hw
-      have : (w1,w2) ∈ (Uw w) ×ˢ (Vw' w) := by
-        simp only [Set.mem_prod, hw.1, hw.2, and_self]
-      exact s5 this
-    · intro v vinVw
-      have : v ∈ (Vw' w : Set G) ∧ (v : G) ∈ (Vw' w : Set G)⁻¹ :=sorry
-      sorry
+    · apply Set.mem_inter s4
+      simp only [Set.mem_inv, inv_one]
+      exact s4
+    constructor
+    · ext x
+      unfold_let Vw
+      simp only [Set.mem_inter_iff, Set.mem_inv, Set.inter_inv, inv_inv]
+      exact And.comm
+    intro x ⟨xV,_⟩
+    exact s7 xV
 
-
-
-
-
+  have UOpen :=  fun w ↦ (spec2 w).1
+  have VOpen := fun w ↦ (spec4 w).1
+  have einV := fun w ↦ (spec4 w).2.1
+  have VSymm := fun w ↦ (spec4 w).2.2.1
+  have VsubW := fun w ↦ (spec4 w).2.2.2
   have cover : W ⊆ ⋃ w : W, Uw w := by
-    intro w winW
-    simp only [Set.mem_iUnion, Set.mem_image, Subtype.exists, exists_and_right, exists_eq_right]
-    use w, winW ,winW
-    exact (spec2 ⟨w,winW⟩).2.2.1
+    intro x xinW
+    simp only [Set.iUnion_coe_set, Set.mem_iUnion]
+    use x, xinW
+    exact (spec2 ⟨x,xinW⟩).2.2.1
+  clear spec3 spec4 μinvWsubWp
 
-  have :True :=sorry
+  rcases IsCompact.elim_finite_subcover (IsClosed.isCompact (IsClopen.isClosed WClopen)) _ UOpen cover
+  with ⟨fin,fincover⟩
+  have : Nonempty fin :=by
+    by_contra empty
+    rw [nonempty_subtype] at empty
+    push_neg at empty
+    apply Finset.eq_empty_of_forall_not_mem at empty
+    simp_rw [empty, Finset.not_mem_empty, exists_and_left, Set.iUnion_of_empty, Set.iUnion_empty,
+      Set.subset_empty_iff,Set.eq_empty_iff_forall_not_mem] at fincover
+    tauto
+  let w0 := Classical.choice this
 
-
-
-  sorry
+  use ⋂ w ∈ fin , Vw w
+  constructor
+  · exact isOpen_biInter_finset fun w _ ↦ VOpen w
+  constructor
+  · ext x
+    constructor <;>
+    · intro h
+      simp at h ⊢
+      intro w winW winfin
+      specialize h w winW winfin
+      rw[VSymm ⟨w,winW⟩]
+      simp only [Set.mem_inv, inv_inv, h]
+  constructor
+  · simp_rw [Set.mem_iInter]
+    intro w _
+    exact einV w
+  constructor
+  · intro x xinInter
+    simp_rw [Set.mem_iInter] at xinInter
+    specialize xinInter w0 w0.prop
+    exact (VsubW w0) xinInter
+  intro a ainmul
+  rw [Set.mem_mul] at ainmul
+  rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
+  have := fincover xinW
+  simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
+  rcases this with ⟨w,winfin,xinU⟩
+  simp_rw [Set.mem_iInter] at yinInter
+  have yinV := Set.mem_of_mem_inter_left (yinInter w winfin)
+  have := Set.mem_of_mem_inter_left <| (spec2 w).2.2.2.2 <| Set.mk_mem_prod xinU yinV
+  simpa only [Set.mem_preimage, xmuly, μ] using this
 
 def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G where
@@ -226,7 +282,61 @@ def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
 theorem open_subgroup_subnhds_spec {G : ProfiniteGrp} {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) :
 IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
-((open_subgroup_subnhds WClopen einW) : Set G) ⊆ W :=sorry
+((open_subgroup_subnhds WClopen einW) : Set G) ⊆ W := by
+  let V := Classical.choose (exist_open_symm_subnhds WClopen einW)
+  let ⟨VOpen,_,einV,_,mulVsubW⟩:= Classical.choose_spec (exist_open_symm_subnhds WClopen einW)
+  have eqUnion : {x : G | ∃ n : ℕ, x ∈ V ^ n} = ⋃ n ≥ 1 , V ^ n :=by
+    ext x
+    rw [Set.mem_setOf_eq, Set.mem_iUnion]
+    constructor
+    · rintro ⟨n,xin⟩
+      cases' n with p
+      · rw [pow_zero, Set.mem_one] at xin
+        use 1
+        simp_rw [ge_iff_le, le_refl, pow_one, Set.iUnion_true, xin]
+        exact einV
+      · use (p + 1)
+        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true, xin]
+    · intro h
+      simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at h
+      rcases h with ⟨n,_,xin⟩
+      use n
+
+  constructor
+  · show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
+    rw [eqUnion]
+    apply isOpen_iUnion
+    intro n
+    induction' n with n ih
+    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero, Set.iUnion_of_empty, isOpen_empty]
+    · cases' n
+      simp_rw [zero_add, ge_iff_le, le_refl, pow_one, Set.iUnion_true]
+      exact VOpen
+      simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
+      rw [pow_succ]
+      apply IsOpen.mul_left VOpen
+
+  · show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
+    rw[eqUnion]
+    simp_rw [Set.iUnion_subset_iff]
+    intro n nge
+    have mulVpow: W * V ^ n ⊆ W := by
+      induction' n with n ih
+      · contradiction
+      · cases' n with n
+        rw [zero_add, pow_one]
+        exact mulVsubW
+        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, true_implies] at ih
+        rw [pow_succ, ← mul_assoc]
+        have : W * V ^ (n + 1) * V ⊆ W * V := Set.mul_subset_mul_right ih
+        apply le_trans this mulVsubW
+    have : V ^ n ⊆  W * V ^ n :=by
+      intro x xin
+      rw [Set.mem_mul]
+      use 1, einW, x, xin
+      rw [one_mul]
+    apply le_trans this mulVpow
+
 
 def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsClopen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=sorry
