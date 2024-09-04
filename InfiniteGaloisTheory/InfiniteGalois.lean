@@ -1,10 +1,51 @@
 /-
 Copyright (c) 2024 Nailin Guan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Nailin Guan
+Authors: Nailin Guan, Yuyang Zhao
 -/
 
 import InfiniteGaloisTheory.Basic
+
+/-!
+
+# The Fundamental Theorem of Infinite Galois Theory
+
+In this file, we ......
+
+# Main definitions and results
+
+In `K/k`, for any intermediate field `L` :
+
+* `fixingSubgroup_IsClosed` : the fixing subgroup of `L`
+  (`Gal(K/L)`) is closed.
+
+* `fixedField_fixingSubgroup` : the fixing field of the
+  fixing subgroup of `L` is equal to `L` itself.
+
+For any subgroup of `Gal(K/k)` `H` :
+
+* `restrict_fixing_field` : For a Galois intermediate field `M`, the fixed field of the image of `H`
+  restrict to `M` is equal to the fixed field of `H` intersecting `M`.
+
+* `fixingSubgroup_fixedField` : If `H` is closed, the fixing subgroup of the fixed field of `H`
+  is equal to `H` itself.
+
+The fundamental theorem of infinite galois theory :
+
+* `intermediateFieldEquivClosedSubgroup` : The order equivalent given by mapping any
+  intermediate field `L` to the fixing subgroup of `L`, with its inverse mapping any
+  closed subgroup of `Gal(K/k)` `H` to the fixed field of `H`. The composition is identity
+  is given by above, and the compatibility with order follows easily.
+
+Special cases :
+
+* `OpeniffFinite` : The fixing subgroup of an intermediate field `L` is open iff
+  `L` is finite dimensional.
+
+* `NormaliffGalois` : The fixing subgroup of an intermediate field `L` is normal iff
+  `L` is Galois.
+
+-/
 
 variable {k K : Type*} [Field k] [Field K] [Algebra k K]
 
@@ -220,7 +261,7 @@ def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
       show L₁.fixingSubgroup ≥ L₂.fixingSubgroup ↔ L₁ ≤ L₂
       rw [← fixedField_fixingSubgroup L₂, IntermediateField.le_iff_le, fixedField_fixingSubgroup L₂]
 
-theorem OpeniffFixbyFinite (L : IntermediateField k K) [IsGalois k K] :
+theorem OpeniffFinite (L : IntermediateField k K) [IsGalois k K] :
   IsOpen (intermediateFieldEquivClosedSubgroup.toFun L).carrier ↔
   (FiniteDimensional k L) := by
   constructor
