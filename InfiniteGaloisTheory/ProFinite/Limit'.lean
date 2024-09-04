@@ -157,11 +157,11 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
     have : (Uw w) ×ˢ (Vw' w) ⊆ W ×ˢ W :=by
       intro g gin
       exact μinvWsubWp (s5 gin)
-    rw[Set.prod_subset_prod_iff] at this
-    rcases this with _|empty|empty
+    rw [Set.prod_subset_prod_iff] at this
+    rcases this with _ | empty | empty
     assumption
     repeat
-    rw[Set.eq_empty_iff_forall_not_mem] at empty
+    rw [Set.eq_empty_iff_forall_not_mem] at empty
     tauto
 
   have spec4 : ∀ w : W, IsOpen (Vw w) ∧ 1 ∈ (Vw w) ∧  (Vw w) = (Vw w)⁻¹ ∧ (Vw w) ⊆ W := by
@@ -228,7 +228,7 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
     specialize xinInter w0 w0.prop
     exact (VsubW w0) xinInter
   intro a ainmul
-  rw[Set.mem_mul] at ainmul
+  rw [Set.mem_mul] at ainmul
   rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
   have := fincover xinW
   simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
@@ -301,18 +301,17 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
       use n
 
   constructor
-  · show IsOpen {x : G | ∃ n : ℕ, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n}
-    rw[eqUnion]
+  · show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
+    rw [eqUnion]
     apply isOpen_iUnion
     intro n
     induction' n with n ih
-    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero, Set.iUnion_of_empty,
-      isOpen_empty]
+    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero, Set.iUnion_of_empty, isOpen_empty]
     · cases' n
       simp_rw [zero_add, ge_iff_le, le_refl, pow_one, Set.iUnion_true]
       exact VOpen
       simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
-      rw[pow_succ]
+      rw [pow_succ]
       apply IsOpen.mul_left VOpen
 
   · show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
@@ -326,14 +325,14 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
         rw [zero_add, pow_one]
         exact mulVsubW
         simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, true_implies] at ih
-        rw[pow_succ,← mul_assoc]
+        rw [pow_succ, ← mul_assoc]
         have : W * V ^ (n + 1) * V ⊆ W * V := Set.mul_subset_mul_right ih
         apply le_trans this mulVsubW
     have : V ^ n ⊆  W * V ^ n :=by
       intro x xin
-      rw[Set.mem_mul]
+      rw [Set.mem_mul]
       use 1, einW, x, xin
-      rw[one_mul]
+      rw [one_mul]
     apply le_trans this mulVpow
 
 
