@@ -7,12 +7,15 @@ import InfiniteGaloisTheory.ProFinite.Basic
 
 /-!
 
-# A profinite Group is the projective limit of finite groups
-
+# The projective limit of finite groups is profinite
 
 ## Main definitions and results
 
-* `limitOfFiniteGrp`: direct limit of finite groups is a profinite group
+* `FiniteGrp.limit` : the concretely constructed limit of finite group as a subgroup of the product
+
+* `ofFiniteGrpLimit`: direct limit of finite groups is a profinite group
+
+* Verify that the constructed limit satisfies the universal property.
 
 -/
 
