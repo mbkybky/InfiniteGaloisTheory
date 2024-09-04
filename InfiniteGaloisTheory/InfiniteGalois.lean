@@ -10,7 +10,10 @@ import InfiniteGaloisTheory.Basic
 
 # The Fundamental Theorem of Infinite Galois Theory
 
-In this file, we ......
+In this file, we proved the fundamental theorem of infinite galois theory and the special case for
+open subgroups and normal subgroups. We first verify that `IntermediateField.fixingSubgroup` and
+`IntermediateField` are inverse to each other between `IntermediateField` and closed subgroup of the
+galois group.
 
 # Main definitions and results
 

@@ -16,7 +16,9 @@ import InfiniteGaloisTheory.MissingLemmas.Galois
 
 # Galois Group as a Profinite Group
 
-In this file, we ....
+In this file, we prove that in a field extension `k/k`, there is a continuous isomorphism between
+`Gal(K/k)` the limit of `Gal(L/k)` where `L` is a finite galois intermediate field ordered by
+inverse inclusion, thus profinite because the limit is profinite.
 
 # Main definitions and results
 
