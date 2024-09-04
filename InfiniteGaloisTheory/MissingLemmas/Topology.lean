@@ -74,10 +74,49 @@ instance : PartialOrder (ClosedSubgroup G) := inferInstance
 instance instInfClosedSubgroup : Inf (ClosedSubgroup G) :=
   ⟨fun U V => ⟨U ⊓ V, U.isClosed'.inter V.isClosed'⟩⟩
 
-instance instSemilatticeInfOpenSubgroup : SemilatticeInf (ClosedSubgroup G) :=
+instance instSemilatticeInfClosedSubgroup : SemilatticeInf (ClosedSubgroup G) :=
   SetLike.coe_injective.semilatticeInf ((↑) : ClosedSubgroup G → Set G) fun _ _ => rfl
 
 end ClosedSubgroup
+
+@[ext]
+structure OpenNormalSubgroup extends Subgroup G where
+  isOpen' : IsOpen carrier
+  isNormal' : toSubgroup.Normal := by infer_instance
+
+namespace OpenNormalSubgroup
+
+instance (H : OpenNormalSubgroup G) : H.toSubgroup.Normal := H.isNormal'
+
+variable {G} in
+theorem toSubgroup_injective : Function.Injective
+  (OpenNormalSubgroup.toSubgroup : OpenNormalSubgroup G → Subgroup G) :=
+  fun A B h => by
+  ext
+  rw [h]
+
+instance : SetLike (OpenNormalSubgroup G) G where
+  coe U := U.1
+  coe_injective' _ _ h := toSubgroup_injective <| SetLike.ext' h
+
+instance : SubgroupClass (OpenNormalSubgroup G) G where
+  mul_mem := Subsemigroup.mul_mem' _
+  one_mem U := U.one_mem'
+  inv_mem := Subgroup.inv_mem' _
+
+instance : Coe (OpenNormalSubgroup G) (Subgroup G) where
+  coe := toSubgroup
+
+instance : PartialOrder (OpenNormalSubgroup G) := inferInstance
+
+instance instInfClosedSubgroup : Inf (OpenNormalSubgroup G) :=
+  ⟨fun U V => ⟨U ⊓ V, U.isOpen'.inter V.isOpen',
+    Subgroup.normal_inf_normal U.toSubgroup V.toSubgroup⟩⟩
+
+instance instSemilatticeInfOpenNormalSubgroup : SemilatticeInf (OpenNormalSubgroup G) :=
+  SetLike.coe_injective.semilatticeInf ((↑) : OpenNormalSubgroup G → Set G) fun _ _ => rfl
+
+end OpenNormalSubgroup
 
 end
 
