@@ -1,4 +1,3 @@
-import Mathlib.Algebra.Group.Subgroup.Basic
 import Mathlib.GroupTheory.QuotientGroup.Basic
 
 /-- Intersection of normal subgroups is a normal subgroup. -/
