@@ -23,39 +23,38 @@ namespace ProfiniteGrp
 
 section
 
-abbrev OpenNormalSubgroup (G : ProfiniteGrp) := {H : Subgroup G // H.Normal ∧ IsOpen (H : Set G)}
+--abbrev OpenNormalSubgroup (G : ProfiniteGrp) := {H : Subgroup G // H.Normal ∧ IsOpen (H : Set G)}
 
 def diagramOfProfiniteGrp (P : ProfiniteGrp) :
   OpenNormalSubgroup P ⥤ FiniteGrp := {
-    obj := fun ⟨H, _, hH⟩ =>
-      letI : Finite (P ⧸ H) := finite_quotient_of_open_subgroup H hH
-      FiniteGrp.of (P ⧸ H)
-    map := fun {H K} fHK =>
-      let ⟨H, _, _⟩ := H
-      let ⟨K, _, _⟩ := K
-      QuotientGroup.map H K (.id _) $ Subgroup.comap_id K ▸ leOfHom fHK
-    map_id := fun ⟨x, _, _⟩ => by
-      simp only [QuotientGroup.map_id, id_apply]; rfl
-    map_comp := fun {X Y Z} f g =>
-      let ⟨x, _, _⟩ := X
-      let ⟨y, _, _⟩ := Y
-      let ⟨z, _, _⟩ := Z
-      (QuotientGroup.map_comp_map x y z (.id _) (.id _) (Subgroup.comap_id y ▸ leOfHom f)
-        (Subgroup.comap_id z ▸ leOfHom g)).symm
+    obj := fun H =>
+      letI := H.isNormal'
+      letI : Finite (P ⧸ H.toSubgroup) := finite_quotient_of_open_subgroup
+        H.toSubgroup H.toOpenSubgroup.isOpen'
+      FiniteGrp.of (P ⧸ H.toSubgroup)
+    map := fun {H K} fHK => QuotientGroup.map H.toSubgroup K.toSubgroup (.id _) $
+        Subgroup.comap_id (N := P) K ▸ leOfHom fHK
+    map_id := fun H => by
+      simp only [QuotientGroup.map_id]
+      rfl
+    map_comp := fun {X Y Z} f g => (QuotientGroup.map_comp_map
+      X.toSubgroup Y.toSubgroup Z.toSubgroup (.id _) (.id _) (Subgroup.comap_id Y.toSubgroup ▸ leOfHom f)
+        (Subgroup.comap_id Z.toSubgroup ▸ leOfHom g)).symm
   }
+
 
 def canonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (diagramOfProfiniteGrp P) where
   toFun := fun p => {
-    val := fun ⟨H, _, _⟩ => QuotientGroup.mk p
-    property := fun ⟨A, _, _⟩ ⟨B, _, _⟩ _ => rfl
+    val := fun H => QuotientGroup.mk p
+    property := fun A B _ => rfl
   }
-  map_one' := Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
-  map_mul' := fun x y => Subtype.val_inj.mp (by ext ⟨H, _, _⟩; rfl)
+  map_one' := Subtype.val_inj.mp (by ext H; rfl)
+  map_mul' := fun x y => Subtype.val_inj.mp (by ext H; rfl)
   continuous_toFun := by
     dsimp
     apply continuous_induced_rng.mpr
     apply continuous_pi
-    intro ⟨H, hH, hHO⟩
+    intro H
     dsimp
     apply Continuous.mk
     intro s _
@@ -63,7 +62,7 @@ def canonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (diagramOfProfi
     apply isOpen_iUnion; intro i
     apply isOpen_iUnion; intro ih
     rw [QuotientGroup.preimage_mk_eq_coset]
-    exact IsOpen.leftCoset hHO (Quotient.out' i)
+    exact IsOpen.leftCoset H.toOpenSubgroup.isOpen' (Quotient.out' i)
 
 theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (canonicalMap P) :=
   dense_iff_inter_open.mpr
@@ -76,14 +75,17 @@ theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (canonicalM
       rw [Set.mem_preimage] at uDefaultSpec
       specialize uMemPiOpen _ uDefaultSpec
       rcases uMemPiOpen with ⟨J, fJ, h_ok_and_in_s⟩
-      let subg: J → Subgroup P := fun ⟨j, _⟩ => j.val
-      haveI subgNormal: ∀ j : J, (subg j).Normal := fun ⟨j, _⟩ => j.prop.1
+      let subg: J → Subgroup P := fun j => j.1.1.1
+      haveI subgNormal: ∀ j : J, (subg j).Normal := fun j => j.1.isNormal'
       let M := iInf subg
       haveI hM : M.Normal := Subgroup.normal_iInf_normal subgNormal
       haveI hMOpen : IsOpen (M : Set P) := by
         rw [Subgroup.coe_iInf]
-        exact isOpen_iInter_of_finite fun ⟨i, _⟩ => i.prop.2
-      let m : P.OpenNormalSubgroup := ⟨M, hM, hMOpen⟩
+        exact isOpen_iInter_of_finite fun i => i.1.1.isOpen'
+      let m : OpenNormalSubgroup P := {
+        M with
+        isOpen' := hMOpen
+      }
       rcases uDefault with ⟨spc, hspc⟩
       have : Function.Surjective (QuotientGroup.mk' M) := QuotientGroup.mk'_surjective M
       rcases this (spc m) with ⟨origin, horigin⟩

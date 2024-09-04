@@ -6,6 +6,7 @@ Authors: Jujian Zhang, Yongle Hu, Nailin Guan
 import Mathlib.Topology.ContinuousFunction.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
 import Mathlib.Topology.Category.Profinite.Basic
+import Mathlib.Topology.Algebra.OpenSubgroup
 
 universe u v
 
@@ -80,8 +81,7 @@ instance instSemilatticeInfClosedSubgroup : SemilatticeInf (ClosedSubgroup G) :=
 end ClosedSubgroup
 
 @[ext]
-structure OpenNormalSubgroup extends Subgroup G where
-  isOpen' : IsOpen carrier
+structure OpenNormalSubgroup extends OpenSubgroup G where
   isNormal' : toSubgroup.Normal := by infer_instance
 
 namespace OpenNormalSubgroup
@@ -90,9 +90,10 @@ instance (H : OpenNormalSubgroup G) : H.toSubgroup.Normal := H.isNormal'
 
 variable {G} in
 theorem toSubgroup_injective : Function.Injective
-  (OpenNormalSubgroup.toSubgroup : OpenNormalSubgroup G → Subgroup G) :=
+  (fun H => H.toOpenSubgroup.toSubgroup : OpenNormalSubgroup G → Subgroup G) :=
   fun A B h => by
   ext
+  dsimp at h
   rw [h]
 
 instance : SetLike (OpenNormalSubgroup G) G where
@@ -105,12 +106,12 @@ instance : SubgroupClass (OpenNormalSubgroup G) G where
   inv_mem := Subgroup.inv_mem' _
 
 instance : Coe (OpenNormalSubgroup G) (Subgroup G) where
-  coe := toSubgroup
+  coe := fun H => H.toOpenSubgroup.toSubgroup
 
 instance : PartialOrder (OpenNormalSubgroup G) := inferInstance
 
 instance instInfClosedSubgroup : Inf (OpenNormalSubgroup G) :=
-  ⟨fun U V => ⟨U ⊓ V, U.isOpen'.inter V.isOpen',
+  ⟨fun U V => ⟨U.toOpenSubgroup ⊓ V.toOpenSubgroup,
     Subgroup.normal_inf_normal U.toSubgroup V.toSubgroup⟩⟩
 
 instance instSemilatticeInfOpenNormalSubgroup : SemilatticeInf (OpenNormalSubgroup G) :=
