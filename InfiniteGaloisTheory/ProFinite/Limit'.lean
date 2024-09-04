@@ -232,7 +232,7 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
   rw[Set.mem_mul] at ainmul
   rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
   have := fincover xinW
-  simp_rw [ Set.mem_iUnion, exists_prop', nonempty_prop] at this
+  simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
   rcases this with ⟨w,winfin,xinU⟩
   simp_rw [Set.mem_iInter] at yinInter
   have yinV := Set.mem_of_mem_inter_left (yinInter w winfin)
@@ -281,7 +281,62 @@ def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
 theorem open_subgroup_subnhds_spec {G : ProfiniteGrp} {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) :
 IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
-((open_subgroup_subnhds WClopen einW) : Set G) ⊆ W :=sorry
+((open_subgroup_subnhds WClopen einW) : Set G) ⊆ W := by
+  let V := Classical.choose (exist_open_symm_subnhds WClopen einW)
+  let ⟨VOpen,_,einV,_,mulVsubW⟩:= Classical.choose_spec (exist_open_symm_subnhds WClopen einW)
+  have eqUnion : {x : G | ∃ n : ℕ, x ∈ V ^ n} = ⋃ n ≥ 1 , V ^ n :=by
+    ext x
+    rw [Set.mem_setOf_eq, Set.mem_iUnion]
+    constructor
+    · rintro ⟨n,xin⟩
+      cases' n with p
+      · rw [pow_zero, Set.mem_one] at xin
+        use 1
+        simp_rw [ge_iff_le, le_refl, pow_one, Set.iUnion_true, xin]
+        exact einV
+      · use (p + 1)
+        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true, xin]
+    · intro h
+      simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at h
+      rcases h with ⟨n,_,xin⟩
+      use n
+
+  constructor
+  · show IsOpen {x : G | ∃ n : ℕ, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n}
+    rw[eqUnion]
+    apply isOpen_iUnion
+    intro n
+    induction' n with n ih
+    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero, Set.iUnion_of_empty,
+      isOpen_empty]
+    · cases' n
+      simp_rw [zero_add, ge_iff_le, le_refl, pow_one, Set.iUnion_true]
+      exact VOpen
+      simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
+      rw[pow_succ]
+      apply IsOpen.mul_left VOpen
+
+  · show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
+    rw[eqUnion]
+    simp_rw [Set.iUnion_subset_iff]
+    intro n nge
+    have mulVpow: W * V ^ n ⊆ W := by
+      induction' n with n ih
+      · contradiction
+      · cases' n with n
+        rw [zero_add, pow_one]
+        exact mulVsubW
+        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, true_implies] at ih
+        rw[pow_succ,← mul_assoc]
+        have : W * V ^ (n + 1) * V ⊆ W * V := Set.mul_subset_mul_right ih
+        apply le_trans this mulVsubW
+    have : V ^ n ⊆  W * V ^ n :=by
+      intro x xin
+      rw[Set.mem_mul]
+      use 1, einW, x, xin
+      rw[one_mul]
+    apply le_trans this mulVpow
+
 
 def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsClopen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=sorry
