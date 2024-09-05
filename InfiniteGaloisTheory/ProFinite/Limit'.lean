@@ -329,13 +329,39 @@ def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
   exact {
   Subgroup.normalCore O with
   isOpen' := sorry
-  isNormal' := sorry
   }
 
 
 
 theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : ((OpenNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := sorry
+
+
+theorem injectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Injective (canonicalMap P) := by
+  show Function.Injective (canonicalMap P).toMonoidHom
+  rw [← MonoidHom.ker_eq_bot_iff]
+  ext x
+  rw [Subgroup.mem_bot]
+  symm
+  constructor
+  · intro xeq1
+    rw [xeq1]
+    rfl
+  · intro xinKer
+    by_contra xne1
+    have : (1 : P) ∈ ({x}ᶜ : Set P) := Set.mem_compl_singleton_iff.mpr fun a ↦ xne1 (id (Eq.symm a))
+    let H := OpenNormalSubgroup_subnhds (isOpen_compl_singleton) this
+    have xninH: x ∉ H := by
+      have := OpenNormalSubgroup_subnhds_spec (isOpen_compl_singleton) this
+      exact fun a ↦ this a rfl
+    change (canonicalMap P).toMonoidHom x = 1 at xinKer
+    unfold canonicalMap at xinKer
+    rw [MonoidHom.coe_mk, OneHom.coe_mk] at xinKer
+    apply Subtype.val_inj.mpr at xinKer
+    let xinH := congrFun xinKer H
+    rw [OneMemClass.coe_one, Pi.one_apply] at xinH
+    rw[QuotientGroup.eq_one_iff] at xinH
+    tauto
 
 end ProfiniteGrp
 end ProfiniteGrp
