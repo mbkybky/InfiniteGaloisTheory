@@ -112,7 +112,7 @@ lemma fixedField_fixingSubgroup (L : IntermediateField k K) [IsGalois k K] :
     rw [IntermediateField.mem_fixedField_iff] at hx
     have id : ∀ σ ∈ L.fixingSubgroup, σ x = x := hx
     let Lx := FiniteGaloisIntermediateField.adjoin L {x}
-    have mem : x ∈ Lx.1 := FiniteGaloisIntermediateField.subset_adjoin _ _ (by simp)
+    have mem : x ∈ Lx.1 := FiniteGaloisIntermediateField.subset_adjoin _ _ (by simp only [Set.mem_singleton_iff])
     have : IntermediateField.fixedField (⊤ : Subgroup (Lx ≃ₐ[L] Lx)) = ⊥ :=
       (IsGalois.tfae.out 0 1).mp (by infer_instance)
     have : ⟨x, mem⟩ ∈ (⊥ : IntermediateField L Lx) := by
@@ -285,7 +285,7 @@ theorem OpeniffFinite (L : IntermediateField k K) [IsGalois k K] :
       have : M ≤ L'.1 := IntermediateField.le_normalClosure M
       rw [← fixedField_fixingSubgroup L'.1, IntermediateField.le_iff_le] at this
       exact fun ⦃a⦄ a_1 ↦ sub (this a_1)
-    simp [intermediateFieldEquivClosedSubgroup] at this
+    simp only [intermediateFieldEquivClosedSubgroup, Equiv.toFun_as_coe, Equiv.coe_fn_mk] at this
     have : L'.1.fixingSubgroup ≤ L.fixingSubgroup := this
     have le : L ≤ L'.1 := by
       rw [← fixedField_fixingSubgroup L'.1, IntermediateField.le_iff_le]
@@ -323,8 +323,7 @@ theorem NormaliffGalois (L : IntermediateField k K) [IsGalois k K] :
             toFun := fun x => ⟨x.1.1,(IntermediateField.mem_lift x.1).mpr x.2⟩
             invFun := fun x => by
               have := x.2
-              unfold_let cH at this
-              simp_rw [←restrict_fixing_field] at this
+              simp_rw [cH, ←restrict_fixing_field] at this
               have mem : x.1 ∈ (FiniteGaloisIntermediateField.adjoin k {↑l}).1 := by
                 have le : IntermediateField.fixedField L.fixingSubgroup ⊓
                   (FiniteGaloisIntermediateField.adjoin k {l.1}).1 ≤
@@ -347,16 +346,14 @@ theorem NormaliffGalois (L : IntermediateField k K) [IsGalois k K] :
       apply le_antisymm
       · apply iSup_le
         intro l
-        unfold_let f
-        dsimp
+        dsimp [f]
         simp only [intermediateFieldEquivClosedSubgroup, Equiv.toFun_as_coe, Equiv.coe_fn_mk] at h
         rw [←restrict_fixing_field L.fixingSubgroup (FiniteGaloisIntermediateField.adjoin k {l.1}),
           fixedField_fixingSubgroup L]
         exact inf_le_left
       · intro l hl
         apply le_iSup f ⟨l,hl⟩
-        unfold_let f
-        dsimp
+        dsimp [f]
         rw [←restrict_fixing_field L.fixingSubgroup (FiniteGaloisIntermediateField.adjoin k {l}),
           fixedField_fixingSubgroup L]
         simp only [IntermediateField.mem_inf, hl, true_and]

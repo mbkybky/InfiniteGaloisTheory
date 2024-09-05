@@ -95,7 +95,8 @@ lemma IntermediateField.normal_map {F L : Type*} [Field F] [Field L] [Algebra F 
   have (σ : L ≃ₐ[F] L) : normalClosure F (K.map (σ : L →ₐ[F] L)) L = normalClosure F K L := by
     simp_rw [normalClosure_def'', map_map]
     exact (Equiv.mulRight σ).iSup_congr fun _ ↦ rfl
-  simpa using this ((Algebra.IsAlgebraic.algEquivEquivAlgHom _ _).symm σ)
+  simpa only [Algebra.IsAlgebraic.algEquivEquivAlgHom_symm_apply] using
+    this ((Algebra.IsAlgebraic.algEquivEquivAlgHom _ _).symm σ)
 
 @[simp]
 theorem IntermediateField.normalClosure_le_iff_of_normal {k K : Type*} [Field k] [Field K]
@@ -104,7 +105,7 @@ theorem IntermediateField.normalClosure_le_iff_of_normal {k K : Type*} [Field k]
   constructor
   · intro h
     rw [normalClosure_le_iff] at h
-    simpa using h L₁.val
+    simpa only [fieldRange_val] using h L₁.val
   · intro h
     rw [← normalClosure_of_normal L₂]
     exact normalClosure_mono L₁ L₂ h
@@ -117,7 +118,7 @@ theorem AlgEquiv.restrictNormalHom_id (F K : Type*)
   dsimp [restrictNormalHom]
   apply (algebraMap K K).injective
   rw [AlgEquiv.restrictNormal_commutes]
-  simp
+  simp only [Algebra.id.map_eq_id, RingHom.id_apply]
 
 theorem IsScalarTower.algEquivRestrictNormalHom_eq (F K₁ K₂ K₃ : Type*)
     [Field F] [Field K₁] [Field K₂] [Field K₃]
@@ -176,7 +177,7 @@ variable {k K}
 
 lemma val_injective : Function.Injective (val (k := k) (K := K)) := by
   rintro ⟨⟩ ⟨⟩ eq
-  simpa using eq
+  simpa only [mk.injEq] using eq
 
 /--Make the Finite Galois IntermediateField of `K/k` into an lattice-/
 
@@ -279,21 +280,20 @@ lemma subset_adjoin [IsGalois k K] (s : Set K) [Finite s] :
     s ⊆ (adjoin k s).val := by
   intro x hx
   apply IntermediateField.le_normalClosure
-  unfold IntermediateField.adjoin
-  simp only [Set.union_insert, Set.union_singleton, IntermediateField.mem_mk,
-    Subring.mem_toSubsemiring, Subfield.mem_toSubring]
+  simp only [IntermediateField.adjoin, Set.union_insert, Set.union_singleton,
+    IntermediateField.mem_mk, Subring.mem_toSubsemiring, Subfield.mem_toSubring]
   apply Subfield.subset_closure
-  simp [hx]
+  simp only [Set.mem_union, Set.mem_range, hx, or_true]
 
 @[simp]
 theorem adjoin_le_iff [IsGalois k K] {s : Set K} [Finite s] {L : FiniteGaloisIntermediateField k K}
   : adjoin k s ≤ L ↔ s ≤ L.val := by
-  change normalClosure _ _ _ ≤ L.val ↔ _
+  show normalClosure _ _ _ ≤ L.val ↔ _
   rw [← IntermediateField.adjoin_le_iff, IntermediateField.normalClosure_le_iff_of_normal]
 
 theorem adjoin_simple_le_iff [IsGalois k K] {x : K} {L : FiniteGaloisIntermediateField k K} :
     adjoin k {x} ≤ L ↔ x ∈ L.val := by
-  simp
+  simp only [adjoin_le_iff, Set.le_eq_subset, Set.singleton_subset_iff, SetLike.mem_coe]
 
 @[simp]
 theorem adjoin_map [IsGalois k K] (f : K →ₐ[k] K) (s : Set K) [Finite s] :
@@ -304,7 +304,7 @@ theorem adjoin_map [IsGalois k K] (f : K →ₐ[k] K) (s : Set K) [Finite s] :
 @[simp]
 theorem adjoin_simple_map [IsGalois k K] (f : K →ₐ[k] K) (x : K) :
     adjoin k {f x} = adjoin k {x} := by
-  simpa using adjoin_map f {x}
+  simpa only [Set.image_singleton] using adjoin_map f { x }
 
 @[simp]
 theorem adjoin_simple_map' [IsGalois k K] (f : K ≃ₐ[k] K) (x : K) :
@@ -368,7 +368,7 @@ lemma proj_lift
   letI : Algebra L L' := RingHom.toAlgebra (Subsemiring.inclusion h)
   letI : IsScalarTower k L L' := IsScalarTower.of_algebraMap_eq (congrFun rfl)
   rw [← finGalFunctor_proj g h.hom]
-  change (algebraMap L' K (algebraMap L L' (AlgEquiv.restrictNormal (proj (mk L') g) L x))) = _
+  show (algebraMap L' K (algebraMap L L' (AlgEquiv.restrictNormal (proj (mk L') g) L x))) = _
   rw [AlgEquiv.restrictNormal_commutes (proj (mk L') g) L]
   rfl
 
@@ -380,7 +380,7 @@ lemma proj_lift_adjoin_simple [IsGalois k K]
   proj_lift _ g y _ _
 
 def toAlgEquivAux [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) : K → K :=
-  fun x ↦ (proj (adjoin k {x}) g ⟨x, subset_adjoin _ _ (by simp)⟩).val
+  fun x ↦ (proj (adjoin k {x}) g ⟨x, subset_adjoin _ _ (by simp only [Set.mem_singleton_iff])⟩).val
 
 lemma toAlgEquivAux_def [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
     (x : K) (L : FiniteGaloisIntermediateField k K) (hx : x ∈ L.val) :
@@ -406,34 +406,41 @@ def toAlgEquiv [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor 
   invFun := toAlgEquivAux g⁻¹
   left_inv x := by
     let L := adjoin k {x, toAlgEquivAux g x}
-    have hx : x ∈ L.val := subset_adjoin _ _ (by simp)
-    have hx' : toAlgEquivAux g x ∈ L.val := subset_adjoin _ _ (by simp)
-    simp [toAlgEquivAux_def _ _ L hx', mk_toAlgEquivAux g x L hx' hx, AlgEquiv.aut_inv]
+    have hx : x ∈ L.val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, true_or])
+    have hx' : toAlgEquivAux g x ∈ L.val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, or_true])
+    simp only [toAlgEquivAux_def _ _ L hx', map_inv, AlgEquiv.aut_inv,
+      mk_toAlgEquivAux g x L hx' hx, AlgEquiv.symm_apply_apply]
   right_inv x := by
     let L := adjoin k {x, toAlgEquivAux g⁻¹ x}
-    have hx : x ∈ L.val := subset_adjoin _ _ (by simp)
-    have hx' : toAlgEquivAux g⁻¹ x ∈ L.val := subset_adjoin _ _ (by simp)
-    simp [toAlgEquivAux_def _ _ L hx', mk_toAlgEquivAux g⁻¹ x L hx' hx, AlgEquiv.aut_inv]
+    have hx : x ∈ L.val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, true_or])
+    have hx' : toAlgEquivAux g⁻¹ x ∈ L.val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, or_true])
+    simp only [toAlgEquivAux_def _ _ L hx', mk_toAlgEquivAux g⁻¹ x L hx' hx, map_inv,
+      AlgEquiv.aut_inv, AlgEquiv.apply_symm_apply]
   map_mul' x y := by
     dsimp
-    have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx]
-    rw [toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy]
-    rw [toAlgEquivAux_eq_liftNormal g (x * y) (adjoin k {x, y}) (mul_mem hx hy)]
-    rw [map_mul]
+    have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, true_or])
+    have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, or_true])
+    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx,
+      toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy,
+      toAlgEquivAux_eq_liftNormal g (x * y) (adjoin k {x, y}) (mul_mem hx hy), map_mul]
   map_add' x y := by
     dsimp
-    have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp)
-    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx]
-    rw [toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy]
-    rw [toAlgEquivAux_eq_liftNormal g (x + y) (adjoin k {x, y}) (add_mem hx hy)]
-    rw [map_add]
+    have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, true_or])
+    have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
+      Set.mem_singleton_iff, or_true])
+    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx,
+      toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy,
+      toAlgEquivAux_eq_liftNormal g (x + y) (adjoin k {x, y}) (add_mem hx hy), map_add]
   commutes' x := by
     dsimp
-    rw [toAlgEquivAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x)]
-    rw [AlgEquiv.commutes]
+    rw [toAlgEquivAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x), AlgEquiv.commutes]
 
 variable (k K) in
 noncomputable def mulEquivtoLimit [IsGalois k K] :
@@ -447,12 +454,11 @@ noncomputable def mulEquivtoLimit [IsGalois k K] :
   right_inv := fun g ↦ by
     apply Subtype.val_injective
     ext L
-    change (toAlgEquiv g).restrictNormal _ = _
+    show (toAlgEquiv g).restrictNormal _ = _
     apply AlgEquiv.ext
     intro x
     have : ((toAlgEquiv g).restrictNormal L.unop) x = (toAlgEquiv g) x.1 := by
-      have := AlgEquiv.restrictNormal_commutes (toAlgEquiv g) L.unop x
-      convert this
+      convert AlgEquiv.restrictNormal_commutes (toAlgEquiv g) L.unop x
     apply Subtype.val_injective
     simp_rw [this]
     exact proj_lift_adjoin_simple _ _ _ _ x.2
@@ -486,7 +492,7 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
           use f.symm σ
           simp only [h, MulEquiv.apply_symm_apply, and_self]
         · rcases h with ⟨σ',h1,h2⟩
-          simp [←h2,h1]
+          simp only [← h2, Set.mem_preimage, MulEquiv.symm_apply_apply, h1]
       rw [this]
       let fix1 : Set ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → (finGalFunctor _ _).obj L) :=
         {x : ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → (finGalFunctor _ _).obj L)
@@ -499,11 +505,8 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
         constructor
         all_goals intro h
         · rcases h with ⟨α,hα1,hα2⟩
-          simp only [Set.mem_preimage,←hα2]
-          unfold_let fix1
-          simp only [Set.mem_setOf_eq]
-          unfold mulEquivtoLimit homtoLimit
-          simp only [MonoidHom.coe_mk, OneHom.coe_mk, MulEquiv.coe_mk, Equiv.coe_fn_mk]
+          simp only [Set.mem_preimage,←hα2, fix1, Set.mem_setOf_eq, mulEquivtoLimit, homtoLimit,
+            MonoidHom.coe_mk, OneHom.coe_mk, MulEquiv.coe_mk, Equiv.coe_fn_mk]
           apply AlgEquiv.ext
           intro x
           apply Subtype.val_injective
@@ -512,29 +515,23 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
           exact hα1 x
         · simp only [Set.mem_preimage] at h
           use (mulEquivtoLimit _ _).symm x
-          constructor
-          · unfold IntermediateField.fixingSubgroup
-            apply (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr
-            intro y hy
-            simp only [AlgEquiv.smul_def]
-            have fix := h.out
-            set Aut := (mulEquivtoLimit _ _).symm x
-            have : mulEquivtoLimit _ _ Aut = x := by
-              unfold_let Aut
-              simp only [MulEquiv.apply_symm_apply]
-            rw [←this] at fix
-            unfold mulEquivtoLimit homtoLimit at fix
-            simp only [MonoidHom.coe_mk, OneHom.coe_mk, MulEquiv.coe_mk, Equiv.coe_fn_mk] at fix
-            have fix_y : AlgEquiv.restrictNormalHom L' Aut ⟨y, hy⟩ = ⟨y, hy⟩ := by
-              simp only [fix, AlgEquiv.one_apply]
-            rw [restrict_eq Aut y L' hy, fix_y]
-          · simp only [MulEquiv.apply_symm_apply]
+          simp only [SetLike.mem_coe, MulEquiv.apply_symm_apply, and_true]
+          apply (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr
+          intro y hy
+          simp only [AlgEquiv.smul_def]
+          have fix := h.out
+          set Aut := (mulEquivtoLimit _ _).symm x
+          have : mulEquivtoLimit _ _ Aut = x := by simp only [Aut, MulEquiv.apply_symm_apply]
+          simp only [←this, mulEquivtoLimit, homtoLimit, MonoidHom.coe_mk, OneHom.coe_mk,
+            MulEquiv.coe_mk, Equiv.coe_fn_mk] at fix
+          have fix_y : AlgEquiv.restrictNormalHom L' Aut ⟨y, hy⟩ = ⟨y, hy⟩ := by
+            simp only [fix, AlgEquiv.one_apply]
+          rw [restrict_eq Aut y L' hy, fix_y]
       have op : IsOpen fix1 := by
         rw [pre]
-        have : IsOpen ({1} : Set ((finGalFunctor _ _).obj (op L'))) := by exact trivial
+        have : IsOpen ({1} : Set ((finGalFunctor _ _).obj (op L'))) := trivial
         exact C.isOpen_preimage {1} this
-      rw [this]
-      exact isOpen_induced op
+      exact this ▸ (isOpen_induced op)
     · simp only [Set.mem_preimage, map_one, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
       Subgroup.mem_toSubmonoid]
       exact congrFun rfl
