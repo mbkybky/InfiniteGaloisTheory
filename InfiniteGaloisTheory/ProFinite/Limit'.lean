@@ -339,7 +339,21 @@ def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G where
   toSubgroup :=
     Subgroup.normalCore (open_subgroup_subnhds (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
-  isOpen' := sorry
+  isOpen' := by
+    letI := finite_quotient_of_open_subgroup
+      (open_subgroup_subnhds (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
+    set H := (open_subgroup_subnhds (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
+    letI : Subgroup.FiniteIndex H := Subgroup.finiteIndex_of_finite_quotient H
+    have : IsClosed H.normalCore.carrier := by
+      apply TopologicalGroup.normalCore_isClosed
+      let H' : OpenSubgroup G := {
+        H with
+        isOpen' :=
+          (open_subgroup_subnhds_spec (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).1
+      }
+      exact OpenSubgroup.isClosed H'
+    apply TopologicalGroup.finindex_Closed_isOpen
+    exact this
 
 theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
