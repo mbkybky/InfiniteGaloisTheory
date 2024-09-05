@@ -22,8 +22,6 @@ namespace ProfiniteGrp
 
 section
 
---abbrev OpenNormalSubgroup (G : ProfiniteGrp) := {H : Subgroup G // H.Normal ∧ IsOpen (H : Set G)}
-
 def diagramOfProfiniteGrp (P : ProfiniteGrp) :
   OpenNormalSubgroup P ⥤ FiniteGrp := {
     obj := fun H =>
