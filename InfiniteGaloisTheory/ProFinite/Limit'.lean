@@ -341,7 +341,6 @@ def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
     Subgroup.normalCore (open_subgroup_subnhds (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
   isOpen' := sorry
 
-#print openNormalSubgroup_subnhds
 theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
   have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
@@ -382,6 +381,17 @@ theorem injectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Injective (canon
     rw[QuotientGroup.eq_one_iff] at xinH
     tauto
 
+theorem bijectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Bijective (canonicalMap P) :=
+  ⟨injectiveCanonicalMap P,surjectiveCanonicalMap P⟩
+
+def ContinuousMulEquiv (P : ProfiniteGrp.{u}) : ContinuousMulEquiv P (ofFiniteGrpLimit (diagramOfProfiniteGrp P)) where
+  toFun := (canonicalMap P)
+  invFun := Function.surjInv (surjectiveCanonicalMap P)
+  left_inv := Function.leftInverse_surjInv <| bijectiveCanonicalMap P
+  right_inv := Function.rightInverse_surjInv <| surjectiveCanonicalMap P
+  map_mul' := (canonicalMap P).map_mul'
+  continuous_toFun :=sorry
+  continuous_invFun :=sorry
 
 
 end ProfiniteGrp
