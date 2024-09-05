@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Nailin Guan, Yuyang Zhao, Yongle Hu
+Authors: Jujian Zhang, Nailin Guan, Yuyang Zhao, Youle Fang, Yi Song, Xuchun Li, Yongle Hu
 -/
 import InfiniteGaloisTheory.ProFinite.Basic
 import InfiniteGaloisTheory.MissingLemmas.Subgroup
@@ -20,6 +20,22 @@ import InfiniteGaloisTheory.MissingLemmas.Subgroup
 
 * Verify that the constructed limit satisfies the universal property.
 
+In a profinite group `P` :
+
+* `QuotientOpenNormalSubgroup` : The functor mapping open normal subgroup of `P` to
+  the quotient group of it (finite by previous lemmas).
+
+* `CanonicalMap` : The continuous homomorphism from `P` to the limit of the quotient group of
+  open normal subgroup ordered by inclusion of the open normal subgroup.
+
+* `CanonicalMap_surjective` : The CanonicalMap is surjective,
+  by proving the range of it is dense and closed.
+
+* `openNormalSubgroup_subnhd` : For any open neighborhood of `1` there is an open normal subgroup
+  contained in it.
+
+* `CanonicalMap_injective` : The CanonicalMap is injective.
+
 -/
 
 suppress_compilation
@@ -29,6 +45,8 @@ universe u v
 open CategoryTheory Topology
 
 section Profiniteoflimit
+
+/- In this section, we prove that the projective limit of finite groups is profinite-/
 
 universe w w'
 
@@ -44,17 +62,17 @@ instance (j : J) : TopologicalGroup (F.obj j) := {}
 
 namespace FiniteGrp
 
-/-Concretely constructing the limit of topological group-/
+/-- Concretely constructing the limit of topological group-/
 
 def limit : Subgroup (Π j : J, F.obj j) where
   carrier := {x | ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j}
   mul_mem' hx hy _ _ π := by simp only [Pi.mul_apply, map_mul, hx π, hy π]
-  one_mem' := by simp
-  inv_mem' h _ _ π := by simp [h π]
+  one_mem' := by simp only [Set.mem_setOf_eq, Pi.one_apply, map_one, implies_true]
+  inv_mem' h _ _ π := by simp only [Pi.inv_apply, map_inv, h π]
 
 @[simp]
-lemma mem_limit (x : Π j : J, F.obj j) : x ∈ limit F ↔ ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j :=
-  Iff.rfl
+lemma mem_limit (x : Π j : J, F.obj j) : x ∈ limit F ↔
+  ∀ ⦃i j : J⦄ (π : i ⟶ j), F.map π (x i) = x j := Iff.rfl
 
 instance : CompactSpace (limit F) := ClosedEmbedding.compactSpace (f := (limit F).subtype)
   { induced := rfl
@@ -122,7 +140,7 @@ def ofFiniteGrpLimitConeIsLimit : Limits.IsLimit (ofFiniteGrpLimitCone F) where
           have := cone.π.2 πij
           simp only [Functor.const_obj_obj, Functor.comp_obj, Functor.const_obj_map,
             Category.id_comp, Functor.comp_map] at this
-          simp [this]
+          simp only [Functor.const_obj_obj, Functor.comp_obj, this]
           rfl }
     map_one' := by
       apply SetCoe.ext
@@ -154,7 +172,7 @@ def ofFiniteGrpLimitConeIsLimit : Limits.IsLimit (ofFiniteGrpLimitCone F) where
     intro cone g hyp
     ext pt
     refine Subtype.ext <| funext fun j => ?_
-    change _ = cone.π.app _ _
+    show _ = cone.π.app _ _
     rw [←hyp j]
     rfl
 
@@ -168,15 +186,15 @@ end ProfiniteGrp
 
 end Profiniteoflimit
 
-
-
 section limitofProfinite
+
+/-In this section, we prove that a profinite Group is the projective limit of finite groups-/
 
 namespace ProfiniteGrp
 
 section
 
-def diagramOfProfiniteGrp (P : ProfiniteGrp) :
+def QuotientOpenNormalSubgroup (P : ProfiniteGrp) :
   OpenNormalSubgroup P ⥤ FiniteGrp := {
     obj := fun H =>
       letI := H.isNormal'
@@ -195,7 +213,7 @@ def diagramOfProfiniteGrp (P : ProfiniteGrp) :
   }
 
 
-def canonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (diagramOfProfiniteGrp P) where
+def CanonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (QuotientOpenNormalSubgroup P) where
   toFun := fun p => {
     val := fun H => QuotientGroup.mk p
     property := fun A B _ => rfl
@@ -211,16 +229,17 @@ def canonicalMap (P : ProfiniteGrp.{u}) : P ⟶ ofFiniteGrpLimit (diagramOfProfi
     apply Continuous.mk
     intro s _
     rw [← (Set.biUnion_preimage_singleton QuotientGroup.mk s)]
-    apply isOpen_iUnion; intro i
-    apply isOpen_iUnion; intro ih
+    apply isOpen_iUnion
+    intro i
+    apply isOpen_iUnion
+    intro ih
     rw [QuotientGroup.preimage_mk_eq_coset]
     exact IsOpen.leftCoset H.toOpenSubgroup.isOpen' (Quotient.out' i)
 
-theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (canonicalMap P) :=
+theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (CanonicalMap P) :=
   dense_iff_inter_open.mpr
     fun U hUO hUNonempty => (by
-      let uDefault := hUNonempty.some
-      let uDefaultSpec : uDefault ∈ U := hUNonempty.some_mem
+      rcases hUNonempty with ⟨uDefault, uDefaultSpec⟩
       rcases hUO with ⟨s, hsO, hsv⟩
       let uMemPiOpen := isOpen_pi_iff.mp hsO
       simp_rw [← hsv] at uDefaultSpec
@@ -240,22 +259,23 @@ theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (canonicalM
       }
       rcases uDefault with ⟨spc, hspc⟩
       rcases QuotientGroup.mk'_surjective M (spc m) with ⟨origin, horigin⟩
-      use (canonicalMap P).toFun origin
+      use (CanonicalMap P).toFun origin
       constructor
-      · have : ((canonicalMap P).toFun origin).1 ∈ J.toSet.pi fJ := fun a a_in_J => by
+      · rw [←hsv]
+        apply h_ok_and_in_s.2
+        exact fun a a_in_J => by
           let M_to_Na : m ⟶ a := (iInf_le subg ⟨a, a_in_J⟩).hom
-          rw [← (P.canonicalMap.toFun origin).property M_to_Na]
-          show (P.diagramOfProfiniteGrp.map M_to_Na) (QuotientGroup.mk' M origin) ∈ _
+          rw [← (P.CanonicalMap.toFun origin).property M_to_Na]
+          show (P.QuotientOpenNormalSubgroup.map M_to_Na) (QuotientGroup.mk' M origin) ∈ _
           rw [horigin, hspc M_to_Na]
           exact (h_ok_and_in_s.1 a a_in_J).2
-        exact hsv ▸ h_ok_and_in_s.2 this
-      exact ⟨origin, rfl⟩
+      · exact ⟨origin, rfl⟩
     )
 
-theorem surjectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Surjective (canonicalMap P) := by
-  have : IsClosedMap P.canonicalMap := P.canonicalMap.continuous_toFun.isClosedMap
+theorem CanonicalMap_surjective (P : ProfiniteGrp.{u}) : Function.Surjective (CanonicalMap P) := by
+  have : IsClosedMap P.CanonicalMap := P.CanonicalMap.continuous_toFun.isClosedMap
   haveI compact_s: IsCompact (Set.univ : Set P) := CompactSpace.isCompact_univ
-  have : IsClosed (P.canonicalMap '' Set.univ) := this _ $ IsCompact.isClosed compact_s
+  have : IsClosed (P.CanonicalMap '' Set.univ) := this _ $ IsCompact.isClosed compact_s
   have dense_map := Dense.closure_eq $ denseCanonicalMap P
   apply closure_eq_iff_isClosed.mpr at this
   rw [Set.image_univ, dense_map] at this
@@ -263,7 +283,7 @@ theorem surjectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Surjective (can
 
 end
 
-section ProfiniteGrp
+section
 
 open scoped Pointwise
 
@@ -308,29 +328,21 @@ theorem open_symm_subnbhs_of_one {G : Type*} [Group G] [TopologicalSpace G]  [To
     rcases spec3 w with ⟨_,s7⟩
     constructor
     · apply IsOpen.inter s2 (IsOpen.inv s2)
-    constructor
-    · apply Set.mem_inter s4
-      simp only [Set.mem_inv, inv_one]
-      exact s4
-    constructor
-    · ext x
-      unfold_let Vw
-      simp only [Set.mem_inter_iff, Set.mem_inv, Set.inter_inv, inv_inv]
-      exact And.comm
-    intro x ⟨xV,_⟩
-    exact s7 xV
-  have UOpen :=  fun w ↦ (spec2 w).1
-  have VOpen := fun w ↦ (spec4 w).1
-  have einV := fun w ↦ (spec4 w).2.1
-  have VSymm := fun w ↦ (spec4 w).2.2.1
-  have VsubW := fun w ↦ (spec4 w).2.2.2
+    · constructor
+      · apply Set.mem_inter s4
+        simp only [Set.mem_inv, inv_one, s4]
+      constructor
+      · ext
+        simp only [Vw, Set.mem_inter_iff, Set.mem_inv, Set.inter_inv, inv_inv, And.comm]
+      intro x ⟨xV,_⟩
+      exact s7 xV
   have cover : W ⊆ ⋃ w : W, Uw w := by
     intro x xinW
     simp only [Set.iUnion_coe_set, Set.mem_iUnion]
     use x, xinW
     exact (spec2 ⟨x,xinW⟩).2.2.1
   rcases IsCompact.elim_finite_subcover (IsClosed.isCompact (IsClopen.isClosed WClopen))
-    _ UOpen cover with ⟨fin,fincover⟩
+    _ (fun w ↦ (spec2 w).1) cover with ⟨fin,fincover⟩
   have : Nonempty fin :=by
     by_contra empty
     rw [nonempty_subtype] at empty
@@ -341,8 +353,7 @@ theorem open_symm_subnbhs_of_one {G : Type*} [Group G] [TopologicalSpace G]  [To
     tauto
   let w0 := Classical.choice this
   use ⋂ w ∈ fin , Vw w
-  constructor
-  · exact isOpen_biInter_finset fun w _ ↦ VOpen w
+  simp only [isOpen_biInter_finset fun w _ ↦ (spec4 w).1, true_and]
   constructor
   · ext x
     constructor <;>
@@ -350,17 +361,17 @@ theorem open_symm_subnbhs_of_one {G : Type*} [Group G] [TopologicalSpace G]  [To
       simp only [Set.iInter_coe_set, Set.mem_iInter, Set.iInter_inv, Set.mem_inv] at h ⊢
       intro w winW winfin
       specialize h w winW winfin
-      rw[VSymm ⟨w,winW⟩]
+      rw[(spec4 ⟨w,winW⟩).2.2.1]
       simp only [Set.mem_inv, inv_inv, h]
   constructor
   · simp_rw [Set.mem_iInter]
     intro w _
-    exact einV w
+    exact (spec4 w).2.1
   constructor
   · intro x xinInter
     simp_rw [Set.mem_iInter] at xinInter
     specialize xinInter w0 w0.prop
-    exact (VsubW w0) xinInter
+    exact (spec4 w0).2.2.2 xinInter
   · intro a ainmul
     rw [Set.mem_mul] at ainmul
     rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
@@ -372,15 +383,30 @@ theorem open_symm_subnbhs_of_one {G : Type*} [Group G] [TopologicalSpace G]  [To
     have := Set.mem_of_mem_inter_left <| (spec2 w).2.2.2.2 <| Set.mk_mem_prod xinU yinV
     simpa only [Set.mem_preimage, xmuly, μ] using this
 
-def open_subgroup_subnhds_of_one {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G]
+lemma eqUnion_pow {G : Type*} [Group G] {V : Set G} (h : 1 ∈ V) : {x : G | ∃ n : ℕ, x ∈ V ^ n} = ⋃ n ≥ 1 , V ^ n :=by
+    ext x
+    rw [Set.mem_setOf_eq, Set.mem_iUnion]
+    constructor
+    · rintro ⟨n,xin⟩
+      cases' n with p
+      · rw [pow_zero, Set.mem_one] at xin
+        use 1
+        simp_rw [ge_iff_le, le_refl, pow_one, Set.iUnion_true, xin]
+        exact h
+      · use (p + 1)
+        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true, xin]
+    · intro h
+      simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at h
+      rcases h with ⟨n,_,xin⟩
+      use n
+
+def OpenSubgroup_subnhds_of_one {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G]
     [T2Space G] [CompactSpace G] {W : Set G}
-    (WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G where
+    (WClopen : IsClopen W) (einW : 1 ∈ W) : OpenSubgroup G where
   carrier := {x : G | ∃ n : ℕ, x ∈ Classical.choose (open_symm_subnbhs_of_one WClopen einW) ^ n}
   mul_mem':= by
-    intro a b ha hb
+    rintro a b ⟨na, hna⟩ ⟨nb, hnb⟩
     simp only [Set.mem_setOf_eq] at *
-    rcases ha with ⟨na, hna⟩
-    rcases hb with ⟨nb, hnb⟩
     use na + nb
     rw [pow_add]
     exact Set.mul_mem_mul hna hnb
@@ -411,33 +437,11 @@ def open_subgroup_subnhds_of_one {G : Type*} [Group G] [TopologicalSpace G]  [To
         rw [(Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)).2.1]
         exact Set.inv_mem_inv.mpr hb
     exact this m x hm
-
-theorem open_subgroup_subnhds_of_one_spec {G : Type*} [Group G] [TopologicalSpace G]
-    [TopologicalGroup G] [T2Space G] [CompactSpace G]
-    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
-    IsOpen ((open_subgroup_subnhds_of_one WClopen einW) : Set G) ∧
-    ((open_subgroup_subnhds_of_one WClopen einW) : Set G) ⊆ W := by
-  let V := Classical.choose (open_symm_subnbhs_of_one WClopen einW)
-  let ⟨VOpen,_,einV,_,mulVsubW⟩:= Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)
-  have eqUnion : {x : G | ∃ n : ℕ, x ∈ V ^ n} = ⋃ n ≥ 1 , V ^ n :=by
-    ext x
-    rw [Set.mem_setOf_eq, Set.mem_iUnion]
-    constructor
-    · rintro ⟨n,xin⟩
-      cases' n with p
-      · rw [pow_zero, Set.mem_one] at xin
-        use 1
-        simp_rw [ge_iff_le, le_refl, pow_one, Set.iUnion_true, xin]
-        exact einV
-      · use (p + 1)
-        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true, xin]
-    · intro h
-      simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at h
-      rcases h with ⟨n,_,xin⟩
-      use n
-  constructor
-  · show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
-    rw [eqUnion]
+  isOpen' := by
+    let V := Classical.choose (open_symm_subnbhs_of_one WClopen einW)
+    let ⟨VOpen,_,einV,_,_⟩:= Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)
+    show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
+    rw [eqUnion_pow einV]
     apply isOpen_iUnion
     intro n
     induction' n with n ih
@@ -449,135 +453,117 @@ theorem open_subgroup_subnhds_of_one_spec {G : Type*} [Group G] [TopologicalSpac
       · simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
         rw [pow_succ]
         apply IsOpen.mul_left VOpen
-  · show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
-    rw[eqUnion]
-    simp_rw [Set.iUnion_subset_iff]
-    intro n nge
-    have mulVpow: W * V ^ n ⊆ W := by
-      induction' n with n ih
-      · contradiction
-      · cases' n with n
-        rw [zero_add, pow_one]
-        exact mulVsubW
-        simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, true_implies] at ih
-        rw [pow_succ, ← mul_assoc]
-        have : W * V ^ (n + 1) * V ⊆ W * V := Set.mul_subset_mul_right ih
-        apply le_trans this mulVsubW
-    apply le_trans _ mulVpow
-    intro x xin
-    rw [Set.mem_mul]
-    use 1, einW, x, xin
-    rw [one_mul]
 
+theorem OpenSubgroup_subnhds_of_one_spec {G : Type*} [Group G] [TopologicalSpace G]
+    [TopologicalGroup G] [T2Space G] [CompactSpace G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    ((OpenSubgroup_subnhds_of_one WClopen einW) : Set G) ⊆ W := by
+  let V := Classical.choose (open_symm_subnbhs_of_one WClopen einW)
+  let ⟨_,_,einV,_,mulVsubW⟩:= Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)
+  show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
+  rw[eqUnion_pow einV]
+  simp_rw [Set.iUnion_subset_iff]
+  intro n nge
+  have mulVpow: W * V ^ n ⊆ W := by
+    induction' n with n ih
+    · contradiction
+    · cases' n with n
+      rw [zero_add, pow_one]
+      exact mulVsubW
+      simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, true_implies] at ih
+      rw [pow_succ, ← mul_assoc]
+      have : W * V ^ (n + 1) * V ⊆ W * V := Set.mul_subset_mul_right ih
+      apply le_trans this mulVsubW
+  apply le_trans _ mulVpow
+  intro x xin
+  rw [Set.mem_mul]
+  use 1, einW, x, xin
+  rw [one_mul]
 
-open Pointwise ConjAct MulAction
-def openNormalSubgroup_subnhds.aux {G : ProfiniteGrp} {U : Set G}
+open Pointwise
+
+namespace openNormalSubgroup_subnhds
+
+def aux {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : Set G :=
   Classical.choose ((Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
       mem_nhds_iff.mpr (by use U))
 
-lemma openNormalSubgroup_subnhds.aux_spec {G : ProfiniteGrp} {U : Set G}
+lemma aux_spec {G : ProfiniteGrp} {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) :
     (1 ∈ (aux UOpen einU) ∧ IsClopen (aux UOpen einU)) ∧ (aux UOpen einU) ⊆ U :=
   Classical.choose_spec ((Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
         mem_nhds_iff.mpr (by use U))
 
-instance openNormalSubgroup_subnhds.aux_finite {G : ProfiniteGrp} {U : Set G}
+instance aux_finite {G : ProfiniteGrp} {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) :
-    Finite (G⧸open_subgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1) :=
-  have ⟨OOpen, _⟩:=
-    open_subgroup_subnhds_of_one_spec (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1
-  finite_quotient_of_open_subgroup _ OOpen
+    Finite (G⧸(OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).1)
+    :=
+  finite_quotient_of_open_subgroup _
+    (OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).isOpen'
 
-open Pointwise ConjAct MulAction
+end openNormalSubgroup_subnhds
+
+open Pointwise
 open openNormalSubgroup_subnhds in
 def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G where
   toSubgroup := Subgroup.normalCore
-    (open_subgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
+    (OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
   isOpen' := by
-    letI := finite_quotient_of_open_subgroup
-      (open_subgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
-    set H := (open_subgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
-    letI : Subgroup.FiniteIndex H := Subgroup.finiteIndex_of_finite_quotient H
-    have : IsClosed H.normalCore.carrier := by
-      apply TopologicalGroup.normalCore_isClosed
-      let H' : OpenSubgroup G := {
-        H with
-        isOpen' :=
-          (open_subgroup_subnhds_of_one_spec (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).1
-      }
-      exact OpenSubgroup.isClosed H'
+    set H := (OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
+    letI := finite_quotient_of_open_subgroup H.1
+    letI : Subgroup.FiniteIndex H := Subgroup.finiteIndex_of_finite_quotient H.1
     apply TopologicalGroup.finindex_Closed_isOpen
-    exact this
+    apply TopologicalGroup.normalCore_isClosed
+    exact OpenSubgroup.isClosed H
 
 theorem openNormalSubgroup_subnhds_of_one_spec {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
   have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
     mem_nhds_iff.mpr (by use U)
-  let ⟨⟨einW,WClopen⟩,WsubU⟩:= Classical.choose_spec this
+  let ⟨⟨einW,WClopen⟩,WsubU⟩ := Classical.choose_spec this
   rw [id_eq] at WsubU
-  have ⟨_,OsubW⟩:= open_subgroup_subnhds_of_one_spec WClopen einW
-  have NsubO : ((openNormalSubgroup_subnhds UOpen einU) : Set G)
-      ⊆ open_subgroup_subnhds_of_one WClopen einW := by
-    show (Subgroup.normalCore (open_subgroup_subnhds_of_one WClopen einW) : Set G)
-      ⊆ open_subgroup_subnhds_of_one WClopen einW
-    simp only [id_eq, SetLike.coe_subset_coe,
-      Subgroup.normalCore_le (open_subgroup_subnhds_of_one WClopen einW)]
-  apply Set.Subset.trans _ WsubU
-  exact Set.Subset.trans NsubO OsubW
+  have OsubW := OpenSubgroup_subnhds_of_one_spec WClopen einW
+  exact Set.Subset.trans (Set.Subset.trans
+    (Subgroup.normalCore_le (OpenSubgroup_subnhds_of_one WClopen einW).1) OsubW) WsubU
 
+theorem CanonicalMap_injective (P : ProfiniteGrp.{u}) : Function.Injective (CanonicalMap P) := by
+  show Function.Injective (CanonicalMap P).toMonoidHom
+  rw [← MonoidHom.ker_eq_bot_iff, Subgroup.eq_bot_iff_forall]
+  intro x h
+  by_contra xne1
+  have : (1 : P) ∈ ({x}ᶜ : Set P) :=
+    Set.mem_compl_singleton_iff.mpr fun a ↦ xne1 (id (Eq.symm a))
+  let H := openNormalSubgroup_subnhds (isOpen_compl_singleton) this
+  have xninH : x ∉ H := fun a ↦
+    (openNormalSubgroup_subnhds_of_one_spec (isOpen_compl_singleton) this) a rfl
+  have xinKer : (CanonicalMap P).toMonoidHom x = 1 := h
+  simp only [CanonicalMap, MonoidHom.coe_mk, OneHom.coe_mk] at xinKer
+  apply Subtype.val_inj.mpr at xinKer
+  have xinH := congrFun xinKer H
+  rw [OneMemClass.coe_one, Pi.one_apply, QuotientGroup.eq_one_iff] at xinH
+  exact xninH xinH
 
-theorem injectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Injective (canonicalMap P) := by
-  show Function.Injective (canonicalMap P).toMonoidHom
-  rw [← MonoidHom.ker_eq_bot_iff]
-  ext x
-  rw [Subgroup.mem_bot]
-  symm
-  constructor
-  · intro xeq1
-    rw [xeq1]
-    rfl
-  · intro xinKer
-    by_contra xne1
-    have : (1 : P) ∈ ({x}ᶜ : Set P) :=
-      Set.mem_compl_singleton_iff.mpr fun a ↦ xne1 (id (Eq.symm a))
-    let H := openNormalSubgroup_subnhds (isOpen_compl_singleton) this
-    have xninH: x ∉ H := by
-      have := openNormalSubgroup_subnhds_of_one_spec (isOpen_compl_singleton) this
-      exact fun a ↦ this a rfl
-    change (canonicalMap P).toMonoidHom x = 1 at xinKer
-    unfold canonicalMap at xinKer
-    rw [MonoidHom.coe_mk, OneHom.coe_mk] at xinKer
-    apply Subtype.val_inj.mpr at xinKer
-    let xinH := congrFun xinKer H
-    rw [OneMemClass.coe_one, Pi.one_apply] at xinH
-    rw[QuotientGroup.eq_one_iff] at xinH
-    tauto
-
-theorem bijectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Bijective (canonicalMap P) :=
-  ⟨injectiveCanonicalMap P, surjectiveCanonicalMap P⟩
+theorem bijectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Bijective (CanonicalMap P) :=
+  ⟨CanonicalMap_injective P, CanonicalMap_surjective P⟩
 
 def equiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) :
-    P ≃ (ofFiniteGrpLimit (diagramOfProfiniteGrp P)) where
-  toFun := (canonicalMap P)
-  invFun := Function.surjInv (surjectiveCanonicalMap P)
+    P ≃ (ofFiniteGrpLimit (QuotientOpenNormalSubgroup P)) where
+  toFun := (CanonicalMap P)
+  invFun := Function.surjInv (CanonicalMap_surjective P)
   left_inv := Function.leftInverse_surjInv <| bijectiveCanonicalMap P
-  right_inv := Function.rightInverse_surjInv <| surjectiveCanonicalMap P
+  right_inv := Function.rightInverse_surjInv <| CanonicalMap_surjective P
 
 def continuousMulEquiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) :
-ContinuousMulEquiv P (ofFiniteGrpLimit (diagramOfProfiniteGrp P)) := {
-  equiv_FiniteGrpLimit P with
-  map_mul' := (canonicalMap P).map_mul'
-  continuous_toFun := by
-    rw [Equiv.toFun_as_coe]
-    apply map_continuous P.canonicalMap
-  continuous_invFun := by
-    rw [Equiv.invFun_as_coe]
-    apply Continuous.continuous_symm_of_equiv_compact_to_t2 <| map_continuous P.canonicalMap
+    ContinuousMulEquiv P (ofFiniteGrpLimit (QuotientOpenNormalSubgroup P)) := {
+  (Continuous.homeoOfEquivCompactToT2 (f := equiv_FiniteGrpLimit P) P.CanonicalMap.continuous_toFun)
+  with
+  map_mul' := (CanonicalMap P).map_mul'
 }
 
-end ProfiniteGrp
+end
+
 end ProfiniteGrp
 
 end limitofProfinite
