@@ -7,7 +7,7 @@ import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
 --import Mathlib.FieldTheory.KrullTopology
-import InfiniteGaloisTheory.MissingLemmas.Topology
+import InfiniteGaloisTheory.MissingLemmas.TopologicalGroup
 
 /-!
 

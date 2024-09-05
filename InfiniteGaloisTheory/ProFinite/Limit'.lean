@@ -318,23 +318,16 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
 open Pointwise ConjAct MulAction
 def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G := by
-
-  have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U)
+  have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
+    mem_nhds_iff.mpr (by use U)
   let W := Classical.choose this
   let ⟨⟨einW,WClopen⟩,WsubU⟩:= Classical.choose_spec this
   rw [id_eq] at WsubU
   let O := open_subgroup_subnhds WClopen einW
   have ⟨OOpen,OsubW⟩:= open_subgroup_subnhds_spec WClopen einW
   have finIndex := finite_quotient_of_open_subgroup O OOpen
-
-
-
-
   exact {
-  carrier := sorry
-  mul_mem' := sorry
-  one_mem' := sorry
-  inv_mem' := sorry
+  Subgroup.normalCore O with
   isOpen' := sorry
   isNormal' := sorry
   }

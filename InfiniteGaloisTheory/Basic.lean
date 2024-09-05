@@ -554,7 +554,7 @@ noncomputable def continuousMulEquivtoLimit [IsGalois k K] :
   continuous_invFun := (limtoGalHomeo _ _).continuous_toFun
 
 noncomputable def ProfiniteGalGrp [IsGalois k K] : ProfiniteGrp :=
-  ProfiniteGrp.ofHomeoMulEquivProfiniteGrp (continuousMulEquivtoLimit k K).symm
+  ProfiniteGrp.ofContinuousMulEquivProfiniteGrp (continuousMulEquivtoLimit k K).symm
 
 variable {k K}
 

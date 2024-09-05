@@ -19,7 +19,7 @@ open CategoryTheory Topology
 
 namespace ProfiniteGrp
 
-def ofHomeoMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} {H : Type v} [TopologicalSpace H] [Group H]
+def ofContinuousMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} {H : Type v} [TopologicalSpace H] [Group H]
     [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
   letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
   letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
