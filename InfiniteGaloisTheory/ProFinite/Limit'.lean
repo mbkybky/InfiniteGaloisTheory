@@ -316,26 +316,73 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
 
 
 open Pointwise ConjAct MulAction
-def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G := by
+def openNormalSubgroup_subnhds.aux {G : ProfiniteGrp} {U : Set G}
+(UOpen : IsOpen U) (einU : 1 ∈ U) : Set G :=
+  Classical.choose ((Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
+      mem_nhds_iff.mpr (by use U))
+
+lemma openNormalSubgroup_subnhds.aux_spec {G : ProfiniteGrp} {U : Set G}
+    (UOpen : IsOpen U) (einU : 1 ∈ U) :
+    (1 ∈ (aux UOpen einU) ∧ IsClopen (aux UOpen einU)) ∧ (aux UOpen einU) ⊆ U :=
+  Classical.choose_spec ((Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
+        mem_nhds_iff.mpr (by use U))
+
+instance openNormalSubgroup_subnhds.aux_finite {G : ProfiniteGrp} {U : Set G}
+    (UOpen : IsOpen U) (einU : 1 ∈ U) :
+    Finite (G ⧸ open_subgroup_subnhds (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1) :=
+  have ⟨OOpen, _⟩:= open_subgroup_subnhds_spec (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1
+  finite_quotient_of_open_subgroup _ OOpen
+
+open Pointwise ConjAct MulAction
+open openNormalSubgroup_subnhds in
+def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
+(UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G where
+  toSubgroup :=
+    Subgroup.normalCore (open_subgroup_subnhds (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
+  isOpen' := sorry
+
+#print openNormalSubgroup_subnhds
+theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
+(UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
   have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
     mem_nhds_iff.mpr (by use U)
-  let W := Classical.choose this
   let ⟨⟨einW,WClopen⟩,WsubU⟩:= Classical.choose_spec this
   rw [id_eq] at WsubU
-  let O := open_subgroup_subnhds WClopen einW
-  have ⟨OOpen,OsubW⟩:= open_subgroup_subnhds_spec WClopen einW
-  have finIndex := finite_quotient_of_open_subgroup O OOpen
-  exact {
-  Subgroup.normalCore O with
-  isOpen' := sorry
-  isNormal' := sorry
-  }
+  have ⟨_,OsubW⟩:= open_subgroup_subnhds_spec WClopen einW
+  have NsubO : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ open_subgroup_subnhds WClopen einW := by
+    show (Subgroup.normalCore (open_subgroup_subnhds WClopen einW) : Set G) ⊆ open_subgroup_subnhds WClopen einW
+    simp only [id_eq, SetLike.coe_subset_coe, Subgroup.normalCore_le (open_subgroup_subnhds WClopen einW)]
+  apply Set.Subset.trans _ WsubU
+  exact Set.Subset.trans NsubO OsubW
 
 
+theorem injectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Injective (canonicalMap P) := by
+  show Function.Injective (canonicalMap P).toMonoidHom
+  rw [← MonoidHom.ker_eq_bot_iff]
+  ext x
+  rw [Subgroup.mem_bot]
+  symm
+  constructor
+  · intro xeq1
+    rw [xeq1]
+    rfl
+  · intro xinKer
+    by_contra xne1
+    have : (1 : P) ∈ ({x}ᶜ : Set P) := Set.mem_compl_singleton_iff.mpr fun a ↦ xne1 (id (Eq.symm a))
+    let H := openNormalSubgroup_subnhds (isOpen_compl_singleton) this
+    have xninH: x ∉ H := by
+      have := OpenNormalSubgroup_subnhds_spec (isOpen_compl_singleton) this
+      exact fun a ↦ this a rfl
+    change (canonicalMap P).toMonoidHom x = 1 at xinKer
+    unfold canonicalMap at xinKer
+    rw [MonoidHom.coe_mk, OneHom.coe_mk] at xinKer
+    apply Subtype.val_inj.mpr at xinKer
+    let xinH := congrFun xinKer H
+    rw [OneMemClass.coe_one, Pi.one_apply] at xinH
+    rw[QuotientGroup.eq_one_iff] at xinH
+    tauto
 
-theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsOpen U) (einU : 1 ∈ U) : ((OpenNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := sorry
+
 
 end ProfiniteGrp
 end ProfiniteGrp
