@@ -64,3 +64,47 @@ def finiteIndex_of_open_subgroup {G : ProfiniteGrp}
   Subgroup.finiteIndex_of_finite_quotient H
 
 end ProfiniteGrp
+
+section CompactSubgroup
+
+structure CompactSubgroup (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G]
+    [CompactSpace G] extends Subgroup G where
+  to_compact : CompactSpace carrier
+
+namespace CompactSubgroup
+
+variable (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G]
+    [CompactSpace G]
+
+instance : SetLike (CompactSubgroup G) G where
+  coe H := H.carrier
+  coe_injective' := by
+    rintro ⟨⟨⟨⟨⟩⟩⟩⟩ ⟨⟨⟨⟨⟩⟩⟩⟩
+    simp
+
+instance : SubgroupClass (CompactSubgroup G) G where
+  mul_mem := mul_mem (S := Subgroup G)
+  one_mem x := one_mem x.toSubgroup
+  inv_mem := inv_mem (S := Subgroup G)
+
+instance (H : CompactSubgroup G) : CompactSpace H := H.to_compact
+
+instance (H : CompactSubgroup G) : CompactSpace H.toSubgroup := H.to_compact
+
+instance (H : CompactSubgroup G) : Subgroup G := H.toSubgroup
+
+instance (H : CompactSubgroup G) : Group H := inferInstance
+
+variable [TotallyDisconnectedSpace G]
+
+def toProfiniteGrp (H : CompactSubgroup G) : ProfiniteGrp.{u} := .of H.toSubgroup
+
+
+def ofClosedSubgroup (H : Subgroup G) (hH : IsClosed (H : Set G)) : CompactSubgroup G := {
+  H with to_compact := isCompact_iff_compactSpace.mp (IsClosed.isCompact hH)
+}
+
+def compactSubgroup_of_closed (H : CompactSubgroup G) : IsClosed (H : Set G) :=
+  IsCompact.isClosed (isCompact_iff_compactSpace.mpr H.to_compact)
+
+end CompactSubgroup
