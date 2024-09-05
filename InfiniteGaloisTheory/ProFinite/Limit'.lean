@@ -114,7 +114,7 @@ section ProfiniteGrp
 
 open scoped Pointwise
 
-theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
+theorem exist_open_symm_subnhds {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G] [T2Space G] [CompactSpace G] {W : Set G}
     (WClopen : IsClopen W) (einW : 1 ∈ W) :
     ∃ V : Set G, IsOpen V ∧ V = V⁻¹ ∧ 1 ∈ V ∧ V ⊆ W ∧ W * V ⊆ W := by
   let μ : G × G → G := fun (x, y) ↦ x * y
@@ -219,7 +219,7 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
     have := Set.mem_of_mem_inter_left <| (spec2 w).2.2.2.2 <| Set.mk_mem_prod xinU yinV
     simpa only [Set.mem_preimage, xmuly, μ] using this
 
-def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
+def open_subgroup_subnhds {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G] [T2Space G] [CompactSpace G] {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G where
   carrier := {x : G | ∃ n : ℕ, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n}
   mul_mem':= by
@@ -258,7 +258,7 @@ def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
         exact Set.inv_mem_inv.mpr hb
     exact this m x hm
 
-theorem open_subgroup_subnhds_spec {G : ProfiniteGrp} {W : Set G}
+theorem open_subgroup_subnhds_spec {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G] [T2Space G] [CompactSpace G] {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) :
 IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
 ((open_subgroup_subnhds WClopen einW) : Set G) ⊆ W := by
@@ -315,8 +315,31 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
     rw [one_mul]
 
 
+open Pointwise ConjAct MulAction
 def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G := sorry
+(UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G := by
+
+  have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U)
+  let W := Classical.choose this
+  let ⟨⟨einW,WClopen⟩,WsubU⟩:= Classical.choose_spec this
+  rw [id_eq] at WsubU
+  let O := open_subgroup_subnhds WClopen einW
+  have ⟨OOpen,OsubW⟩:= open_subgroup_subnhds_spec WClopen einW
+  have finIndex := finite_quotient_of_open_subgroup O OOpen
+
+
+
+
+  exact {
+  carrier := sorry
+  mul_mem' := sorry
+  one_mem' := sorry
+  inv_mem' := sorry
+  isOpen' := sorry
+  isNormal' := sorry
+  }
+
+
 
 theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : ((OpenNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := sorry
