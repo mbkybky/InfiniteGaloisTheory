@@ -86,12 +86,10 @@ theorem denseCanonicalMap (P : ProfiniteGrp.{u}) : Dense $ Set.range (canonicalM
         isOpen' := hMOpen
       }
       rcases uDefault with ⟨spc, hspc⟩
-      have : Function.Surjective (QuotientGroup.mk' M) := QuotientGroup.mk'_surjective M
-      rcases this (spc m) with ⟨origin, horigin⟩
-      let map_origin := (canonicalMap P).toFun origin
-      use map_origin
+      rcases QuotientGroup.mk'_surjective M (spc m) with ⟨origin, horigin⟩
+      use (canonicalMap P).toFun origin
       constructor
-      · have : map_origin.val ∈ J.toSet.pi fJ := fun a a_in_J => by
+      · have : ((canonicalMap P).toFun origin).1 ∈ J.toSet.pi fJ := fun a a_in_J => by
           let M_to_Na : m ⟶ a := (iInf_le subg ⟨a, a_in_J⟩).hom
           rw [← (P.canonicalMap.toFun origin).property M_to_Na]
           show (P.diagramOfProfiniteGrp.map M_to_Na) (QuotientGroup.mk' M origin) ∈ _
@@ -107,8 +105,7 @@ theorem surjectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Surjective (can
   have : IsClosed (P.canonicalMap '' Set.univ) := this _ $ IsCompact.isClosed compact_s
   have dense_map := Dense.closure_eq $ denseCanonicalMap P
   apply closure_eq_iff_isClosed.mpr at this
-  rw [Set.image_univ] at this
-  rw [dense_map] at this
+  rw [Set.image_univ, dense_map] at this
   exact Set.range_iff_surjective.mp (id this.symm)
 
 end
@@ -118,54 +115,40 @@ section ProfiniteGrp
 open scoped Pointwise
 
 theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
-(WClopen : IsClopen W) (einW : 1 ∈ W) :∃ V : Set G, IsOpen V ∧ V = V⁻¹ ∧ 1 ∈ V ∧ V ⊆ W ∧ W * V ⊆ W
-:= by
+    (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    ∃ V : Set G, IsOpen V ∧ V = V⁻¹ ∧ 1 ∈ V ∧ V ⊆ W ∧ W * V ⊆ W := by
   let μ : G × G → G := fun (x, y) ↦ x * y
   have μCont : Continuous μ := continuous_mul
-
   let μinvW := μ⁻¹' W ∩ (W ×ˢ W)
   have μinvWsubWp : μinvW ⊆ (W ×ˢ W) := Set.inter_subset_right
-
   have mem_μinvW : ∀ w : W, ((w : G), 1) ∈ μinvW := by
     intro w
-    unfold_let μinvW
-    simp only [Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod]
-    constructor ; simp only [mul_one, Subtype.coe_prop, μ]
-    constructor ; simp only [Subtype.coe_prop]
-    exact einW
-
+    simp only [μinvW, Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod, mul_one, Subtype.coe_prop,
+      μ, Subtype.coe_prop, einW, and_self]
   have μinvWOpen : IsOpen μinvW := by
-    unfold_let μinvW
+    simp only [μinvW]
     apply IsOpen.inter
     apply μCont.isOpen_preimage W <| IsClopen.isOpen WClopen
     apply IsOpen.prod <;> (apply IsClopen.isOpen WClopen)
-
   have mem_μinvWOpen : ∀ w : W, ∃ (Uw : Set G) (Vw : Set G), IsOpen Uw ∧ IsOpen Vw ∧ (w : G)  ∈ Uw ∧
     1 ∈ Vw ∧ Uw ×ˢ Vw ⊆ μinvW := by
     intro w
     apply isOpen_prod_iff.mp μinvWOpen w 1 (mem_μinvW w)
-
-  clear μCont mem_μinvW μinvWOpen
-
   let Uw := fun w ↦ Classical.choose (mem_μinvWOpen w)
   let spec1 := fun w ↦ Classical.choose_spec (mem_μinvWOpen w)
   let Vw' := fun w ↦ Classical.choose (spec1 w)
   let spec2 := fun w ↦ Classical.choose_spec (spec1 w)
   let Vw := fun w ↦ (Vw' w) ∩ (Vw' w)⁻¹
-
   have spec3 : ∀ w : W, (Uw w) ⊆ W ∧ (Vw' w) ⊆ W :=by
     intro w
     rcases spec2 w with ⟨_,_,_,_,s5⟩
-    have : (Uw w) ×ˢ (Vw' w) ⊆ W ×ˢ W :=by
-      intro g gin
-      exact μinvWsubWp (s5 gin)
+    have : (Uw w) ×ˢ (Vw' w) ⊆ W ×ˢ W := fun g gin => μinvWsubWp (s5 gin)
     rw [Set.prod_subset_prod_iff] at this
     rcases this with _ | empty | empty
     assumption
     repeat
     rw [Set.eq_empty_iff_forall_not_mem] at empty
     tauto
-
   have spec4 : ∀ w : W, IsOpen (Vw w) ∧ 1 ∈ (Vw w) ∧  (Vw w) = (Vw w)⁻¹ ∧ (Vw w) ⊆ W := by
     intro w
     rcases spec2 w with ⟨_,s2,_,s4,_⟩
@@ -183,7 +166,6 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
       exact And.comm
     intro x ⟨xV,_⟩
     exact s7 xV
-
   have UOpen :=  fun w ↦ (spec2 w).1
   have VOpen := fun w ↦ (spec4 w).1
   have einV := fun w ↦ (spec4 w).2.1
@@ -194,8 +176,6 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
     simp only [Set.iUnion_coe_set, Set.mem_iUnion]
     use x, xinW
     exact (spec2 ⟨x,xinW⟩).2.2.1
-  clear spec3 spec4 μinvWsubWp
-
   rcases IsCompact.elim_finite_subcover (IsClosed.isCompact (IsClopen.isClosed WClopen)) _ UOpen cover
   with ⟨fin,fincover⟩
   have : Nonempty fin :=by
@@ -207,7 +187,6 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
       Set.subset_empty_iff,Set.eq_empty_iff_forall_not_mem] at fincover
     tauto
   let w0 := Classical.choice this
-
   use ⋂ w ∈ fin , Vw w
   constructor
   · exact isOpen_biInter_finset fun w _ ↦ VOpen w
@@ -215,7 +194,7 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
   · ext x
     constructor <;>
     · intro h
-      simp at h ⊢
+      simp only [Set.iInter_coe_set, Set.mem_iInter, Set.iInter_inv, Set.mem_inv] at h ⊢
       intro w winW winfin
       specialize h w winW winfin
       rw[VSymm ⟨w,winW⟩]
@@ -229,16 +208,16 @@ theorem exist_open_symm_subnhds {G : ProfiniteGrp} {W : Set G}
     simp_rw [Set.mem_iInter] at xinInter
     specialize xinInter w0 w0.prop
     exact (VsubW w0) xinInter
-  intro a ainmul
-  rw [Set.mem_mul] at ainmul
-  rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
-  have := fincover xinW
-  simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
-  rcases this with ⟨w,winfin,xinU⟩
-  simp_rw [Set.mem_iInter] at yinInter
-  have yinV := Set.mem_of_mem_inter_left (yinInter w winfin)
-  have := Set.mem_of_mem_inter_left <| (spec2 w).2.2.2.2 <| Set.mk_mem_prod xinU yinV
-  simpa only [Set.mem_preimage, xmuly, μ] using this
+  · intro a ainmul
+    rw [Set.mem_mul] at ainmul
+    rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
+    have := fincover xinW
+    simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
+    rcases this with ⟨w,winfin,xinU⟩
+    simp_rw [Set.mem_iInter] at yinInter
+    have yinV := Set.mem_of_mem_inter_left (yinInter w winfin)
+    have := Set.mem_of_mem_inter_left <| (spec2 w).2.2.2.2 <| Set.mk_mem_prod xinU yinV
+    simpa only [Set.mem_preimage, xmuly, μ] using this
 
 def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
 (WClopen : IsClopen W) (einW : 1 ∈ W) : Subgroup G where
@@ -260,7 +239,8 @@ def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
     simp only [Set.mem_setOf_eq, forall_exists_index] at *
     intro x m hm
     use m
-    have : ∀ n : ℕ, ∀ x : G, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n → x⁻¹ ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n := by
+    have : ∀ n : ℕ, ∀ x : G, x ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n →
+      x⁻¹ ∈ Classical.choose (exist_open_symm_subnhds WClopen einW) ^ n := by
       intro n
       induction' n with k hk
       · rw [pow_zero]
@@ -271,12 +251,11 @@ def open_subgroup_subnhds {G : ProfiniteGrp} {W : Set G}
         rw [add_comm]
         rw [pow_add, pow_one] at *
         rcases hx with ⟨a, ha, b, hb, hyp⟩
-        simp only at hyp
+        dsimp at hyp
         rw [← hyp, DivisionMonoid.mul_inv_rev a b]
-        apply Set.mul_mem_mul
-        · rw [(Classical.choose_spec (exist_open_symm_subnhds WClopen einW)).2.1]
-          exact Set.inv_mem_inv.mpr hb
-        · exact hk a ha
+        apply Set.mul_mem_mul _ (hk a ha)
+        rw [(Classical.choose_spec (exist_open_symm_subnhds WClopen einW)).2.1]
+        exact Set.inv_mem_inv.mpr hb
     exact this m x hm
 
 theorem open_subgroup_subnhds_spec {G : ProfiniteGrp} {W : Set G}
@@ -301,21 +280,20 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
       simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at h
       rcases h with ⟨n,_,xin⟩
       use n
-
   constructor
   · show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
     rw [eqUnion]
     apply isOpen_iUnion
     intro n
     induction' n with n ih
-    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero, Set.iUnion_of_empty, isOpen_empty]
+    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero,
+        Set.iUnion_of_empty, isOpen_empty]
     · cases' n
-      simp_rw [zero_add, ge_iff_le, le_refl, pow_one, Set.iUnion_true]
-      exact VOpen
-      simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
-      rw [pow_succ]
-      apply IsOpen.mul_left VOpen
-
+      · simp_rw [zero_add, ge_iff_le, le_refl, pow_one, Set.iUnion_true]
+        exact VOpen
+      · simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
+        rw [pow_succ]
+        apply IsOpen.mul_left VOpen
   · show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
     rw[eqUnion]
     simp_rw [Set.iUnion_subset_iff]
@@ -330,19 +308,18 @@ IsOpen ((open_subgroup_subnhds WClopen einW) : Set G) ∧
         rw [pow_succ, ← mul_assoc]
         have : W * V ^ (n + 1) * V ⊆ W * V := Set.mul_subset_mul_right ih
         apply le_trans this mulVsubW
-    have : V ^ n ⊆  W * V ^ n :=by
-      intro x xin
-      rw [Set.mem_mul]
-      use 1, einW, x, xin
-      rw [one_mul]
-    apply le_trans this mulVpow
+    apply le_trans _ mulVpow
+    intro x xin
+    rw [Set.mem_mul]
+    use 1, einW, x, xin
+    rw [one_mul]
 
 
 def OpenNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsClopen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=sorry
+(UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G := sorry
 
 theorem OpenNormalSubgroup_subnhds_spec {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsClopen U) (einU : 1 ∈ U) : ((OpenNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U :=sorry
+(UOpen : IsOpen U) (einU : 1 ∈ U) : ((OpenNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := sorry
 
 end ProfiniteGrp
 end ProfiniteGrp
