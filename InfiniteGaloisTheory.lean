@@ -1,2 +1,1 @@
 import InfiniteGaloisTheory.InfiniteGalois
-import InfiniteGaloisTheory.ProFinite.Limit'
