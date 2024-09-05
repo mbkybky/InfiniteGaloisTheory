@@ -6,7 +6,6 @@ Authors: Jujian Zhang, Nailin Guan, Yuyang Zhao, Yongle Hu
 import Mathlib.Algebra.Category.Grp.Basic
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.ContinuousMonoidHom
---import Mathlib.FieldTheory.KrullTopology
 import InfiniteGaloisTheory.MissingLemmas.TopologicalGroup
 
 /-!
