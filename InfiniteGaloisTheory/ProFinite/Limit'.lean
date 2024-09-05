@@ -384,15 +384,22 @@ theorem injectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Injective (canon
 theorem bijectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Bijective (canonicalMap P) :=
   ⟨injectiveCanonicalMap P,surjectiveCanonicalMap P⟩
 
-def ContinuousMulEquiv (P : ProfiniteGrp.{u}) : ContinuousMulEquiv P (ofFiniteGrpLimit (diagramOfProfiniteGrp P)) where
+def equiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) : P ≃ (ofFiniteGrpLimit (diagramOfProfiniteGrp P)) where
   toFun := (canonicalMap P)
   invFun := Function.surjInv (surjectiveCanonicalMap P)
   left_inv := Function.leftInverse_surjInv <| bijectiveCanonicalMap P
   right_inv := Function.rightInverse_surjInv <| surjectiveCanonicalMap P
-  map_mul' := (canonicalMap P).map_mul'
-  continuous_toFun :=sorry
-  continuous_invFun :=sorry
 
+def continuousMulEquiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) : ContinuousMulEquiv P (ofFiniteGrpLimit (diagramOfProfiniteGrp P)) := {
+  equiv_FiniteGrpLimit P with
+  map_mul' := (canonicalMap P).map_mul'
+  continuous_toFun := by
+    rw [Equiv.toFun_as_coe]
+    apply map_continuous P.canonicalMap
+  continuous_invFun := by
+    rw [Equiv.invFun_as_coe]
+    apply Continuous.continuous_symm_of_equiv_compact_to_t2 <| map_continuous P.canonicalMap
+}
 
 end ProfiniteGrp
 end ProfiniteGrp
