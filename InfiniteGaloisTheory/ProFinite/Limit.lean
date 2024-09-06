@@ -287,100 +287,191 @@ section
 
 open scoped Pointwise
 
-theorem open_symm_subnbhs_of_one {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G]
-    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
-    ∃ V : Set G, IsOpen V ∧ V = V⁻¹ ∧ 1 ∈ V ∧ V ⊆ W ∧ W * V ⊆ W := by
+section
+
+variable {G : Type*} [Group G]
+
+def symm (V : Set G) : Set G := V ∩ V⁻¹
+
+lemma symm_spec (V : Set G) : (symm V) = (symm V)⁻¹ := by
+  ext
+  simp only [symm, Set.mem_inter_iff, Set.mem_inv, Set.inter_inv, inv_inv, and_comm]
+
+lemma inter_symm {α : Type*}
+    (S : Set α) (V : α → Set G) : ⋂ a ∈ S, symm (V a) = (⋂ a ∈ S, symm (V a))⁻¹ := by
+  ext x
+  constructor <;>
+  · intro h
+    simp only [Set.iInter_coe_set, Set.mem_iInter, Set.iInter_inv, Set.mem_inv] at h ⊢
+    intro s hs
+    rw [symm_spec]
+    simp only [Set.mem_inv, inv_inv, h s hs]
+
+def μinvW
+    (W : Set G) : Set (G × G) :=
+  let μ : G × G → G := fun (x, y) => x * y
+  μ⁻¹' W ∩ (W ×ˢ W)
+
+lemma μinvW_open [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) : IsOpen (μinvW W) := by
   let μ : G × G → G := fun (x, y) => x * y
   have μCont : Continuous μ := continuous_mul
-  let μinvW := μ⁻¹' W ∩ (W ×ˢ W)
-  have μinvWsubWp : μinvW ⊆ (W ×ˢ W) := Set.inter_subset_right
-  have mem_μinvW : ∀ w : W, ((w : G), 1) ∈ μinvW := by
-    intro w
-    simp only [μinvW, Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod, mul_one, Subtype.coe_prop,
-      μ, Subtype.coe_prop, einW, and_self]
-  have μinvWOpen : IsOpen μinvW := by
-    simp only [μinvW]
-    apply IsOpen.inter (μCont.isOpen_preimage W <| IsClopen.isOpen WClopen) _
-    apply IsOpen.prod <;> (apply IsClopen.isOpen WClopen)
-  have mem_μinvWOpen : ∀ w : W, ∃ (Uw : Set G) (Vw : Set G), IsOpen Uw ∧ IsOpen Vw
-      ∧ (w : G)  ∈ Uw ∧ 1 ∈ Vw ∧ Uw ×ˢ Vw ⊆ μinvW := by
-    intro w
-    apply isOpen_prod_iff.mp μinvWOpen w 1 (mem_μinvW w)
-  let Uw := fun w => Classical.choose (mem_μinvWOpen w)
-  let spec1 := fun w => Classical.choose_spec (mem_μinvWOpen w)
-  let Vw' := fun w => Classical.choose (spec1 w)
-  let spec2 := fun w => Classical.choose_spec (spec1 w)
-  let Vw := fun w => (Vw' w) ∩ (Vw' w)⁻¹
-  have spec3 : ∀ w : W, (Uw w) ⊆ W ∧ (Vw' w) ⊆ W :=by
-    intro w
-    rcases spec2 w with ⟨_,_,_,_,s5⟩
-    have : (Uw w) ×ˢ (Vw' w) ⊆ W ×ˢ W := fun g gin => μinvWsubWp (s5 gin)
-    rw [Set.prod_subset_prod_iff] at this
-    rcases this with _ | empty | empty
-    assumption
-    repeat
-    rw [Set.eq_empty_iff_forall_not_mem] at empty
-    tauto
-  have spec4 : ∀ w : W, IsOpen (Vw w) ∧ 1 ∈ (Vw w) ∧  (Vw w) = (Vw w)⁻¹ ∧ (Vw w) ⊆ W := by
-    intro w
-    rcases spec2 w with ⟨_,s2,_,s4,_⟩
-    rcases spec3 w with ⟨_,s7⟩
-    constructor
-    · apply IsOpen.inter s2 (IsOpen.inv s2)
-    · constructor
-      · apply Set.mem_inter s4
-        simp only [Set.mem_inv, inv_one, s4]
-      constructor
-      · ext
-        simp only [Vw, Set.mem_inter_iff, Set.mem_inv, Set.inter_inv, inv_inv, And.comm]
-      intro x ⟨xV,_⟩
-      exact s7 xV
-  have cover : W ⊆ ⋃ w : W, Uw w := by
-    intro x xinW
-    simp only [Set.iUnion_coe_set, Set.mem_iUnion]
-    use x, xinW
-    exact (spec2 ⟨x,xinW⟩).2.2.1
-  rcases IsCompact.elim_finite_subcover (IsClosed.isCompact (IsClopen.isClosed WClopen))
-    _ (fun w => (spec2 w).1) cover with ⟨fin,fincover⟩
-  have : Nonempty fin :=by
-    by_contra empty
-    rw [nonempty_subtype] at empty
-    push_neg at empty
-    apply Finset.eq_empty_of_forall_not_mem at empty
-    simp_rw [empty, Finset.not_mem_empty, exists_and_left, Set.iUnion_of_empty, Set.iUnion_empty,
-      Set.subset_empty_iff,Set.eq_empty_iff_forall_not_mem] at fincover
-    tauto
-  let w0 := Classical.choice this
-  use ⋂ w ∈ fin , Vw w
-  simp only [isOpen_biInter_finset fun w _ => (spec4 w).1, true_and]
-  constructor
-  · ext x
-    constructor <;>
-    · intro h
-      simp only [Set.iInter_coe_set, Set.mem_iInter, Set.iInter_inv, Set.mem_inv] at h ⊢
-      intro w winW winfin
-      specialize h w winW winfin
-      rw[(spec4 ⟨w,winW⟩).2.2.1]
-      simp only [Set.mem_inv, inv_inv, h]
-  constructor
-  · simp_rw [Set.mem_iInter]
-    intro w _
-    exact (spec4 w).2.1
-  constructor
-  · intro x xinInter
-    simp_rw [Set.mem_iInter] at xinInter
-    specialize xinInter w0 w0.prop
-    exact (spec4 w0).2.2.2 xinInter
-  · intro a ainmul
-    rw [Set.mem_mul] at ainmul
-    rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
-    have := fincover xinW
-    simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
-    rcases this with ⟨w,winfin,xinU⟩
-    simp_rw [Set.mem_iInter] at yinInter
-    have yinV := Set.mem_of_mem_inter_left (yinInter w winfin)
-    have := Set.mem_of_mem_inter_left <| (spec2 w).2.2.2.2 <| Set.mk_mem_prod xinU yinV
-    simpa only [Set.mem_preimage, xmuly, μ] using this
+  simp only [μinvW]
+  apply IsOpen.inter (μCont.isOpen_preimage W <| IsClopen.isOpen WClopen) _
+  apply IsOpen.prod <;> (apply IsClopen.isOpen WClopen)
+
+lemma mem_μinvW
+    {W : Set G} (einW : 1 ∈ W) (w : W) : ((w : G), 1) ∈ μinvW W := by
+  simp only [μinvW, Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod, mul_one, Subtype.coe_prop,
+      Subtype.coe_prop, einW, and_self]
+
+def nhds_side_w [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : Set G :=
+  Classical.choose <| isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)
+
+def nhds_side_1' [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : Set G :=
+  Classical.choose <| Classical.choose_spec <|
+    isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)
+
+lemma nhds_side_w_open [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : IsOpen (nhds_side_w WClopen einW w)
+    :=
+  (Classical.choose_spec <| Classical.choose_spec <|
+    isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).1
+
+lemma nhds_side_1'_open [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : IsOpen (nhds_side_1' WClopen einW w)
+    :=
+  (Classical.choose_spec <| Classical.choose_spec <|
+    isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).2.1
+
+lemma w_mem_nhds_side_w [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    w.1 ∈ (nhds_side_w WClopen einW w) :=
+    (Classical.choose_spec <| Classical.choose_spec <|
+    isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).2.2.1
+
+lemma one_mem_nhds_side_1 [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    1 ∈ (nhds_side_1' WClopen einW w) :=
+    (Classical.choose_spec <| Classical.choose_spec <|
+    isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).2.2.2.1
+
+lemma nhds_side_mul_sub [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    (nhds_side_w WClopen einW w) ×ˢ (nhds_side_1' WClopen einW w) ⊆ μinvW W :=
+  (Classical.choose_spec <| Classical.choose_spec <|
+    isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).2.2.2.2
+
+def nhds_side_1 [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : Set G :=
+  symm (nhds_side_1' WClopen einW w)
+
+lemma nhds_side_1_open [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : IsOpen (nhds_side_1 WClopen einW w)
+    := by
+  simp only [nhds_side_1, symm]
+  apply IsOpen.inter (nhds_side_1'_open WClopen einW w)
+    (IsOpen.inv (nhds_side_1'_open WClopen einW w))
+
+lemma One_mem_nhds_side_1 [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : 1 ∈ (nhds_side_1 WClopen einW w)
+    := by
+  simp only [nhds_side_1, symm, Set.mem_inter_iff, Set.mem_inv, inv_one, and_self]
+  exact (one_mem_nhds_side_1 WClopen einW w)
+
+lemma nhds_side_sub [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    (nhds_side_w WClopen einW w) ⊆ W ∧ (nhds_side_1' WClopen einW w) ⊆ W:= by
+  have μinvWsubWp : μinvW W ⊆ (W ×ˢ W) := Set.inter_subset_right
+  have := Set.Subset.trans (nhds_side_mul_sub WClopen einW w) μinvWsubWp
+  rw [Set.prod_subset_prod_iff] at this
+  rcases this with h | e1 | e2
+  · exact h
+  · absurd e1
+    exact ne_of_mem_of_not_mem' (w_mem_nhds_side_w WClopen einW w) fun a ↦ a
+  · absurd e2
+    exact ne_of_mem_of_not_mem' (one_mem_nhds_side_1 WClopen einW w) fun a ↦ a
+
+lemma nhds_side_w_sub [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    (nhds_side_w WClopen einW w) ⊆ W := (nhds_side_sub WClopen einW w).1
+
+lemma nhds_side_1_sub [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    (nhds_side_1 WClopen einW w) ⊆ W := by
+  simp only [nhds_side_1, symm]
+  exact Set.Subset.trans Set.inter_subset_left (nhds_side_sub WClopen einW w).2
+
+lemma nhds_side_w_cover [TopologicalSpace G]  [TopologicalGroup G]
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    W ⊆ ⋃ w : W, (nhds_side_w WClopen einW w) := by
+  intro x xinW
+  simp only [Set.iUnion_coe_set, Set.mem_iUnion]
+  exact ⟨x, xinW, (w_mem_nhds_side_w WClopen einW ⟨x, xinW⟩)⟩
+
+def open_symm_subnhds_of_one_index [TopologicalSpace G]  [TopologicalGroup G]
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) : Finset W :=
+  Classical.choose (IsCompact.elim_finite_subcover (IsClosed.isCompact (IsClopen.isClosed WClopen))
+    _ (fun (w : W) => (nhds_side_w_open WClopen einW w)) (nhds_side_w_cover WClopen einW))
+
+lemma open_symm_subnhds_of_one_index_spec [TopologicalSpace G]  [TopologicalGroup G]
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    W ⊆ ⋃ i ∈ (open_symm_subnhds_of_one_index WClopen einW), nhds_side_w WClopen einW i :=
+  Classical.choose_spec (IsCompact.elim_finite_subcover (IsClosed.isCompact
+  (IsClopen.isClosed WClopen)) _ (fun (w : W) => (nhds_side_w_open WClopen einW w))
+  (nhds_side_w_cover WClopen einW))
+
+def open_symm_subnhds_of_one [TopologicalSpace G]  [TopologicalGroup G]
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) : Set G :=
+  ⋂ w ∈ (open_symm_subnhds_of_one_index WClopen einW) , nhds_side_1 WClopen einW w
+
+namespace open_symm_subnhds_of_one
+
+variable [TopologicalSpace G]  [TopologicalGroup G]
+
+lemma isopen
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    IsOpen (open_symm_subnhds_of_one WClopen einW) :=
+  isOpen_biInter_finset (fun w _ => nhds_side_1_open WClopen einW w)
+
+lemma symm
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    (open_symm_subnhds_of_one WClopen einW) = (open_symm_subnhds_of_one WClopen einW)⁻¹ := by
+  simp only [open_symm_subnhds_of_one, nhds_side_1]
+  apply inter_symm
+
+lemma one_mem
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    1 ∈ (open_symm_subnhds_of_one WClopen einW) := by
+  simp only [open_symm_subnhds_of_one, Set.mem_iInter]
+  exact fun w _ => One_mem_nhds_side_1 WClopen einW w
+
+lemma mul_sub
+  [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    W * (open_symm_subnhds_of_one WClopen einW) ⊆ W := by
+  intro a ainmul
+  rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
+  have fincover := open_symm_subnhds_of_one_index_spec WClopen einW
+  have := fincover xinW
+  simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
+  rcases this with ⟨w,winfin,xinU⟩
+  simp only [open_symm_subnhds_of_one, Set.iUnion_coe_set, Set.iInter_coe_set, Set.mem_iInter
+    ] at yinInter
+  have yinV := Set.mem_of_mem_inter_left (yinInter w w.2 winfin)
+  have := Set.mem_of_mem_inter_left <| nhds_side_mul_sub WClopen einW w <| Set.mk_mem_prod xinU yinV
+  simpa only [Set.mem_preimage, xmuly] using this
+
+lemma sub
+  [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+   (open_symm_subnhds_of_one WClopen einW) ⊆ W := by
+  apply Set.Subset.trans _ (mul_sub WClopen einW)
+  exact Set.subset_mul_right (open_symm_subnhds_of_one WClopen einW) einW
+
+end open_symm_subnhds_of_one
+
+end
 
 lemma eqUnion_pow {G : Type*} [Group G] {V : Set G} (h : 1 ∈ V) : {x : G | ∃ n : ℕ, x ∈ V ^ n} =
     ⋃ n ≥ 1 , V ^ n :=by
@@ -403,7 +494,7 @@ lemma eqUnion_pow {G : Type*} [Group G] {V : Set G} (h : 1 ∈ V) : {x : G | ∃
 def OpenSubgroup_subnhds_of_one {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G]
     [T2Space G] [CompactSpace G] {W : Set G}
     (WClopen : IsClopen W) (einW : 1 ∈ W) : OpenSubgroup G where
-  carrier := {x : G | ∃ n : ℕ, x ∈ Classical.choose (open_symm_subnbhs_of_one WClopen einW) ^ n}
+  carrier := {x : G | ∃ n : ℕ, x ∈ (open_symm_subnhds_of_one WClopen einW) ^ n}
   mul_mem':= by
     rintro a b ⟨na, hna⟩ ⟨nb, hnb⟩
     simp only [Set.mem_setOf_eq] at *
@@ -414,13 +505,13 @@ def OpenSubgroup_subnhds_of_one {G : Type*} [Group G] [TopologicalSpace G]  [Top
     simp only [Set.mem_setOf_eq]
     use 1
     rw [pow_one]
-    exact (Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)).2.2.1
+    exact ProfiniteGrp.open_symm_subnhds_of_one.one_mem WClopen einW
   inv_mem':= by
     simp only [Set.mem_setOf_eq, forall_exists_index] at *
     intro x m hm
     use m
-    have : ∀ n : ℕ, ∀ x : G, x ∈ Classical.choose (open_symm_subnbhs_of_one WClopen einW) ^ n →
-      x⁻¹ ∈ Classical.choose (open_symm_subnbhs_of_one WClopen einW) ^ n := by
+    have : ∀ n : ℕ, ∀ x ∈ (open_symm_subnhds_of_one WClopen einW) ^ n,
+      x⁻¹ ∈ (open_symm_subnhds_of_one WClopen einW) ^ n := by
       intro n
       induction' n with k hk
       · rw [pow_zero]
@@ -434,12 +525,13 @@ def OpenSubgroup_subnhds_of_one {G : Type*} [Group G] [TopologicalSpace G]  [Top
         dsimp at hyp
         rw [← hyp, DivisionMonoid.mul_inv_rev a b]
         apply Set.mul_mem_mul _ (hk a ha)
-        rw [(Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)).2.1]
+        rw [ProfiniteGrp.open_symm_subnhds_of_one.symm WClopen einW]
         exact Set.inv_mem_inv.mpr hb
     exact this m x hm
   isOpen' := by
-    let V := Classical.choose (open_symm_subnbhs_of_one WClopen einW)
-    let ⟨VOpen,_,einV,_,_⟩:= Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)
+    set V := (open_symm_subnhds_of_one WClopen einW)
+    let VOpen := ProfiniteGrp.open_symm_subnhds_of_one.isopen WClopen einW
+    let einV := ProfiniteGrp.open_symm_subnhds_of_one.one_mem WClopen einW
     show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
     rw [eqUnion_pow einV]
     apply isOpen_iUnion
@@ -457,8 +549,9 @@ theorem OpenSubgroup_subnhds_of_one_spec {G : Type*} [Group G] [TopologicalSpace
     [TopologicalGroup G] [T2Space G] [CompactSpace G]
     {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
     ((OpenSubgroup_subnhds_of_one WClopen einW) : Set G) ⊆ W := by
-  let V := Classical.choose (open_symm_subnbhs_of_one WClopen einW)
-  let ⟨_,_,einV,_,mulVsubW⟩:= Classical.choose_spec (open_symm_subnbhs_of_one WClopen einW)
+  let V := (open_symm_subnhds_of_one WClopen einW)
+  let einV := ProfiniteGrp.open_symm_subnhds_of_one.one_mem WClopen einW
+  let mulVsubW := ProfiniteGrp.open_symm_subnhds_of_one.mul_sub WClopen einW
   show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
   simp_rw [eqUnion_pow einV, Set.iUnion_subset_iff]
   intro n nge
@@ -501,6 +594,7 @@ instance aux_finite {G : ProfiniteGrp} {U : Set G}
 
 end openNormalSubgroup_subnhds
 
+
 open Pointwise
 open openNormalSubgroup_subnhds in
 noncomputable def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
@@ -513,6 +607,7 @@ noncomputable def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
     letI : Subgroup.FiniteIndex H := Subgroup.finiteIndex_of_finite_quotient H.1
     apply TopologicalGroup.finindex_Closed_isOpen
     exact TopologicalGroup.normalCore_isClosed _ H.1 <| OpenSubgroup.isClosed H
+
 
 theorem openNormalSubgroup_subnhds_of_one_spec {G : ProfiniteGrp} {U : Set G}
 (UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
