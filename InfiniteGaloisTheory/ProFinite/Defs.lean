@@ -18,7 +18,10 @@ disconnected.
 ## Main definitions and results
 
 * `ProfiniteGrp` is the type of profinite groups.
+
 * `FiniteGrp` is the type of finite groups.
+
+* `Pi.profiniteGrp` : The product of profinite groups is also a profinite group.
 
 -/
 

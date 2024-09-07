@@ -78,9 +78,8 @@ instance IntermediateField.instSMulMemClass : SMulMemClass (IntermediateField F 
 
 open scoped Topology in
 lemma krullTopology_mem_nhds_one (s : Set (L ≃ₐ[F] L)) :
-    s ∈ 𝓝 1 ↔
-      ∃ S : IntermediateField F L,
-        FiniteDimensional F S ∧ (S.fixingSubgroup : Set (L ≃ₐ[F] L)) ⊆ s := by
+    s ∈ 𝓝 1 ↔ ∃ S : IntermediateField F L,
+    FiniteDimensional F S ∧ (S.fixingSubgroup : Set (L ≃ₐ[F] L)) ⊆ s := by
   rw [GroupFilterBasis.nhds_one_eq]
   constructor
   · rintro ⟨-, ⟨-, ⟨S, fin, rfl⟩, rfl⟩, hS⟩
@@ -126,8 +125,8 @@ theorem IsScalarTower.algEquivRestrictNormalHom_eq (F K₁ K₂ K₃ : Type*)
     [IsScalarTower F K₁ K₃] [IsScalarTower F K₁ K₂] [IsScalarTower F K₂ K₃] [IsScalarTower K₁ K₂ K₃]
     [Normal F K₁] [Normal F K₂] :
     AlgEquiv.restrictNormalHom (F := F) (K₁ := K₃) K₁ =
-      (AlgEquiv.restrictNormalHom (F := F) (K₁ := K₂) K₁).comp
-        (AlgEquiv.restrictNormalHom (F := F) (K₁ := K₃) K₂) := by
+    (AlgEquiv.restrictNormalHom (F := F) (K₁ := K₂) K₁).comp
+    (AlgEquiv.restrictNormalHom (F := F) (K₁ := K₃) K₂) := by
   ext f x
   dsimp [AlgEquiv.restrictNormalHom]
   apply (algebraMap K₁ K₃).injective
@@ -142,7 +141,7 @@ theorem IsScalarTower.algEquivRestrictNormalHom_apply (F K₁ K₂ : Type*) {K�
     [IsScalarTower F K₁ K₃] [IsScalarTower F K₁ K₂] [IsScalarTower F K₂ K₃] [IsScalarTower K₁ K₂ K₃]
     [Normal F K₁] [Normal F K₂] (f : K₃ ≃ₐ[F] K₃) :
     AlgEquiv.restrictNormalHom K₁ f =
-      (AlgEquiv.restrictNormalHom K₁) (AlgEquiv.restrictNormalHom K₂ f) := by
+    (AlgEquiv.restrictNormalHom K₁) (AlgEquiv.restrictNormalHom K₂ f) := by
   rw [IsScalarTower.algEquivRestrictNormalHom_eq F K₁ K₂ K₃, MonoidHom.comp_apply]
 
 open CategoryTheory Topology Opposite
@@ -224,10 +223,8 @@ def finGal (L : FiniteGaloisIntermediateField k K) : FiniteGrp :=
   letI := AlgEquiv.fintype k L
   FiniteGrp.of <| L ≃ₐ[k] L
 
-def finGalMap
-    {L₁ L₂ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
-    (le : L₁ ⟶ L₂) :
-    L₁.unop.finGal ⟶ L₂.unop.finGal :=
+def finGalMap {L₁ L₂ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
+    (le : L₁ ⟶ L₂) : L₁.unop.finGal ⟶ L₂.unop.finGal :=
   haveI : Normal k L₂.unop := IsGalois.to_normal
   letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom le.1)
   haveI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
@@ -286,8 +283,8 @@ lemma subset_adjoin [IsGalois k K] (s : Set K) [Finite s] :
   simp only [Set.mem_union, Set.mem_range, hx, or_true]
 
 @[simp]
-theorem adjoin_le_iff [IsGalois k K] {s : Set K} [Finite s] {L : FiniteGaloisIntermediateField k K}
-  : adjoin k s ≤ L ↔ s ≤ L.val := by
+theorem adjoin_le_iff [IsGalois k K] {s : Set K} [Finite s]
+    {L : FiniteGaloisIntermediateField k K} : adjoin k s ≤ L ↔ s ≤ L.val := by
   show normalClosure _ _ _ ≤ L.val ↔ _
   rw [← IntermediateField.adjoin_le_iff, IntermediateField.normalClosure_le_iff_of_normal]
 
@@ -339,7 +336,7 @@ noncomputable def homtoLimit : (K ≃ₐ[k] K) →* ProfiniteGrp.ofFiniteGrpLimi
     rfl
 
 lemma restrict_eq (σ : K ≃ₐ[k] K) (x : K) (Lx : FiniteGaloisIntermediateField k K)
-  (hLx : x ∈ Lx.val) : σ x = (AlgEquiv.restrictNormalHom Lx σ) ⟨x, hLx⟩ := by
+    (hLx : x ∈ Lx.val) : σ x = (AlgEquiv.restrictNormalHom Lx σ) ⟨x, hLx⟩ := by
   show σ x = ((AlgEquiv.restrictNormal σ Lx) ⟨x, hLx⟩).1
   have := AlgEquiv.restrictNormal_commutes σ Lx ⟨x, hLx⟩
   convert this
@@ -353,14 +350,12 @@ def proj (L : FiniteGaloisIntermediateField k K) :
 
 @[simp]
 lemma finGalFunctor_proj (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
-  {L₁ L₂ : FiniteGaloisIntermediateField k K} (h : L₁ ⟶ L₂) :
-  (finGalFunctor k K).map h.op (proj L₂ g) = proj L₁ g :=
+    {L₁ L₂ : FiniteGaloisIntermediateField k K} (h : L₁ ⟶ L₂) :
+    (finGalFunctor k K).map h.op (proj L₂ g) = proj L₁ g :=
   g.prop h.op
 
-lemma proj_lift
-    (L : FiniteGaloisIntermediateField k K)
-    (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
-    (x : L)
+lemma proj_lift (L : FiniteGaloisIntermediateField k K)
+    (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) (x : L)
     (L' : FiniteGaloisIntermediateField k K) (h : L ≤ L') :
     (proj L g x).val = (proj L' g ⟨x, h x.2⟩).val := by
   induction L with | _ L => ?_
@@ -374,8 +369,7 @@ lemma proj_lift
 
 lemma proj_lift_adjoin_simple [IsGalois k K]
     (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K))
-    (x : K) (y : adjoin k {x})
-    (L : FiniteGaloisIntermediateField k K) (h : x ∈ L.val) :
+    (x : K) (y : adjoin k {x}) (L : FiniteGaloisIntermediateField k K) (h : x ∈ L.val) :
     (proj (adjoin k {x}) g y).val = (proj L g ⟨y, adjoin_simple_le_iff.mpr h y.2⟩).val :=
   proj_lift _ g y _ _
 

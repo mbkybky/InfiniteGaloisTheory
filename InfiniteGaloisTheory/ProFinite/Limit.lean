@@ -195,7 +195,7 @@ namespace ProfiniteGrp
 section
 
 def QuotientOpenNormalSubgroup (P : ProfiniteGrp) :
-  OpenNormalSubgroup P ⥤ FiniteGrp := {
+    OpenNormalSubgroup P ⥤ FiniteGrp := {
     obj := fun H =>
       letI := H.isNormal'
       letI : Finite (P ⧸ H.toSubgroup) := finite_quotient_of_open_subgroup
@@ -335,14 +335,14 @@ def nhds_side_1' [TopologicalSpace G]  [TopologicalGroup G]
     isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)
 
 lemma nhds_side_w_open [TopologicalSpace G]  [TopologicalGroup G]
-    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : IsOpen (nhds_side_w WClopen einW w)
-    :=
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    IsOpen (nhds_side_w WClopen einW w) :=
   (Classical.choose_spec <| Classical.choose_spec <|
     isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).1
 
 lemma nhds_side_1'_open [TopologicalSpace G]  [TopologicalGroup G]
-    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : IsOpen (nhds_side_1' WClopen einW w)
-    :=
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    IsOpen (nhds_side_1' WClopen einW w) :=
   (Classical.choose_spec <| Classical.choose_spec <|
     isOpen_prod_iff.mp (μinvW_open WClopen) w 1 (mem_μinvW einW w)).2.1
 
@@ -376,8 +376,8 @@ lemma nhds_side_1_open [TopologicalSpace G]  [TopologicalGroup G]
     (IsOpen.inv (nhds_side_1'_open WClopen einW w))
 
 lemma One_mem_nhds_side_1 [TopologicalSpace G]  [TopologicalGroup G]
-    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) : 1 ∈ (nhds_side_1 WClopen einW w)
-    := by
+    {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) (w : W) :
+    1 ∈ (nhds_side_1 WClopen einW w) := by
   simp only [nhds_side_1, symm, Set.mem_inter_iff, Set.mem_inv, inv_one, and_self]
   exact (one_mem_nhds_side_1 WClopen einW w)
 
@@ -449,7 +449,7 @@ lemma one_mem
   exact fun w _ => One_mem_nhds_side_1 WClopen einW w
 
 lemma mul_sub
-  [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
     W * (open_symm_subnhds_of_one WClopen einW) ⊆ W := by
   intro a ainmul
   rcases ainmul with ⟨x,xinW,y,yinInter,xmuly⟩
@@ -464,8 +464,8 @@ lemma mul_sub
   simpa only [Set.mem_preimage, xmuly] using this
 
 lemma sub
-  [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
-   (open_symm_subnhds_of_one WClopen einW) ⊆ W := by
+    [T2Space G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
+    (open_symm_subnhds_of_one WClopen einW) ⊆ W := by
   apply Set.Subset.trans _ (mul_sub WClopen einW)
   exact Set.subset_mul_right (open_symm_subnhds_of_one WClopen einW) einW
 
@@ -575,7 +575,7 @@ open Pointwise
 namespace openNormalSubgroup_subnhds
 
 def aux {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsOpen U) (einU : 1 ∈ U) : Set G :=
+    (UOpen : IsOpen U) (einU : 1 ∈ U) : Set G :=
   Classical.choose ((Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
       mem_nhds_iff.mpr (by use U))
 
@@ -587,8 +587,8 @@ lemma aux_spec {G : ProfiniteGrp} {U : Set G}
 
 instance aux_finite {G : ProfiniteGrp} {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) :
-    Finite (G⧸(OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).1)
-    :=
+    Finite (G⧸(OpenSubgroup_subnhds_of_one
+    (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).1) :=
   finite_quotient_of_open_subgroup _
     (OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1).isOpen'
 
@@ -598,7 +598,7 @@ end openNormalSubgroup_subnhds
 open Pointwise
 open openNormalSubgroup_subnhds in
 noncomputable def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G where
+    (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G where
   toSubgroup := Subgroup.normalCore
     (OpenSubgroup_subnhds_of_one (aux_spec UOpen einU).1.2 (aux_spec UOpen einU).1.1)
   isOpen' := by
@@ -610,7 +610,7 @@ noncomputable def openNormalSubgroup_subnhds {G : ProfiniteGrp} {U : Set G}
 
 
 theorem openNormalSubgroup_subnhds_of_one_spec {G : ProfiniteGrp} {U : Set G}
-(UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
+    (UOpen : IsOpen U) (einU : 1 ∈ U) : ((openNormalSubgroup_subnhds UOpen einU) : Set G) ⊆ U := by
   have := (Filter.HasBasis.mem_iff' ((nhds_basis_clopen (1 : G))) U ).mp <|
     mem_nhds_iff.mpr (by use U)
   let ⟨⟨einW,WClopen⟩,WsubU⟩ := Classical.choose_spec this
@@ -651,7 +651,7 @@ noncomputable def continuousMulEquiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) :
   (Continuous.homeoOfEquivCompactToT2 (f := equiv_FiniteGrpLimit P) P.CanonicalMap.continuous_toFun)
   with
   map_mul' := (CanonicalMap P).map_mul'
-}
+  }
 
 end
 

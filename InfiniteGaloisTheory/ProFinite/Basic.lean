@@ -10,6 +10,13 @@ import InfiniteGaloisTheory.ProFinite.Defs
 
 # Basic properties of Profinite Groups
 
+* `ofContinuousMulEquivProfiniteGrp` : If a topological group have a two-side continuous isomorphism
+  to a profinite group then it is profinite too.
+
+* `ofClosedSubgroup` : The closed subgroup of a profinite group is profinite.
+
+* `finiteIndex_of_open_subgroup` : The open subgroup of a profinite group have finite index.
+
 -/
 
 suppress_compilation
@@ -20,8 +27,8 @@ open CategoryTheory Topology
 
 namespace ProfiniteGrp
 
-def ofContinuousMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} {H : Type v} [TopologicalSpace H] [Group H]
-    [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
+def ofContinuousMulEquivProfiniteGrp {G : ProfiniteGrp.{u}} {H : Type v} [TopologicalSpace H]
+    [Group H] [TopologicalGroup H] (e : ContinuousMulEquiv G H) : ProfiniteGrp.{v} :=
   letI : CompactSpace H := Homeomorph.compactSpace e.toHomeomorph
   letI : TotallyDisconnectedSpace G := Profinite.instTotallyDisconnectedSpaceαTopologicalSpaceToTop
   letI : TotallyDisconnectedSpace H := Homeomorph.TotallyDisconnectedSpace e.toHomeomorph
@@ -32,7 +39,7 @@ def ofClosedSubgroup {G : ProfiniteGrp}
   letI : CompactSpace H := ClosedEmbedding.compactSpace (f := H.subtype)
     { induced := rfl
       inj := H.subtype_injective
-      isClosed_range := by simpa }
+      isClosed_range := by simpa only [Subgroup.coeSubtype, Subtype.range_coe_subtype] }
   of H
 
 open scoped Pointwise
@@ -42,7 +49,7 @@ def finite_quotient_of_open_subgroup {G : ProfiniteGrp}
   obtain h := @CompactSpace.isCompact_univ G _ _
   rw [isCompact_iff_finite_subcover] at h
   have : (Set.univ : Set G) ⊆ ⋃ (i : G), i • (H : Set G) :=
-    fun g _ => Set.mem_iUnion_of_mem g ⟨1, ⟨one_mem H, by simp⟩⟩
+    fun g _ => Set.mem_iUnion_of_mem g ⟨1, ⟨one_mem H, by simp only [smul_eq_mul, mul_one]⟩⟩
   specialize h (fun x : G => x • (H : Set G)) (IsOpen.smul hH) this
   obtain ⟨t, ht⟩ := h
   let f : t → (G ⧸ H) := fun ⟨x, _⟩ => QuotientGroup.mk x
@@ -69,7 +76,7 @@ end ProfiniteGrp
 section CompactSubgroup
 
 structure CompactSubgroup (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G]
-    [CompactSpace G] extends Subgroup G where
+ extends Subgroup G where
   to_compact : CompactSpace carrier
 
 namespace CompactSubgroup
@@ -81,7 +88,7 @@ instance : SetLike (CompactSubgroup G) G where
   coe H := H.carrier
   coe_injective' := by
     rintro ⟨⟨⟨⟨⟩⟩⟩⟩ ⟨⟨⟨⟨⟩⟩⟩⟩
-    simp
+    simp only [mk.injEq, Subgroup.mk.injEq, Submonoid.mk.injEq, Subsemigroup.mk.injEq, imp_self]
 
 instance : SubgroupClass (CompactSubgroup G) G where
   mul_mem := mul_mem (S := Subgroup G)
@@ -103,9 +110,11 @@ def toProfiniteGrp (H : CompactSubgroup G) : ProfiniteGrp.{u} := .of H.toSubgrou
 
 def ofClosedSubgroup (H : Subgroup G) (hH : IsClosed (H : Set G)) : CompactSubgroup G := {
   H with to_compact := isCompact_iff_compactSpace.mp (IsClosed.isCompact hH)
-}
+  }
 
 def compactSubgroup_of_closed (H : CompactSubgroup G) : IsClosed (H : Set G) :=
   IsCompact.isClosed (isCompact_iff_compactSpace.mpr H.to_compact)
+
+end CompactSubgroup
 
 end CompactSubgroup
