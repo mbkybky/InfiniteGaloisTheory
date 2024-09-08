@@ -66,7 +66,7 @@ def finite_quotient_of_open_subgroup {G : ProfiniteGrp}
   rw [Eq.symm (QuotientGroup.out_eq' x)]
   exact this
 
-def finiteIndex_of_open_subgroup {G : ProfiniteGrp}
+lemma finiteIndex_of_open_subgroup {G : ProfiniteGrp}
     (H : Subgroup G) (hH : IsOpen (H : Set G)) : H.FiniteIndex :=
   haveI : Finite (G ⧸ H) := finite_quotient_of_open_subgroup H hH
   Subgroup.finiteIndex_of_finite_quotient H
