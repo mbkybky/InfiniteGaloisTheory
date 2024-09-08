@@ -108,8 +108,7 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
     (restrictNormal_commutes σ (fixedField H) ⟨x, hx⟩).trans (h x hx) , _⟩).trans
       AlgEquiv.ext_iff.symm).trans (MonoidHom.mem_ker (restrictNormalHom (fixedField H))).symm
   intro h x hx
-  dsimp
-  have hs : ((restrictNormalHom (fixedField H)) σ) ⟨x, hx⟩ = σ x :=
+  have hs : ((restrictNormalHom (fixedField H)) σ) ⟨x, hx⟩ = σ • x :=
     restrictNormal_commutes σ (fixedField H) ⟨x, hx⟩
   rw [← hs]
   exact Subtype.val_inj.mpr (h ⟨x, hx⟩)
@@ -125,19 +124,18 @@ theorem IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) :
     rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, map_inv, inv_inv, MulAut.smul_def,
       MulAut.conj_apply]
     exact Iff.rfl
-  have h2 : τ ∈ E.fixingSubgroup ↔ ∀ x : E, τ x = x := by exact Iff.rfl
+  have h2 : τ ∈ E.fixingSubgroup ↔ ∀ x : E, τ x = x := Iff.rfl
   have h3 : ∀ x : L, (x ∈ ((IntermediateField.map σ E) : IntermediateField K L) ↔
-    ∃ y : E, x = σ y) := fun x ↦ (by
-    show (∃ (y : L), (y ∈ E) ∧ (σ.toFun y = x)) ↔ (∃ y : E, x = σ y)
-    exact ⟨fun ⟨y, hy, heq⟩ ↦ ⟨⟨y, hy⟩, heq.symm⟩, fun ⟨⟨y, hy⟩, heq⟩ ↦ ⟨y, hy, heq.symm⟩⟩)
+      ∃ y : E, x = σ y) :=
+    fun x ↦ ⟨fun ⟨y, hy, heq⟩ ↦ ⟨⟨y, hy⟩, heq.symm⟩, fun ⟨⟨y, hy⟩, heq⟩ ↦ ⟨y, hy, heq.symm⟩⟩
   rw [h1, h2]
   exact ⟨
     fun h ↦ (fun x ↦ (by
       obtain ⟨y, hy⟩ := (h3 x).mp x.2
-      rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])),
+      rw [hy, show σ⁻¹ (σ y) = y from σ.left_inv y, h y])),
     fun h ↦ (fun x ↦ (by
       have : σ (τ (σ⁻¹ (σ x))) = σ x := h ⟨σ x, (h3 (σ x)).mpr ⟨x, rfl⟩⟩
-      rw [show σ⁻¹ (σ x) = x from by exact σ.left_inv x, EmbeddingLike.apply_eq_iff_eq] at this
+      rw [show σ⁻¹ (σ x) = x from σ.left_inv x, EmbeddingLike.apply_eq_iff_eq] at this
       exact this))⟩
 
 theorem Subgroup.Normal.of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G}
@@ -155,10 +153,9 @@ instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E
     E.fixingSubgroup.Normal := by
   apply Subgroup.Normal.of_conjugate_fixed
   intro σ
-  have : E = ((IntermediateField.map (σ⁻¹ : L ≃ₐ[K] L) E) : IntermediateField K L) := by
-    apply (IntermediateField.normal_iff_forall_map_eq'.mp _ σ⁻¹).symm
-    infer_instance
-  nth_rw 1 [this]; rw [IsGalois.fixingSubgroup_conjugate_of_map E σ⁻¹, inv_inv]
+  have : E = ((IntermediateField.map (σ⁻¹ : L ≃ₐ[K] L) E) : IntermediateField K L) :=
+    (IntermediateField.normal_iff_forall_map_eq'.mp inferInstance σ⁻¹).symm
+  nth_rw 1 [this, IsGalois.fixingSubgroup_conjugate_of_map E σ⁻¹, inv_inv]
 
 def IntermediateField.lift_AlgEquiv (F : IntermediateField K E) :
     ↥F ≃ₐ[K] (IntermediateField.lift F) where

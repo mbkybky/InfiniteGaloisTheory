@@ -54,12 +54,47 @@
 	Galois extension, then $ \gal(L / E) $ is a normal subgroup of $ \gal(L / K) $.
 \end{theorem}
 
+\section{Subgroup}
+
+\begin{theorem}
+	\lean {Subgroup.normal_iInf_normal}
+	\leanok
+	Let $G$ be an group. $H$ a family of normal subgroup $G$ indexed with $\iota$. Then the intersection of all $i \in \iota$ $H i$ is also normal.
+\end{theorem}
+
+\begin{theorem}
+	\lean {Subgroup.normalCore_eq_iInf_conjAct}
+	\leanok
+	Let $G$ be an group. $H$ a subgroup of $G$. Then the largest normal subgroup contained in $H$ is equal to the intersection of all the conjugates of $H$.
+\end{theorem}
+
 \section{Topology}
 
 \begin{lemma}
+	\lean{Homeomorph.TotallyDisconnectedSpace}
+	\leanok
 	Let $ X $ and $ Y $ be topological spaces. Assume that $ X $ is homeomorphic to $ Y $, then $ Y $ is totally disconnected if $ X $ is totally disconnected.
 \end{lemma}
 
+\begin{theorem}
+	\lean {Profinite.Pi.profinite}
+	\leanok
+	The product (arbitrarily many) profinite topological space is also profinite.
+\end{theorem}
+
+\section{TopologicalGroup}
+
+\begin{theorem}
+	\lean {TopologicalGroup.normalCore_isClosed}
+	\leanok
+	Let $G$ be an topological group. $H$ a closed subgroup of $G$. Then the largest normal subgroup contained in $H$ is also closed.
+\end{theorem}
+
+\begin{theorem}
+	\lean {TopologicalGroup.finindex_Closed_isOpen}
+	\leanok
+	Let $G$ be an topological group. $H$ a closed subgroup of $G$ with finite index. Then $H$ is also open.
+\end{theorem}
 
 
 
