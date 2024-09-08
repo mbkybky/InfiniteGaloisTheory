@@ -116,31 +116,43 @@ noncomputable def IsGalois.normal_aut_equiv_quotient [FiniteDimensional K L] [Is
 
 open scoped Pointwise
 
-theorem IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) : E.fixingSubgroup = (MulAut.conj σ⁻¹) • ((IntermediateField.map σ E).fixingSubgroup) := by
+theorem IsGalois.fixingSubgroup_conjugate_of_map (σ : L ≃ₐ[K] L) :
+    E.fixingSubgroup = (MulAut.conj σ⁻¹) • ((IntermediateField.map σ E).fixingSubgroup) := by
   ext τ
-  have h1 : τ ∈ (MulAut.conj σ⁻¹ • (IntermediateField.map σ E).fixingSubgroup : Subgroup (L ≃ₐ[K] L)) ↔ ∀ x : ((IntermediateField.map σ E) : IntermediateField K L), σ (τ (σ⁻¹ x)) = x := by
-    rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, map_inv, inv_inv, MulAut.smul_def, MulAut.conj_apply]; exact Iff.rfl
+  have h1 : τ ∈ (MulAut.conj σ⁻¹ • (IntermediateField.map σ E).fixingSubgroup :
+    Subgroup (L ≃ₐ[K] L)) ↔ ∀ x : ((IntermediateField.map σ E) : IntermediateField K L),
+    σ (τ (σ⁻¹ x)) = x := by
+    rw [Subgroup.mem_pointwise_smul_iff_inv_smul_mem, map_inv, inv_inv, MulAut.smul_def,
+      MulAut.conj_apply]
+    exact Iff.rfl
   have h2 : τ ∈ E.fixingSubgroup ↔ ∀ x : E, τ x = x := by exact Iff.rfl
-  have h3 : ∀ x : L, (x ∈ ((IntermediateField.map σ E) : IntermediateField K L) ↔ ∃ y : E, x = σ y) := fun x ↦ (by
+  have h3 : ∀ x : L, (x ∈ ((IntermediateField.map σ E) : IntermediateField K L) ↔
+    ∃ y : E, x = σ y) := fun x ↦ (by
     show (∃ (y : L), (y ∈ E) ∧ (σ.toFun y = x)) ↔ (∃ y : E, x = σ y)
     exact ⟨fun ⟨y, hy, heq⟩ ↦ ⟨⟨y, hy⟩, heq.symm⟩, fun ⟨⟨y, hy⟩, heq⟩ ↦ ⟨y, hy, heq.symm⟩⟩)
   rw [h1, h2]
   exact ⟨
-    fun h ↦ (fun x ↦ (by obtain ⟨y, hy⟩ := (h3 x).mp x.2; rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])),
+    fun h ↦ (fun x ↦ (by
+      obtain ⟨y, hy⟩ := (h3 x).mp x.2
+      rw [hy, show σ⁻¹ (σ y) = y from by exact σ.left_inv y, h y])),
     fun h ↦ (fun x ↦ (by
       have : σ (τ (σ⁻¹ (σ x))) = σ x := h ⟨σ x, (h3 (σ x)).mpr ⟨x, rfl⟩⟩
       rw [show σ⁻¹ (σ x) = x from by exact σ.left_inv x, EmbeddingLike.apply_eq_iff_eq] at this
       exact this))⟩
 
-theorem Subgroup.Normal.of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G} (h : ∀ g : G, (MulAut.conj g) • H = H) : H.Normal := by
+theorem Subgroup.Normal.of_conjugate_fixed {G : Type*} [Group G] {H : Subgroup G}
+    (h : ∀ g : G, (MulAut.conj g) • H = H) : H.Normal := by
   constructor
   intro n hn g
-  rw [← h g, Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ← map_inv, MulAut.smul_def, MulAut.conj_apply, inv_inv, mul_assoc, mul_assoc, inv_mul_cancel, mul_one, ← mul_assoc, inv_mul_cancel, one_mul]
+  rw [← h g, Subgroup.mem_pointwise_smul_iff_inv_smul_mem, ← map_inv, MulAut.smul_def,
+    MulAut.conj_apply, inv_inv, mul_assoc, mul_assoc, inv_mul_cancel, mul_one,
+    ← mul_assoc, inv_mul_cancel, one_mul]
   exact hn
 
 /-- Let `E` be an intermediateField of a Galois extension `L / K`. If `E / K` is
 Galois extension, then `E.fixingSubgroup` is a normal subgroup of `Gal(L / K)`. -/
-instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E]: E.fixingSubgroup.Normal := by
+instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E] :
+    E.fixingSubgroup.Normal := by
   apply Subgroup.Normal.of_conjugate_fixed
   intro σ
   have : E = ((IntermediateField.map (σ⁻¹ : L ≃ₐ[K] L) E) : IntermediateField K L) := by
@@ -148,9 +160,11 @@ instance IsGalois.fixingSubgroup_normal_of_isGalois [IsGalois K L] [IsGalois K E
     infer_instance
   nth_rw 1 [this]; rw [IsGalois.fixingSubgroup_conjugate_of_map E σ⁻¹, inv_inv]
 
-def IntermediateField.lift_AlgEquiv (F : IntermediateField K E) : ↥F ≃ₐ[K] (IntermediateField.lift F) where
+def IntermediateField.lift_AlgEquiv (F : IntermediateField K E) :
+    ↥F ≃ₐ[K] (IntermediateField.lift F) where
   toFun := fun x => ⟨x.1.1,(mem_lift x.1).mpr x.2⟩
-  invFun := fun x => ⟨⟨x.1, IntermediateField.lift_le F x.2⟩,(mem_lift ⟨x.1, IntermediateField.lift_le F x.2⟩).mp x.2⟩
+  invFun := fun x => ⟨⟨x.1, IntermediateField.lift_le F x.2⟩,
+    (mem_lift ⟨x.1, IntermediateField.lift_le F x.2⟩).mp x.2⟩
   left_inv := congrFun rfl
   right_inv := congrFun rfl
   map_mul' := fun _ _ => rfl
@@ -158,7 +172,7 @@ def IntermediateField.lift_AlgEquiv (F : IntermediateField K E) : ↥F ≃ₐ[K]
   commutes' := fun _ => rfl
 
 lemma FiniteDimensional_of_le {M N : IntermediateField K L} (le : M ≤ N) [FiniteDimensional K N] :
-  FiniteDimensional K M := by
+    FiniteDimensional K M := by
   let i : M →ₐ[K] N := {
     toFun := fun x => ⟨x.1, le x.2⟩
     map_one' := rfl
