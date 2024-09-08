@@ -1,26 +1,32 @@
 \chapter{Profinite Group}
 
 \begin{definition}
+	\label{def-profinite-group}
 	\lean{ProfiniteGrp}
 	\leanok
 	A profinite group is a topological group that is compact and totally disconnected.
 \end{definition}
 
 \begin{lemma}
+	\label{lemma-profinite-of-continuousmulequiv}
 	\lean{ProfiniteGrp.ofContinuousMulEquivProfiniteGrp}
 	\leanok
 	If $G$ is a profinite topological group, $H$ is a topological group that is isomorphic to $G$, then $G$ is profinite.
 \end{lemma}
 
-\begin{lemma}
+\begin{theorem}
+	\label{theorem-profinite-product-profinite}
+	\lean {ProfiniteGrp.Pi.profiniteGrp}
+	\leanok
 	Product of (arbitrarily many) profinite groups is profinite.
-\end{lemma}
+\end{theorem}
 
-\begin{lemma}
+\begin{theorem}
+	\label{theorem-profinite-closed-subgroup-profinite}
 	\lean{ProfiniteGrp.ofClosedSubgroup}
 	\leanok
 	If $G$ is a profinite topological group, then any closed subgroup of $G$ is profinite.
-\end{lemma}
+\end{theorem}
 
 \begin{theorem}
 	If $G$ is a profinite topological group, $H$ is a subgroup of $G$, then the following three statements
@@ -37,10 +43,16 @@
 \end{lemma}
 
 \begin{lemma}
-	Let $ G $ be a profinite group, then any open subgroup of $ G $ must has finite index, thus a subgroup of $ G $ is open if and only if it is closed and has finite index.
+	\label{lemma-profinite-open-subgroup-finite-index}
+	\lean{ProfiniteGrp.finiteIndex_of_open_subgroup}
+	\leanok
+	Let $ G $ be a profinite group, then any open subgroup of $ G $ must has finite index, thus a subgroup of $ G $ is open if and only if it is closed and has finite index (the "if" side doesn't need profinite, see missing lemmas).
 \end{lemma}
 
 \begin{lemma}
+	\label{theorem-profinite-open-normal-subgroup-subset-nhds}
+	\lean {ProfiniteGrp.openNormalSubgroup_subnhds}
+	\leanok
 	Let $ G $ be a profinite group, then every neighborhood of the identity contains an open normal subgroup.
 \end{lemma}
 
@@ -49,6 +61,24 @@
 \end{lemma}
 
 \begin{theorem}
-	%\lean{ProfiniteGrp.instHasLimitCompFiniteGrpFromFiniteGrp}
+	\label{theorem-profinite-limit-finite-group-profinite}
+	\lean{ProfiniteGrp.instHasLimitCompFiniteGrpFromFiniteGrp}
+	\leanok
+	The projective limit of finite groups, with each given the discrete topology is profinite.
+\end{theorem}
+
+\begin{theorem}
+	\label{theorem-profinite-profinite-group-eq-limit-finite-group}
+	\lean{ProfiniteGrp.continuousMulEquiv_LimitQuotientOpenNormalSubgroup}
+	\leanok
+	A profinite group $G$ can be written as a projective limit of finite groups, each given the discrete topology. Moreover , let $\Lambda$ be the set of all open normal subgroup ordered by the inclusion, 
+	$$
+	G = \lim_{H \in \Lambda} G/H 
+	$$
+	with all $G/H$ finite.
+	
+\end{theorem}
+
+\begin{theorem}
 	A topological group is profinite if and only if it is the projective limit of finite groups, each given the discrete topology.
 \end{theorem}

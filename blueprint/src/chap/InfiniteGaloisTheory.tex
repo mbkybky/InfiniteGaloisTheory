@@ -2,65 +2,63 @@
 \label{section-infinite-galois}
 
 \noindent
-The Galois group comes with a canonical topology.
+The Galois group is given Krull topology.
 
-\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMJ}{Lemma 0BMJ}]{stacks-project}
-	\label{lemma-galois-profinite}
-	Let $E/F$ be a Galois extension. Endow $\text{Gal}(E/F)$ with the coarsest
-	topology such that
+
+
+\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BU2}{Lemma 0BU2}]{stacks-project}
+	\label{lemma-infinite-galois-eq-limit}
+	\lean{InfiniteGalois.continuousMulEquivtoLimit}
+	\leanok
+	Let $K/k$ be a Galois extension with Galois group $G$.
+	Let $\Lambda$ be the set of finite Galois subextensions,
+	i.e., $\lambda \in \Lambda$ corresponds to $K/L_\lambda/k$
+	with $L_\lambda/k$ finite Galois with Galois group $G_\lambda$.
+	Define a partial ordering on $\Lambda$ by the rule
+	$\lambda \geq \lambda'$ if and only if
+	$L_\lambda \supset L_{\lambda'}$. Then
+	$G_\lambda$ is an inverse system of finite groups over $\Lambda$,
+	the transition maps are surjective, and
 	$$
-	\text{Gal}(E/F) \times E \longrightarrow E
+	G = \lim_{\lambda \in \Lambda} G_\lambda
 	$$
-	is continuous when $E$ is given the discrete topology. Then
-	\begin{enumerate}
-		\item for any topological space $X$ and map $X \to \text{Aut}(E/F)$
-		such that the action $X \times E \to E$ is continuous the induced map
-		$X \to \text{Gal}(E/F)$ is continuous,
-		\item this topology turns $\text{Gal}(E/F)$ into
-		a profinite topological group.
-	\end{enumerate}
+	thus profinite.
 \end{lemma}
 
-
+\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMJ}{Lemma 0BMJ}]{stacks-project}
+	\label{lemma-infinite-galois-profinite}
+	\lean{InfiniteGalois.ProfiniteGalGrp}
+	\leanok
+	Let $K/k$ be a Galois extension. The Krull topology turns $\text{Gal}(E/F)$ into a profinite topological group.
+\end{lemma}
 
 \begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMK}{Lemma 0BMK}]{stacks-project}
-	\label{lemma-galois-infinite}
+	\label{lemma-infinite-galois-restrict-continuous}
+	\lean{InfiniteGalois.restrictNormalHomContinuous}
+	\leanok
 	Let $L/M/K$ be a tower of fields. Assume both $L/K$ and
 	$M/K$ are Galois. Then there is a canonical surjective continuous
 	homomorphism $c : \text{Gal}(L/K) \to \text{Gal}(M/K)$.
 \end{lemma}
 
-
-
-\noindent
-Here is a more standard way to think about
-the Galois group of an infinite Galois extension.
-
-\begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BU2}{Lemma 0BU2}]{stacks-project}
-	\label{lemma-infinite-galois-limit}
-	Let $L/K$ be a Galois extension with Galois group $G$.
-	Let $\Lambda$ be the set of finite Galois subextensions,
-	i.e., $\lambda \in \Lambda$ corresponds to $L/L_\lambda/K$
-	with $L_\lambda/K$ finite Galois with Galois group $G_\lambda$.
-	Define a partial ordering on $\Lambda$ by the rule
-	$\lambda \geq \lambda'$ if and only if
-	$L_\lambda \supset L_{\lambda'}$. Then
-	\begin{enumerate}
-		\item $\Lambda$ is a directed partially ordered set,
-		\item $L_\lambda$ is a system of $K$-extensions over $\Lambda$
-		and $L = \colim L_\lambda$,
-		\item $G_\lambda$ is an inverse system of finite groups over $\Lambda$,
-		the transition maps are surjective, and
-		$$
-		G = \lim_{\lambda \in \Lambda} G_\lambda
-		$$
-		as a profinite group, and
-		\item each of the projections $G \to G_\lambda$ is continuous and surjective.
-	\end{enumerate}
+\begin{lemma}[the compatibility with open compact topology, todo]\cite[\href{https://stacks.math.columbia.edu/tag/0BMJ}{Lemma 0BMJ}]{stacks-project}
+	\label{lemma-infinite-galois-krull-topology}
+	Let $E/F$ be a Galois extension. The Krull topology is the coarsest
+	topology such that
+	$$
+	\text{Gal}(E/F) \times E \longrightarrow E
+	$$
+	is continuous when $E$ is given the discrete topology. Then
+	for any topological space $X$ and map $X \to \text{Aut}(E/F)$
+	such that the action $X \times E \to E$ is continuous the induced map
+	$X \to \text{Gal}(E/F)$ is continuous.
+	
 \end{lemma}
 
 \begin{theorem}[Fundamental theorem of infinite Galois theory]\cite[\href{https://stacks.math.columbia.edu/tag/0BML}{Theorem 0BML}]{stacks-project}
-	\label{theorem-inifinite-galois-theory}
+	\label{theorem-inifinite-galois-fundamental-theorem}
+	\lean{InfiniteGalois.intermediateFieldEquivClosedSubgroup}
+	\leanok
 	Let $L/K$ be a Galois extension. Let $G = \text{Gal}(L/K)$
 	be the Galois group viewed as a profinite topological group
 	(Lemma \ref{lemma-galois-profinite}). Then we have $K = L^G$ and the map
@@ -76,12 +74,30 @@ the Galois group of an infinite Galois extension.
 	correspond exactly to subextensions $M$ Galois over $K$.
 \end{theorem}
 
+\begin{theorem} \cite[\href{https://stacks.math.columbia.edu/tag/0BML}{Theorem 0BML}]{stacks-project}
+	\label{theorem-inifinite-galois-fundamental-theorem-special-case1}
+	\lean{InfiniteGalois.OpeniffFinite}
+	\leanok
+	Let $L/K$ be a Galois extension. In the bijection given by the Fundamental theorem of infinite Galois theory,
+	the finite subextensions $M$ correspond exactly to the open subgroups $H \subset G$.
+\end{theorem}
+
+\begin{theorem} \cite[\href{https://stacks.math.columbia.edu/tag/0BML}{Theorem 0BML}]{stacks-project}
+	\label{theorem-inifinite-galois-fundamental-theorem-special-case2}
+	\lean{InfiniteGalois.NormaliffGalois}
+	\leanok
+	Let $L/K$ be a Galois extension. In the bijection given by the Fundamental theorem of infinite Galois theory,
+	the normal closed subgroups $H$ of $G$ correspond exactly to subextensions $M$ Galois over $K$.
+\end{theorem}
+
 \begin{lemma}\cite[\href{https://stacks.math.columbia.edu/tag/0BMM}{Lemma 0BMM}]{stacks-project}
 	\label{lemma-ses-infinite-galois}
+	\lean {InfiniteGalois.restrictNormalHomKer}
+	\leanok
 	Let $L/M/K$ be a tower of fields. Assume $L/K$ and $M/K$ are Galois.
 	Then we obtain a short exact sequence
 	$$
 	1 \to \text{Gal}(L/M) \to \text{Gal}(L/K) \to \text{Gal}(M/K) \to 1
 	$$
-	of profinite topological groups.
+	of profinite topological groups.(with a reformulation)
 \end{lemma}

@@ -149,7 +149,7 @@ lemma normalCore_isClosed [TopologicalGroup G] (H : Subgroup G) (h : IsClosed (H
   ext t
   exact Set.mem_smul_set_iff_inv_smul_mem
 
-lemma finindex_Closed_isOpen [TopologicalGroup G] (H : Subgroup G) [Subgroup.FiniteIndex H]
+lemma finindex_Closed_isOpen [TopologicalGroup G] (H : Subgroup G) [H.FiniteIndex]
   (h : IsClosed (H : Set G)) : IsOpen (H : Set G) := by
   apply isClosed_compl_iff.mp
   letI : Finite (G ⧸ H) := Subgroup.finite_quotient_of_finiteIndex H
@@ -168,7 +168,7 @@ lemma finindex_Closed_isOpen [TopologicalGroup G] (H : Subgroup G) [Subgroup.Fin
     simp only [ne_eq, Set.mem_iUnion]
     use ⟨QuotientGroup.mk (s := H) x, this.symm⟩, (Quotient.out' (QuotientGroup.mk (s := H) x))⁻¹ * x
     simp only [SetLike.mem_coe, smul_eq_mul, mul_inv_cancel_left, and_true]
-    apply QuotientGroup.eq.mp <| QuotientGroup.out_eq' (QuotientGroup.mk (s := H) x)
+    exact QuotientGroup.eq.mp <| QuotientGroup.out_eq' (QuotientGroup.mk (s := H) x)
   · rcases h with ⟨S,⟨y,hS⟩,mem⟩
     simp only [← hS, f] at mem
     rcases mem with ⟨h,hh,eq⟩
@@ -176,7 +176,7 @@ lemma finindex_Closed_isOpen [TopologicalGroup G] (H : Subgroup G) [Subgroup.Fin
     by_contra mH
     simp only [← eq, ne_eq, smul_eq_mul] at mH
     absurd y.2.symm
-    rw [←QuotientGroup.out_eq' y.1]
+    rw [← QuotientGroup.out_eq' y.1]
     apply QuotientGroup.eq.mpr
     simp only [inv_one, ne_eq, one_mul, (Subgroup.mul_mem_cancel_right H hh).mp mH]
 
