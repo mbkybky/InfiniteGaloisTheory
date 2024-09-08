@@ -639,16 +639,17 @@ theorem CanonicalMap_injective (P : ProfiniteGrp.{u}) : Function.Injective (Cano
 theorem bijectiveCanonicalMap (P : ProfiniteGrp.{u}) : Function.Bijective (CanonicalMap P) :=
   ⟨CanonicalMap_injective P, CanonicalMap_surjective P⟩
 
-noncomputable def equiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) :
+noncomputable def equiv_LimitQuotientOpenNormalSubgroup (P : ProfiniteGrp.{u}) :
     P ≃ (ofFiniteGrpLimit (QuotientOpenNormalSubgroup P)) where
   toFun := (CanonicalMap P)
   invFun := Function.surjInv (CanonicalMap_surjective P)
   left_inv := Function.leftInverse_surjInv <| bijectiveCanonicalMap P
   right_inv := Function.rightInverse_surjInv <| CanonicalMap_surjective P
 
-noncomputable def continuousMulEquiv_FiniteGrpLimit (P : ProfiniteGrp.{u}) :
+noncomputable def continuousMulEquiv_LimitQuotientOpenNormalSubgroup (P : ProfiniteGrp.{u}) :
     ContinuousMulEquiv P (ofFiniteGrpLimit (QuotientOpenNormalSubgroup P)) := {
-  (Continuous.homeoOfEquivCompactToT2 (f := equiv_FiniteGrpLimit P) P.CanonicalMap.continuous_toFun)
+  (Continuous.homeoOfEquivCompactToT2
+    (f := equiv_LimitQuotientOpenNormalSubgroup P) P.CanonicalMap.continuous_toFun)
   with
   map_mul' := (CanonicalMap P).map_mul'
   }

@@ -9,6 +9,23 @@ import InfiniteGaloisTheory.MissingLemmas.Subgroup
 
 universe u v
 
+section topology
+
+namespace Homeomorph
+
+protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A]
+  {B : Type v} [TopologicalSpace B] (e : Homeomorph A B) [tdc : TotallyDisconnectedSpace A] :
+  TotallyDisconnectedSpace B :=
+  (totallyDisconnectedSpace_iff B).mpr
+    ((Homeomorph.range_coe e) ▸
+      ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e)).mpr tdc))
+
+end Homeomorph
+
+def Pi.profinite {α : Type u} (β : α → Profinite) : Profinite := .of (Π (a : α), β a)
+
+end topology
+
 section
 
 variable (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G] (H : Type v) [Group H] [TopologicalSpace H] [TopologicalGroup H]
@@ -166,16 +183,3 @@ lemma finindex_Closed_isOpen [TopologicalGroup G] (H : Subgroup G) [Subgroup.Fin
 end TopologicalGroup
 
 end
-
-namespace Homeomorph
-
-protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A]
-  {B : Type v} [TopologicalSpace B] (e : Homeomorph A B) [tdc : TotallyDisconnectedSpace A] :
-  TotallyDisconnectedSpace B :=
-  (totallyDisconnectedSpace_iff B).mpr
-    ((Homeomorph.range_coe e) ▸
-      ((Embedding.isTotallyDisconnected_range (Homeomorph.embedding e)).mpr tdc))
-
-end Homeomorph
-
-def Pi.profinite {α : Type u} (β : α → Profinite) : Profinite := .of (Π (a : α), β a)
