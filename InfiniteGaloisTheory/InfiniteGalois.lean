@@ -297,6 +297,27 @@ theorem OpeniffFinite (L : IntermediateField k K) [IsGalois k K] :
   · simp only [intermediateFieldEquivClosedSubgroup, Equiv.toFun_as_coe, Equiv.coe_fn_mk]
     apply IntermediateField.fixingSubgroup_isOpen
 
+lemma restrictNormalHomKer (L : IntermediateField k K) [IsGalois k K] [IsGalois k L]:
+    (intermediateFieldEquivClosedSubgroup.toFun L).1 = (AlgEquiv.restrictNormalHom L).ker := by
+  ext σ
+  show σ ∈ L.fixingSubgroup ↔ (AlgEquiv.restrictNormalHom L) σ = 1
+  have iff1 : σ ∈ fixingSubgroup (K ≃ₐ[k] K) (L : Set K) ↔ ∀ y ∈ (L : Set K), σ • y = y := by
+    apply mem_fixingSubgroup_iff
+  apply Iff.trans iff1
+  simp only [SetLike.mem_coe, AlgEquiv.smul_def]
+  show (∀ y ∈ L, σ y = y) ↔ (σ.restrictNormal L) = 1
+  constructor
+  all_goals intro hyp
+  · ext x
+    simp only [AlgEquiv.one_apply, SetLike.coe_eq_coe]
+    apply Subtype.val_injective
+    rw [←hyp x.1 x.2]
+    exact AlgEquiv.restrictNormal_commutes σ L x
+  · intro y hy
+    have : σ y = σ.restrictNormal L ⟨y,hy⟩ :=
+      (AlgEquiv.restrictNormal_commutes σ L ⟨y,hy⟩).symm
+    rw [this,hyp, AlgEquiv.one_apply]
+
 theorem NormaliffGalois (L : IntermediateField k K) [IsGalois k K] :
     Subgroup.Normal (intermediateFieldEquivClosedSubgroup.toFun L).1 ↔
     IsGalois k L := by
@@ -364,27 +385,7 @@ theorem NormaliffGalois (L : IntermediateField k K) [IsGalois k K] :
     rw [this] at n
     letI : Algebra.IsSeparable k L := Algebra.isSeparable_tower_bot_of_isSeparable k L K
     apply IsGalois.mk
-  · have : (intermediateFieldEquivClosedSubgroup.toFun L).1 =
-      (AlgEquiv.restrictNormalHom L).ker := by
-      ext σ
-      show σ ∈ L.fixingSubgroup ↔ (AlgEquiv.restrictNormalHom L) σ = 1
-      have iff1 : σ ∈ fixingSubgroup (K ≃ₐ[k] K) (L : Set K) ↔ ∀ y ∈ (L : Set K), σ • y = y := by
-        apply mem_fixingSubgroup_iff
-      apply Iff.trans iff1
-      simp only [SetLike.mem_coe, AlgEquiv.smul_def]
-      show (∀ y ∈ L, σ y = y) ↔ (σ.restrictNormal L) = 1
-      constructor
-      all_goals intro hyp
-      · ext x
-        simp only [AlgEquiv.one_apply, SetLike.coe_eq_coe]
-        apply Subtype.val_injective
-        rw [←hyp x.1 x.2]
-        exact AlgEquiv.restrictNormal_commutes σ L x
-      · intro y hy
-        have : σ y = σ.restrictNormal L ⟨y,hy⟩ :=
-          (AlgEquiv.restrictNormal_commutes σ L ⟨y,hy⟩).symm
-        rw [this,hyp, AlgEquiv.one_apply]
-    rw [this]
+  · rw [restrictNormalHomKer L]
     exact MonoidHom.normal_ker (AlgEquiv.restrictNormalHom L)
 
 end InfiniteGalois
