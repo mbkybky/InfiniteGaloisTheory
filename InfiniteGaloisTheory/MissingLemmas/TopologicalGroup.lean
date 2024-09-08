@@ -22,7 +22,11 @@ protected lemma TotallyDisconnectedSpace {A : Type u} [TopologicalSpace A]
 
 end Homeomorph
 
+namespace Profinite
+
 def Pi.profinite {α : Type u} (β : α → Profinite) : Profinite := .of (Π (a : α), β a)
+
+end Profinite
 
 end topology
 

@@ -95,7 +95,7 @@ def ofProfinite (G : Profinite) [Group G] [TopologicalGroup G] : ProfiniteGrp wh
   isTopologicalGroup := inferInstanceAs $ TopologicalGroup G
 
 def Pi.profiniteGrp {α : Type u} (β : α → ProfiniteGrp) : ProfiniteGrp :=
-  let pitype := Pi.profinite fun (a : α) => (β a).toProfinite
+  let pitype := Profinite.Pi.profinite fun (a : α) => (β a).toProfinite
   letI (a : α): Group (β a).toProfinite := (β a).isGroup
   letI : Group pitype := Pi.group
   letI : TopologicalGroup pitype := Pi.topologicalGroup
