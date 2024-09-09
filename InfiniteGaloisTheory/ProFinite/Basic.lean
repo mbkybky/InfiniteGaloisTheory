@@ -10,12 +10,12 @@ import InfiniteGaloisTheory.ProFinite.Defs
 
 # Basic properties of Profinite Groups
 
-* `ofContinuousMulEquivProfiniteGrp` : If a topological group have a two-side continuous isomorphism
-  to a profinite group then it is profinite too.
+* `ofContinuousMulEquivProfiniteGrp` : If a topological group have a two-sided continuous
+  isomorphism to a profinite group then it is profinite as well.
 
 * `ofClosedSubgroup` : The closed subgroup of a profinite group is profinite.
 
-* `finiteIndex_of_open_subgroup` : The open subgroup of a profinite group have finite index.
+* `finiteIndex_of_open_subgroup` : An open subgroup of a profinite group has finite index.
 
 -/
 

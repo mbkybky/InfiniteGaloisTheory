@@ -22,19 +22,25 @@ import InfiniteGaloisTheory.MissingLemmas.Subgroup
 
 In a profinite group `P` :
 
-* `QuotientOpenNormalSubgroup` : The functor mapping open normal subgroup of `P` to
-  the quotient group of it (finite by previous lemmas).
+* `QuotientOpenNormalSubgroup` : The functor that maps open normal subgroup of `P` to
+  the quotient group of it (which is finite, as shown by previous lemmas).
 
 * `CanonicalMap` : The continuous homomorphism from `P` to the limit of the quotient group of
   open normal subgroup ordered by inclusion of the open normal subgroup.
 
-* `CanonicalMap_surjective` : The CanonicalMap is surjective,
-  by proving the range of it is dense and closed.
+* `CanonicalMap_surjective` : The CanonicalMap is surjective, proven by demonstrating that
+  its range is dense and closed.
 
 * `openNormalSubgroup_subnhd` : For any open neighborhood of `1` there is an open normal subgroup
-  contained in it.
+  contained within it.
 
-* `CanonicalMap_injective` : The CanonicalMap is injective.
+* `CanonicalMap_injective` : The CanonicalMap is injective. This is proven by showing that
+  for any element not equal to one, the image of it on the coordinate of the open normal subgroup
+  that doesn't contain it is not equal to 1, thus not in the kernel.
+
+* `continuousMulEquiv_LimitQuotientOpenNormalSubgroup` : The canonical map can serve as a
+  continuousMulEquiv, with the continuity of other side given by
+  `Continuous.homeoOfEquivCompactToT2`.
 
 -/
 

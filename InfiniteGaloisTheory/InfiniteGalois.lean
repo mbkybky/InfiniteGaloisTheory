@@ -10,10 +10,10 @@ import InfiniteGaloisTheory.Basic
 
 # The Fundamental Theorem of Infinite Galois Theory
 
-In this file, we proved the fundamental theorem of infinite galois theory and the special case for
-open subgroups and normal subgroups. We first verify that `IntermediateField.fixingSubgroup` and
-`IntermediateField.fixedField` are inverse to each other between `IntermediateField` and
-closed subgroup of the galois group.
+In this file, we proved the fundamental theorem of infinite Galois theory and the special case for
+open subgroups and normal subgroups. We first verify that IntermediateField.fixingSubgroup and
+IntermediateField.fixedField are inverses of each other between IntermediateFields and
+closed subgroups of the Galois group.
 
 # Main definitions and results
 
@@ -28,22 +28,21 @@ In `K/k`, for any intermediate field `L` :
 For any subgroup of `Gal(K/k)` `H` :
 
 * `restrict_fixing_field` : For a Galois intermediate field `M`, the fixed field of the image of `H`
-  restrict to `M` is equal to the fixed field of `H` intersecting `M`.
-
+  restricted to `M` is equal to the fixed field of `H` intersected with `M`.
 * `fixingSubgroup_fixedField` : If `H` is closed, the fixing subgroup of the fixed field of `H`
   is equal to `H` itself.
 
 The fundamental theorem of infinite galois theory :
 
-* `intermediateFieldEquivClosedSubgroup` : The order equivalent given by mapping any
+* `intermediateFieldEquivClosedSubgroup` : The order equivalence is given by mapping any
   intermediate field `L` to the fixing subgroup of `L`, with its inverse mapping any
-  closed subgroup of `Gal(K/k)` `H` to the fixed field of `H`. The composition is identity
-  is given by above, and the compatibility with order follows easily.
+  closed subgroup of `Gal(K/k)` `H` to the fixed field of `H`. The composition is equal to
+  the identity as described in the lemmas above, and compatibility with the order follows easily.
 
 Special cases :
 
 * `OpeniffFinite` : The fixing subgroup of an intermediate field `L` is open iff
-  `L` is finite dimensional.
+  `L` is finite-dimensional.
 
 * `NormaliffGalois` : The fixing subgroup of an intermediate field `L` is normal iff
   `L` is Galois.
