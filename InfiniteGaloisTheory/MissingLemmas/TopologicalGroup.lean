@@ -34,7 +34,7 @@ section
 
 variable (G : Type u) [Group G] [TopologicalSpace G] [TopologicalGroup G] (H : Type v) [Group H] [TopologicalSpace H] [TopologicalGroup H]
 
-structure ContinuousMulEquiv extends MulEquiv G H , Homeomorph G H
+class ContinuousMulEquiv extends MulEquiv G H , Homeomorph G H
 
 namespace ContinuousMulEquiv
 
