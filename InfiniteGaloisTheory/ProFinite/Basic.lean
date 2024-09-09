@@ -99,7 +99,7 @@ instance (H : CompactSubgroup G) : CompactSpace H := H.to_compact
 
 instance (H : CompactSubgroup G) : CompactSpace H.toSubgroup := H.to_compact
 
-instance (H : CompactSubgroup G) : Subgroup G := H.toSubgroup
+--instance (H : CompactSubgroup G) : Subgroup G := H.toSubgroup
 
 instance (H : CompactSubgroup G) : Group H := inferInstance
 
