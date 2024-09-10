@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan
+Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Yi Song, Xuchun Li
 -/
 import Mathlib.Topology.Category.Profinite.Basic
 import Mathlib.Topology.Algebra.OpenSubgroup
