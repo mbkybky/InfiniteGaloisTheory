@@ -123,9 +123,7 @@ def ofFiniteGrpLimitCone : Limits.Cone (F ⋙ forget₂ FiniteGrp ProfiniteGrp) 
       map_one' := rfl
       map_mul' := fun x y => rfl
       continuous_toFun := by
-        have triv : Continuous fun x : ((Functor.const J).obj (ofFiniteGrpLimit F)).obj j => x.1 :=
-          continuous_iff_le_induced.mpr fun U a => a
-        exact (continuous_apply j).comp triv
+        exact (continuous_apply j).comp (continuous_iff_le_induced.mpr fun U a => a)
     }
     naturality := by
       intro i j f
@@ -167,13 +165,8 @@ def ofFiniteGrpLimitConeIsLimit : Limits.IsLimit (ofFiniteGrpLimitCone F) where
         OneHom.toFun_eq_coe, OneHom.coe_mk, id_eq, Functor.const_obj_map, Functor.comp_map,
         MonoidHom.toOneHom_coe, MonoidHom.coe_mk, eq_mpr_eq_cast, cast_eq, map_mul]
       rfl
-    continuous_toFun := by
-      dsimp
-      apply continuous_induced_rng.mpr
-      show  Continuous (fun pt => (fun j => (cone.π.app j) pt))
-      apply continuous_pi
-      intro j
-      exact (cone.π.1 j).continuous_toFun
+    continuous_toFun :=  continuous_induced_rng.mpr
+      (continuous_pi (fun j => (cone.π.1 j).continuous_toFun))
   }
   fac cone j := by
     ext pt
@@ -213,7 +206,7 @@ noncomputable def OpenNormalSubgroupSubnhdsOfOne' {G : Type*} [Group G] [Topolog
   have h := Classical.choose_spec ((Filter.HasBasis.mem_iff'
     ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U))
   let H := OpenSubgroupSubnhdsOfOne h.1.2 h.1.1
-  letI : Subgroup.FiniteIndex H := finiteIndex_of_open_subgroup' H.2
+  letI : Subgroup.FiniteIndex H.1 := Subgroup.finiteIndex_of_finite_quotient H.1
   { toSubgroup := Subgroup.normalCore H
     isOpen' := TopologicalGroup.finindex_closedSubgroup_isOpen _ <|
       TopologicalGroup.normalCore_isClosed H.1 <| OpenSubgroup.isClosed H }
@@ -244,10 +237,7 @@ section
   a `FiniteGrp` -/
 def QuotientOpenNormalSubgroup (P : ProfiniteGrp) :
     OpenNormalSubgroup P ⥤ FiniteGrp := {
-    obj := fun H =>
-      letI := H.isNormal'
-      letI : Finite (P ⧸ H.toSubgroup) := finite_quotient_of_open_subgroup H.1.2
-      FiniteGrp.of (P ⧸ H.toSubgroup)
+    obj := fun H => FiniteGrp.of (P ⧸ H.toSubgroup)
     map := fun {H K} fHK => QuotientGroup.map H.toSubgroup K.toSubgroup (.id _) <|
         Subgroup.comap_id (N := P) K ▸ leOfHom fHK
     map_id := fun H => by
@@ -270,8 +260,7 @@ def CanonicalQuotientMap (P : ProfiniteGrp.{u}) : P ⟶
   map_one' := Subtype.val_inj.mp (by ext H; rfl)
   map_mul' := fun x y => Subtype.val_inj.mp (by ext H; rfl)
   continuous_toFun := by
-    apply continuous_induced_rng.mpr
-    apply continuous_pi
+    apply continuous_induced_rng.mpr (continuous_pi _)
     intro H
     dsimp
     apply Continuous.mk
@@ -291,33 +280,25 @@ def CanonicalQuotientMap (P : ProfiniteGrp.{u}) : P ⟶
 theorem canonicalQuotientMap_dense (P : ProfiniteGrp.{u}) : Dense <|
      Set.range (CanonicalQuotientMap P) :=
   dense_iff_inter_open.mpr
-    fun U hUO hUNonempty => (by
-      rcases hUNonempty with ⟨uDefault, uDefaultSpec⟩
-      rcases hUO with ⟨s, hsO, hsv⟩
+    fun U ⟨s, hsO, hsv⟩ ⟨⟨spc, hspc⟩, uDefaultSpec⟩ => (by
       let uMemPiOpen := isOpen_pi_iff.mp hsO
       simp_rw [← hsv] at uDefaultSpec
       rw [Set.mem_preimage] at uDefaultSpec
       specialize uMemPiOpen _ uDefaultSpec
       rcases uMemPiOpen with ⟨J, fJ, h_ok_and_in_s⟩
-      let subg: J → Subgroup P := fun j => j.1.1.1
-      haveI subgNormal: ∀ j : J, (subg j).Normal := fun j => j.1.isNormal'
-      let M := iInf subg
-      haveI hM : M.Normal := Subgroup.normal_iInf_normal subgNormal
+      let M := iInf (fun (j : J) => j.1.1.1)
+      haveI hM : M.Normal := Subgroup.normal_iInf_normal fun j => j.1.isNormal'
       haveI hMOpen : IsOpen (M : Set P) := by
         rw [Subgroup.coe_iInf]
         exact isOpen_iInter_of_finite fun i => i.1.1.isOpen'
-      let m : OpenNormalSubgroup P := {
-        M with
-        isOpen' := hMOpen
-      }
-      rcases uDefault with ⟨spc, hspc⟩
+      let m : OpenNormalSubgroup P := { M with isOpen' := hMOpen }
       rcases QuotientGroup.mk'_surjective M (spc m) with ⟨origin, horigin⟩
       use (CanonicalQuotientMap P).toFun origin
       constructor
       · rw [←hsv]
         apply h_ok_and_in_s.2
         exact fun a a_in_J => by
-          let M_to_Na : m ⟶ a := (iInf_le subg ⟨a, a_in_J⟩).hom
+          let M_to_Na : m ⟶ a := (iInf_le (fun (j : J) => j.1.1.1) ⟨a, a_in_J⟩).hom
           rw [← (P.CanonicalQuotientMap.toFun origin).property M_to_Na]
           show (P.QuotientOpenNormalSubgroup.map M_to_Na) (QuotientGroup.mk' M origin) ∈ _
           rw [horigin, hspc M_to_Na]
@@ -330,9 +311,8 @@ theorem canonicalQuotientMap_surjective (P : ProfiniteGrp.{u}) :
   have : IsClosedMap P.CanonicalQuotientMap := P.CanonicalQuotientMap.continuous_toFun.isClosedMap
   haveI compact_s: IsCompact (Set.univ : Set P) := CompactSpace.isCompact_univ
   have : IsClosed (P.CanonicalQuotientMap '' Set.univ) := this _ <| IsCompact.isClosed compact_s
-  have dense_map := Dense.closure_eq <| canonicalQuotientMap_dense P
   apply closure_eq_iff_isClosed.mpr at this
-  rw [Set.image_univ, dense_map] at this
+  rw [Set.image_univ, Dense.closure_eq <| canonicalQuotientMap_dense P] at this
   exact Set.range_iff_surjective.mp (id this.symm)
 
 theorem canonicalQuotientMap_injective (P : ProfiniteGrp.{u}) :
@@ -341,8 +321,7 @@ theorem canonicalQuotientMap_injective (P : ProfiniteGrp.{u}) :
   rw [← MonoidHom.ker_eq_bot_iff, Subgroup.eq_bot_iff_forall]
   intro x h
   by_contra xne1
-  have : (1 : P) ∈ ({x}ᶜ : Set P) :=
-    Set.mem_compl_singleton_iff.mpr fun a => xne1 (id (Eq.symm a))
+  have : (1 : P) ∈ ({x}ᶜ : Set P) := Set.mem_compl_singleton_iff.mpr fun a => xne1 (id (Eq.symm a))
   let H := OpenNormalSubgroupSubnhdsOfOne (isOpen_compl_singleton) this
   have xninH : x ∉ H := fun a =>
     (openNormalSubgroupSubnhdsOfOne_spec (isOpen_compl_singleton) this) a rfl

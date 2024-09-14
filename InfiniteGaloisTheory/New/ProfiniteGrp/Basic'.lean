@@ -41,43 +41,4 @@ def ofClosedSubgroup {G : ProfiniteGrp}
   letI : CompactSpace H := isCompact_iff_compactSpace.mp (IsClosed.isCompact hH)
   of H
 
-open scoped Pointwise
-
-lemma finite_quotient_of_open_subgroup' {G : Type*} [Group G] [TopologicalSpace G]
-    [TopologicalGroup G] [CompactSpace G] [TotallyDisconnectedSpace G]
-    {H : Subgroup G} (hH : IsOpen (H : Set G)) : Finite (G ⧸ H) := by
-  obtain h := @CompactSpace.isCompact_univ G _ _
-  rw [isCompact_iff_finite_subcover] at h
-  have : (Set.univ : Set G) ⊆ ⋃ (i : G), i • (H : Set G) :=
-    fun g _ => Set.mem_iUnion_of_mem g ⟨1, ⟨one_mem H, by simp only [smul_eq_mul, mul_one]⟩⟩
-  specialize h (fun x : G => x • (H : Set G)) (IsOpen.smul hH) this
-  obtain ⟨t, ht⟩ := h
-  let f : t → (G ⧸ H) := fun ⟨x, _⟩ => QuotientGroup.mk x
-  apply Finite.of_surjective f
-  intro x
-  have : x.out' ∈ ⋃ i ∈ t, i • (H : Set G) := ht trivial
-  simp only [Set.mem_iUnion] at this
-  choose i hi hii using this
-  use ⟨i, hi⟩
-  rw [mem_leftCoset_iff] at hii
-  have : i⁻¹ * Quotient.out' x ∈ H := hii
-  rw [← @QuotientGroup.eq _ _ H i x.out'] at this
-  show Quotient.mk'' i = x
-  rw [Eq.symm (QuotientGroup.out_eq' x)]
-  exact this
-
-lemma finite_quotient_of_open_subgroup {G : ProfiniteGrp}
-    {H : Subgroup G} (hH : IsOpen (H : Set G)) : Finite (G ⧸ H) :=
-  finite_quotient_of_open_subgroup' hH
-
-lemma finiteIndex_of_open_subgroup' {G : Type*} [Group G] [TopologicalSpace G]
-    [TopologicalGroup G] [CompactSpace G] [TotallyDisconnectedSpace G]
-    {H : Subgroup G} (hH : IsOpen (H : Set G)) : H.FiniteIndex :=
-  haveI : Finite (G ⧸ H) := finite_quotient_of_open_subgroup' hH
-  Subgroup.finiteIndex_of_finite_quotient H
-
-lemma finiteIndex_of_open_subgroup {G : ProfiniteGrp}
-    {H : Subgroup G} (hH : IsOpen (H : Set G)) : H.FiniteIndex :=
-  finiteIndex_of_open_subgroup' hH
-
 end ProfiniteGrp
