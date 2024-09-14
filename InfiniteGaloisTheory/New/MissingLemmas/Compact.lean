@@ -203,23 +203,19 @@ open scoped Pointwise
 
 open TopologicalGroup
 
-private lemma iUnion_pow {G : Type*} [Group G] {V : Set G} (h : 1 ∈ V) :
-    {x : G | ∃ n : ℕ, x ∈ V ^ n} = ⋃ n ≥ 1 , V ^ n := by
+private lemma iUnion_pow {G : Type*} [Group G] {V : Set G} (einV : 1 ∈ V) :
+    {x : G | ∃ n : ℕ, x ∈ V ^ n} = ⋃ n , V ^ (n + 1) := by
   ext x
   rw [Set.mem_setOf_eq, Set.mem_iUnion]
   constructor
-  · rintro ⟨n,xin⟩
-    cases' n with p
-    · rw [pow_zero, Set.mem_one] at xin
-      use 1
-      simp_rw [ge_iff_le, le_refl, pow_one, Set.iUnion_true, xin]
-      exact h
-    · use (p + 1)
-      simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true, xin]
-  · intro h
-    simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at h
-    rcases h with ⟨n,_,xin⟩
-    use n
+  all_goals rintro ⟨n,hn⟩
+  · by_cases h : n = 0
+    · use 0
+      simp only [h, pow_zero, Set.mem_one] at hn
+      simpa only [zero_add, pow_one, hn] using einV
+    · use n - 1
+      rwa [Nat.sub_add_cancel <| Nat.one_le_iff_ne_zero.mpr h]
+  · use n + 1
 
 namespace TopologicalGroup
 
@@ -235,67 +231,38 @@ def OpenSubgroupSubnhdsOfOne {G : Type*} [Group G] [TopologicalSpace G]  [Topolo
     rw [pow_add]
     exact Set.mul_mem_mul hna hnb
   one_mem':= by
-    simp only [Set.mem_setOf_eq]
     use 1
-    rw [pow_one]
-    exact openSymmSubnhdsOfOne.one_mem WClopen einW
+    simp only [pow_one, openSymmSubnhdsOfOne.one_mem WClopen einW]
   inv_mem':= by
     simp only [Set.mem_setOf_eq, forall_exists_index] at *
-    intro x m hm
-    use m
     have : ∀ n : ℕ, ∀ x ∈ (openSymmSubnhdsOfOne WClopen einW) ^ n,
       x⁻¹ ∈ (openSymmSubnhdsOfOne WClopen einW) ^ n := by
-      intro n
-      induction' n with k hk
-      · rw [pow_zero]
-        intro x hx
-        rw [hx]
-        exact Set.mem_one.mpr inv_one
-      · intro x hx
-        rw [add_comm]
-        rw [pow_add, pow_one] at *
-        rcases hx with ⟨a, ha, b, hb, hyp⟩
-        dsimp at hyp
-        rw [← hyp, DivisionMonoid.mul_inv_rev a b]
-        apply Set.mul_mem_mul _ (hk a ha)
-        rw [openSymmSubnhdsOfOne.symm WClopen einW]
-        exact Set.inv_mem_inv.mpr hb
-    exact this m x hm
+      intro n x hx
+      rw [TopologicalGroup.openSymmSubnhdsOfOne.symm]
+      simp only [inv_pow, Set.mem_inv, inv_inv]
+      exact hx
+    exact fun x m hm => ⟨m, this m x hm⟩
   isOpen' := by
     set V := (openSymmSubnhdsOfOne WClopen einW)
-    let VOpen := openSymmSubnhdsOfOne.isopen WClopen einW
-    let einV := openSymmSubnhdsOfOne.one_mem WClopen einW
-    show IsOpen {x : G | ∃ n : ℕ, x ∈ V ^ n}
-    rw [iUnion_pow einV]
+    simp only [iUnion_pow (openSymmSubnhdsOfOne.one_mem WClopen einW)]
     apply isOpen_iUnion
     intro n
-    induction' n with n ih
-    · simp_rw [ge_iff_le, nonpos_iff_eq_zero, one_ne_zero, pow_zero,
-        Set.iUnion_of_empty, isOpen_empty]
-    · cases' n
-      · simp_rw [zero_add, ge_iff_le, le_refl, pow_one, Set.iUnion_true, VOpen]
-      · simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, Set.iUnion_true] at ih ⊢
-        rw [pow_succ]
-        exact IsOpen.mul_left VOpen
+    rw [pow_succ]
+    exact IsOpen.mul_left (openSymmSubnhdsOfOne.isopen WClopen einW)
 
 theorem openSubgroupSubnhdsOfOne_spec {G : Type*} [Group G] [TopologicalSpace G]
     [TopologicalGroup G] [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
     ((OpenSubgroupSubnhdsOfOne WClopen einW) : Set G) ⊆ W := by
   let V := (openSymmSubnhdsOfOne WClopen einW)
-  let einV := openSymmSubnhdsOfOne.one_mem WClopen einW
-  let mulVsubW := openSymmSubnhdsOfOne.mul_sub WClopen einW
   show {x : G | ∃ n : ℕ, x ∈ V ^ n} ⊆ W
-  simp_rw [iUnion_pow einV, Set.iUnion_subset_iff]
+  simp_rw [iUnion_pow (openSymmSubnhdsOfOne.one_mem WClopen einW), Set.iUnion_subset_iff]
   intro n nge
-  have mulVpow: W * V ^ n ⊆ W := by
+  have mulVpow: W * V ^ (n + 1) ⊆ W := by
     induction' n with n ih
-    · contradiction
-    · cases' n with n
-      · rw [zero_add, pow_one]
-        exact mulVsubW
-      · simp_rw [ge_iff_le, le_add_iff_nonneg_left, zero_le, true_implies] at ih
-        rw [pow_succ, ← mul_assoc]
-        exact le_trans (Set.mul_subset_mul_right ih) mulVsubW
+    · simp only [zero_add, pow_one]
+      exact openSymmSubnhdsOfOne.mul_sub WClopen einW
+    · rw [pow_succ, ← mul_assoc]
+      exact le_trans (Set.mul_subset_mul_right ih) <| openSymmSubnhdsOfOne.mul_sub WClopen einW
   apply le_trans _ mulVpow
   intro x xin
   rw [Set.mem_mul]
