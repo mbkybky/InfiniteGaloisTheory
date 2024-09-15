@@ -219,20 +219,17 @@ lemma fixingSubgroup_fixedField (H : ClosedSubgroup (K ≃ₐ[k] K)) [IsGalois k
     apply (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr
     intro y hy
     simp only [AlgEquiv.smul_def, AlgEquiv.mul_apply]
-    have : h y = σ y := by
-      have : ((AlgEquiv.restrictNormalHom L') h ⟨y,hy⟩).1 =
-        ((AlgEquiv.restrictNormalHom L') σ ⟨y,hy⟩).1 := by rw [sub]
-      rw [←restrict_eq h y L' hy, ←restrict_eq σ y L' hy] at this
-      exact this
+    have : ((AlgEquiv.restrictNormalHom L') h ⟨y,hy⟩).1 =
+      ((AlgEquiv.restrictNormalHom L') σ ⟨y,hy⟩).1 := by rw [sub]
+    rw [←restrict_eq h y L' hy, ←restrict_eq σ y L' hy] at this
     rw [this]
     have : σ⁻¹ (σ y) = (σ⁻¹ * σ) y := rfl
     simp only [this, inv_mul_cancel, AlgEquiv.one_apply]
   absurd compl
   apply Set.not_subset.mpr
   use h
-  simp only [this, Set.mem_compl_iff, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
-    Subgroup.mem_toSubmonoid, not_not, true_and]
-  exact hh
+  simpa only [this, Set.mem_compl_iff, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+    Subgroup.mem_toSubmonoid, not_not, true_and] using hh
 
 /-- The Galois correspondence from intermediate fields to ClosedSubgroup. -/
 def intermediateFieldEquivClosedSubgroup [IsGalois k K] :
@@ -304,10 +301,9 @@ theorem NormaliffGalois (L : IntermediateField k K) [IsGalois k K] :
     IsGalois k L := by
   constructor
   all_goals intro h
-  · let f : L → IntermediateField k K :=
-      fun x => IntermediateField.lift <| IntermediateField.fixedField <| Subgroup.map
-        (AlgEquiv.restrictNormalHom (FiniteGaloisIntermediateField.adjoin k {x.1}))
-        L.fixingSubgroup
+  · let f : L → IntermediateField k K := fun x => IntermediateField.lift <|
+      IntermediateField.fixedField <| Subgroup.map (AlgEquiv.restrictNormalHom
+      (FiniteGaloisIntermediateField.adjoin k {x.1})) L.fixingSubgroup
     have h' (x : K) : (Subgroup.map (AlgEquiv.restrictNormalHom
       (FiniteGaloisIntermediateField.adjoin k {x})) L.fixingSubgroup).Normal := by
       set f := AlgEquiv.restrictNormalHom (F := k) (K₁ := K)

@@ -104,11 +104,10 @@ theorem normalClosure_le_iff_of_normal {k K : Type*} [Field k] [Field K]
   [Algebra k K] {L₁ L₂ : IntermediateField k K} [Normal k L₂] [Normal k K] :
     normalClosure k L₁ K ≤ L₂ ↔ L₁ ≤ L₂ := by
   constructor
-  · intro h
-    rw [normalClosure_le_iff] at h
+  all_goals intro h
+  · rw [normalClosure_le_iff] at h
     simpa only [fieldRange_val] using h L₁.val
-  · intro h
-    rw [← normalClosure_of_normal L₂]
+  · rw [← normalClosure_of_normal L₂]
     exact normalClosure_mono L₁ L₂ h
 
 end IntermediateField
@@ -178,8 +177,7 @@ instance : CoeSort (FiniteGaloisIntermediateField k K) (Type _) where
 instance (L : FiniteGaloisIntermediateField k K) : FiniteDimensional k L.val :=
   L.to_finiteDimensional
 
-instance (L : FiniteGaloisIntermediateField k K) : IsGalois k L.val :=
-  L.to_isGalois
+instance (L : FiniteGaloisIntermediateField k K) : IsGalois k L.val := L.to_isGalois
 
 variable {k K}
 
@@ -279,10 +277,9 @@ variable (k) in
 def adjoin [IsGalois k K] (s : Set K) [Finite s] : FiniteGaloisIntermediateField k K where
   val := normalClosure k (IntermediateField.adjoin k (s : Set K)) K
   to_finiteDimensional :=
-    letI : FiniteDimensional k (IntermediateField.adjoin k (s : Set K)) := by
-      have hS : ∀ z ∈ s, IsIntegral k z := fun z _ =>
+    letI : FiniteDimensional k (IntermediateField.adjoin k (s : Set K)) :=
+      IntermediateField.finiteDimensional_adjoin <| fun z _ =>
         IsAlgebraic.isIntegral (Algebra.IsAlgebraic.isAlgebraic z)
-      exact IntermediateField.finiteDimensional_adjoin hS
     normalClosure.is_finiteDimensional k (IntermediateField.adjoin k (s : Set K)) K
   to_isGalois := IsGalois.normalClosure k (IntermediateField.adjoin k (s : Set K)) K
 
@@ -451,17 +448,15 @@ def toAlgEquiv [IsGalois k K] (g : ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor 
       toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy,
       toAlgEquivAux_eq_liftNormal g (x * y) (adjoin k {x, y}) (mul_mem hx hy), map_mul]
   map_add' x y := by
-    dsimp
     have hx : x ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
       Set.mem_singleton_iff, true_or])
     have hy : y ∈ (adjoin k {x, y}).val := subset_adjoin _ _ (by simp only [Set.mem_insert_iff,
       Set.mem_singleton_iff, or_true])
-    rw [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx,
+    simp only [toAlgEquivAux_eq_liftNormal g x (adjoin k {x, y}) hx,
       toAlgEquivAux_eq_liftNormal g y (adjoin k {x, y}) hy,
       toAlgEquivAux_eq_liftNormal g (x + y) (adjoin k {x, y}) (add_mem hx hy), map_add]
   commutes' x := by
-    dsimp
-    rw [toAlgEquivAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x), AlgEquiv.commutes]
+    simp only [toAlgEquivAux_eq_liftNormal g _ ⊥ (algebraMap_mem _ x), AlgEquiv.commutes]
 
 variable (k K) in
 /--Making `HomtoLimit` into a mulEquiv-/
@@ -547,8 +542,7 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
         rw [restrict_eq Aut y L' hy, fix_y]
     have op : IsOpen fix1 := by
       rw [pre]
-      have : IsOpen ({1} : Set ((finGalFunctor _ _).obj (op L'))) := trivial
-      exact C.isOpen_preimage {1} this
+      exact C.isOpen_preimage {1} trivial
     exact this ▸ (isOpen_induced op)
   · simp only [Set.mem_preimage, map_one, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
     Subgroup.mem_toSubmonoid]
@@ -562,6 +556,12 @@ variable (k K)
 def limtoGalHomeo [IsGalois k K] : (ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) ≃ₜ
     (K ≃ₐ[k] K) := Continuous.homeoOfEquivCompactToT2 limtoGalContinuous
 
+instance [IsGalois k K] : CompactSpace (K ≃ₐ[k] K) :=
+  Homeomorph.compactSpace (limtoGalHomeo k K)
+
+instance [IsGalois k K] : TotallyDisconnectedSpace (K ≃ₐ[k] K) :=
+  Homeomorph.totallyDisconnectedSpace (limtoGalHomeo k K)
+
 /--Turning `mulEquivtoLimit` into a continuousMulEquiv-/
 noncomputable def continuousMulEquivtoLimit [IsGalois k K] :
     ContinuousMulEquiv (K ≃ₐ[k] K) (ProfiniteGrp.ofFiniteGrpLimit (finGalFunctor k K)) where
@@ -572,12 +572,6 @@ noncomputable def continuousMulEquivtoLimit [IsGalois k K] :
 /--Turning `Gal(K/k)` into a profinite group using the continuousMulEquiv above-/
 noncomputable def ProfiniteGalGrp [IsGalois k K] : ProfiniteGrp :=
   ProfiniteGrp.ofContinuousMulEquivProfiniteGrp (continuousMulEquivtoLimit k K).symm
-
-instance [IsGalois k K] : CompactSpace (K ≃ₐ[k] K) :=
-  Homeomorph.compactSpace (limtoGalHomeo k K)
-
-instance [IsGalois k K] : TotallyDisconnectedSpace (K ≃ₐ[k] K) :=
-  Homeomorph.totallyDisconnectedSpace (limtoGalHomeo k K)
 
 variable {k K} in
 theorem restrictNormalHomContinuous (L : IntermediateField k K) [Normal k L] :
@@ -598,7 +592,6 @@ theorem restrictNormalHomContinuous (L : IntermediateField k K) [Normal k L] :
     simp only [SetLike.mem_coe] at hx ⊢
     rw [IntermediateField.mem_fixingSubgroup_iff] at hx ⊢
     intro y hy
-    show (AlgEquiv.restrictNormal x L) y = y
     have := AlgEquiv.restrictNormal_commutes x L y
     dsimp at this
     rw [hx y.1 ((IntermediateField.mem_lift y).mpr hy)] at this
