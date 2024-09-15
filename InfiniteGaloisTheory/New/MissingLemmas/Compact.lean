@@ -11,7 +11,7 @@ open scoped Pointwise
 
 variable {G : Type*} [Group G]
 
-/-- Define the largest symmetric (self inverse) subset of a set -/
+/-- Define the largest symmetric (self inverse) subset of a set. -/
 def symmCore (V : Set G) : Set G := V ∩ V⁻¹
 
 lemma symmCore_spec (V : Set G) : (symmCore V) = (symmCore V)⁻¹ := by
@@ -28,7 +28,7 @@ lemma inter_symmCore_symm {α : Type*}
     rw [symmCore_spec]
     simp only [Set.mem_inv, inv_inv, h s hs]
 
-/-- Define the set of tuples `(x,y)` in a set `W` which `x * y` is in `W` too -/
+/-- Define the set of tuples `(x,y)` in a set `W` which `x * y` is in `W` too. -/
 private def mulClosurePairs (W : Set G) : Set (G × G) :=
   (fun (x, y) => x * y)⁻¹' W ∩ (W ×ˢ W)
 
@@ -45,13 +45,13 @@ private lemma mem_mulClosurePairs
   simp only [mulClosurePairs, Set.mem_inter_iff, Set.mem_preimage, Set.mem_prod, mul_one,
     Subtype.coe_prop, Subtype.coe_prop, einW, and_self]
 
-/-- Define the first side of rectangle neighborhood of `(w,1)` in `mulClosurePairs` -/
+/-- Define the first side of rectangle neighborhood of `(w,1)` in `mulClosurePairs`. -/
 private def nhdsSide' [TopologicalSpace G]  [TopologicalGroup G]
     {W : Set G} (WOpen : IsOpen W) (einW : 1 ∈ W) (w : W) : Set G :=
   Classical.choose <| isOpen_prod_iff.mp
     (mulClosurePairs_open WOpen) w 1 (mem_mulClosurePairs einW w)
 
-/-- Define the second side of rectangle neighborhood of `(w,1)` in `mulClosurePairs` -/
+/-- Define the second side of rectangle neighborhood of `(w,1)` in `mulClosurePairs`. -/
 private def nhdsSide [TopologicalSpace G]  [TopologicalGroup G]
     {W : Set G} (WOpen : IsOpen W) (einW : 1 ∈ W) (w : W) : Set G :=
   Classical.choose <| Classical.choose_spec <| isOpen_prod_iff.mp
@@ -87,7 +87,7 @@ private lemma nhds_side_mul_sub [TopologicalSpace G]  [TopologicalGroup G]
   (Classical.choose_spec <| Classical.choose_spec <| isOpen_prod_iff.mp
     (mulClosurePairs_open WOpen) w 1 (mem_mulClosurePairs einW w)).2.2.2.2
 
-/-- The symm core of `nhdsSide` -/
+/-- The symm core of `nhdsSide`. -/
 private def nhdsSideCore [TopologicalSpace G]  [TopologicalGroup G]
     {W : Set G} (WOpen : IsOpen W) (einW : 1 ∈ W) (w : W) : Set G :=
   symmCore (nhdsSide WOpen einW w)
@@ -135,7 +135,7 @@ private lemma nhdsSide'_cover [TopologicalSpace G]  [TopologicalGroup G]
   simp only [Set.iUnion_coe_set, Set.mem_iUnion]
   exact ⟨x, xinW, (w_mem_nhdsSide' WOpen einW ⟨x, xinW⟩)⟩
 
-/-- The index of the finite subcover of the rectangle neighbors covering `(W,1)` -/
+/-- The index of the finite subcover of the rectangle neighbors covering `(W,1)`. -/
 noncomputable def openSymmSubnhdsOfOneIndex [TopologicalSpace G]  [TopologicalGroup G]
     [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) : Finset W :=
   Classical.choose (IsCompact.elim_finite_subcover (IsClosed.isCompact (IsClopen.isClosed WClopen))
@@ -181,17 +181,17 @@ lemma mul_sub [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ 
   have := fincover xinW
   simp_rw [Set.mem_iUnion, exists_prop', nonempty_prop] at this
   rcases this with ⟨w,winfin,xinU⟩
-  simp only [openSymmSubnhdsOfOne, Set.iUnion_coe_set, Set.iInter_coe_set, Set.mem_iInter
-    ] at yinInter
+  simp only [openSymmSubnhdsOfOne, Set.iUnion_coe_set, Set.iInter_coe_set,
+    Set.mem_iInter ] at yinInter
   have yinV := Set.mem_of_mem_inter_left (yinInter w w.2 winfin)
   have := Set.mem_of_mem_inter_left <|
     nhds_side_mul_sub WClopen.isOpen einW w <| Set.mk_mem_prod xinU yinV
   simpa only [Set.mem_preimage, xmuly] using this
 
 lemma sub [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) :
-    (openSymmSubnhdsOfOne WClopen einW) ⊆ W := by
-  apply Set.Subset.trans _ (mul_sub WClopen einW)
-  exact Set.subset_mul_right (openSymmSubnhdsOfOne WClopen einW) einW
+    (openSymmSubnhdsOfOne WClopen einW) ⊆ W :=
+  Set.Subset.trans (Set.subset_mul_right (openSymmSubnhdsOfOne WClopen einW) einW)
+    (mul_sub WClopen einW)
 
 end openSymmSubnhdsOfOne
 
@@ -220,7 +220,7 @@ private lemma iUnion_pow {G : Type*} [Group G] {V : Set G} (einV : 1 ∈ V) :
 namespace TopologicalGroup
 
 /-- Define an open symmetric neighborhood of `1` that is contained in a given
-  clopen neighborhood of `1` -/
+  clopen neighborhood of `1`. -/
 def OpenSubgroupSubnhdsOfOne {G : Type*} [Group G] [TopologicalSpace G]  [TopologicalGroup G]
     [CompactSpace G] {W : Set G} (WClopen : IsClopen W) (einW : 1 ∈ W) : OpenSubgroup G where
   carrier := {x : G | ∃ n : ℕ, x ∈ (openSymmSubnhdsOfOne WClopen einW) ^ n}
@@ -235,13 +235,10 @@ def OpenSubgroupSubnhdsOfOne {G : Type*} [Group G] [TopologicalSpace G]  [Topolo
     simp only [pow_one, openSymmSubnhdsOfOne.one_mem WClopen einW]
   inv_mem':= by
     simp only [Set.mem_setOf_eq, forall_exists_index] at *
-    have : ∀ n : ℕ, ∀ x ∈ (openSymmSubnhdsOfOne WClopen einW) ^ n,
-      x⁻¹ ∈ (openSymmSubnhdsOfOne WClopen einW) ^ n := by
-      intro n x hx
-      rw [TopologicalGroup.openSymmSubnhdsOfOne.symm]
-      simp only [inv_pow, Set.mem_inv, inv_inv]
-      exact hx
-    exact fun x m hm => ⟨m, this m x hm⟩
+    intro x m hm
+    use m
+    rw [TopologicalGroup.openSymmSubnhdsOfOne.symm]
+    simpa only [inv_pow, Set.mem_inv, inv_inv] using hm
   isOpen' := by
     set V := (openSymmSubnhdsOfOne WClopen einW)
     simp only [iUnion_pow (openSymmSubnhdsOfOne.one_mem WClopen einW)]

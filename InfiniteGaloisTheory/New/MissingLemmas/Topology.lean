@@ -23,7 +23,7 @@ end Homeomorph
 namespace Profinite
 
 universe u in
-/--The product space of profinite spaces is profinite-/
+/--The product space of profinite spaces is profinite. -/
 def pi {α : Type u} (β : α → Profinite) : Profinite := .of (Π (a : α), β a)
 
 end Profinite
