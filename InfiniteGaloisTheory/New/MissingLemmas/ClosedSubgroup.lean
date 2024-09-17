@@ -18,7 +18,7 @@ topological group `G`, and its additive version `ClosedAddSubgroup`.
 
 * `normalCore_isClosed` : The `normalCore` of a closed subgroup is closed.
 
-*  `finindex_closedSubgroup_isOpen` : A closed subgroup with finite index is open.
+*  `finiteindex_closedSubgroup_isOpen` : A closed subgroup with finite index is open.
 
 -/
 
@@ -98,7 +98,7 @@ lemma normalCore_isClosed (H : Subgroup G) (h : IsClosed (H : Set G)) :
   exact Set.mem_smul_set_iff_inv_smul_mem
 
 @[to_additive]
-lemma finindex_closedSubgroup_isOpen (H : Subgroup G) [H.FiniteIndex]
+lemma finiteindex_closedSubgroup_isOpen (H : Subgroup G) [H.FiniteIndex]
   (h : IsClosed (H : Set G)) : IsOpen (H : Set G) := by
   apply isClosed_compl_iff.mp
   letI : Finite (G ⧸ H) := Subgroup.finite_quotient_of_finiteIndex H

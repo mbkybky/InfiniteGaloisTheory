@@ -226,52 +226,6 @@ instance : OrderBot (FiniteGaloisIntermediateField k K) where
 
 -- instance : ConditionallyCompleteLattice (FiniteGaloisIntermediateField k K)
 
-/--For a `FiniteGaloisIntermediateField` `L`, make `Gal(L/k)` into a FiniteGrp-/
-def finGal (L : FiniteGaloisIntermediateField k K) : FiniteGrp :=
-  letI := AlgEquiv.fintype k L
-  FiniteGrp.of <| L ≃ₐ[k] L
-
-/--For `FiniteGaloisIntermediateField` `L₁ L₂` ordered by inverse inclusion,
-  giving the restriction of `Gal(L₁/k)` to `Gal(L₂/k)`-/
-def finGalMap {L₁ L₂ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
-    (le : L₁ ⟶ L₂) : L₁.unop.finGal ⟶ L₂.unop.finGal :=
-  haveI : Normal k L₂.unop := IsGalois.to_normal
-  letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom le.1)
-  haveI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-  FiniteGrp.ofHom (AlgEquiv.restrictNormalHom (F := k) (K₁ := L₁.unop) L₂.unop)
-
-namespace finGalMap
-
-lemma map_id (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) :
-    (finGalMap (𝟙 L)) = 𝟙 L.unop.finGal :=
-  AlgEquiv.restrictNormalHom_id _ _
-
-lemma map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
-    (f : L₁ ⟶ L₂) (g : L₂ ⟶ L₃) : finGalMap (f ≫ g) = finGalMap f ≫ finGalMap g := by
-  iterate 2
-    induction L₁ with | _ L₁ => ?_
-    induction L₂ with | _ L₂ => ?_
-    induction L₃ with | _ L₃ => ?_
-  letI : Algebra L₃ L₂ := RingHom.toAlgebra (Subsemiring.inclusion g.unop.le)
-  letI : Algebra L₂ L₁ := RingHom.toAlgebra (Subsemiring.inclusion f.unop.le)
-  letI : Algebra L₃ L₁ := RingHom.toAlgebra (Subsemiring.inclusion (g.unop.le.trans f.unop.le))
-  haveI : IsScalarTower k L₂ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-  haveI : IsScalarTower k L₃ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-  haveI : IsScalarTower k L₃ L₂ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-  haveI : IsScalarTower L₃ L₂ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
-  apply IsScalarTower.algEquivRestrictNormalHom_eq k L₃ L₂ L₁
-
-end finGalMap
-
-variable (k K) in
-/--Mapping `FiniteGaloisIntermediateField` ordered by inverse inclusion to its
-  corresponding Galois Group as FiniteGrp-/
-def finGalFunctor : (FiniteGaloisIntermediateField k K)ᵒᵖ ⥤ FiniteGrp where
-  obj L := L.unop.finGal
-  map := finGalMap
-  map_id := finGalMap.map_id
-  map_comp := finGalMap.map_comp
-
 variable (k) in
 /--Define the finite Galois closure of adjoining a finite set-/
 def adjoin [IsGalois k K] (s : Set K) [Finite s] : FiniteGaloisIntermediateField k K where
@@ -323,6 +277,52 @@ theorem adjoin_simple_map [IsGalois k K] (f : K →ₐ[k] K) (x : K) :
 theorem adjoin_simple_map' [IsGalois k K] (f : K ≃ₐ[k] K) (x : K) :
     adjoin k {f x} = adjoin k {x} :=
   adjoin_simple_map (f : K →ₐ[k] K) x
+
+/--For a `FiniteGaloisIntermediateField` `L`, make `Gal(L/k)` into a FiniteGrp-/
+def finGal (L : FiniteGaloisIntermediateField k K) : FiniteGrp :=
+  letI := AlgEquiv.fintype k L
+  FiniteGrp.of <| L ≃ₐ[k] L
+
+/--For `FiniteGaloisIntermediateField` `L₁ L₂` ordered by inverse inclusion,
+  giving the restriction of `Gal(L₁/k)` to `Gal(L₂/k)`-/
+def finGalMap {L₁ L₂ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
+    (le : L₁ ⟶ L₂) : L₁.unop.finGal ⟶ L₂.unop.finGal :=
+  haveI : Normal k L₂.unop := IsGalois.to_normal
+  letI : Algebra L₂.unop L₁.unop := RingHom.toAlgebra (Subsemiring.inclusion <| leOfHom le.1)
+  haveI : IsScalarTower k L₂.unop L₁.unop := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  FiniteGrp.ofHom (AlgEquiv.restrictNormalHom (F := k) (K₁ := L₁.unop) L₂.unop)
+
+namespace finGalMap
+
+lemma map_id (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) :
+    (finGalMap (𝟙 L)) = 𝟙 L.unop.finGal :=
+  AlgEquiv.restrictNormalHom_id _ _
+
+lemma map_comp {L₁ L₂ L₃ : (FiniteGaloisIntermediateField k K)ᵒᵖ}
+    (f : L₁ ⟶ L₂) (g : L₂ ⟶ L₃) : finGalMap (f ≫ g) = finGalMap f ≫ finGalMap g := by
+  iterate 2
+    induction L₁ with | _ L₁ => ?_
+    induction L₂ with | _ L₂ => ?_
+    induction L₃ with | _ L₃ => ?_
+  letI : Algebra L₃ L₂ := RingHom.toAlgebra (Subsemiring.inclusion g.unop.le)
+  letI : Algebra L₂ L₁ := RingHom.toAlgebra (Subsemiring.inclusion f.unop.le)
+  letI : Algebra L₃ L₁ := RingHom.toAlgebra (Subsemiring.inclusion (g.unop.le.trans f.unop.le))
+  haveI : IsScalarTower k L₂ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  haveI : IsScalarTower k L₃ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  haveI : IsScalarTower k L₃ L₂ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  haveI : IsScalarTower L₃ L₂ L₁ := IsScalarTower.of_algebraMap_eq (congrFun rfl)
+  apply IsScalarTower.algEquivRestrictNormalHom_eq k L₃ L₂ L₁
+
+end finGalMap
+
+variable (k K) in
+/--Mapping `FiniteGaloisIntermediateField` ordered by inverse inclusion to its
+  corresponding Galois Group as FiniteGrp-/
+def finGalFunctor : (FiniteGaloisIntermediateField k K)ᵒᵖ ⥤ FiniteGrp where
+  obj L := L.unop.finGal
+  map := finGalMap
+  map_id := finGalMap.map_id
+  map_comp := finGalMap.map_comp
 
 end FiniteGaloisIntermediateField
 

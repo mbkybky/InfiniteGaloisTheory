@@ -34,7 +34,7 @@ In a profinite group `P` :
 * `canonicalQuotientMap_surjective` : The `CanonicalQuotientMap` is surjective, proven by
   demonstrating that its range is dense and closed.
 
-* `OpenNormalSubgroupSubnhdsOfOne` : For any open neighborhood of `1` there is an
+* `OpenNormalSubgroupSubClopenNhdsOfOne` : For any open neighborhood of `1` there is an
   open normal subgroup contained within it.
 
 * `canonicalQuotientMap_injective` : The `CanonicalQuotientMap` is injective. This is proven by
@@ -200,36 +200,31 @@ namespace ProfiniteGrp
 
 /-- The open normal subgroup contained in an open nhd of `1`
 in a compact totallydisconnected topological group. -/
-noncomputable def OpenNormalSubgroupSubnhdsOfOne' {G : Type*} [Group G] [TopologicalSpace G]
+noncomputable def OpenNormalSubgroupSubClopenNhdsOfOne' {G : Type*} [Group G] [TopologicalSpace G]
     [TopologicalGroup G] [CompactSpace G] [TotallyDisconnectedSpace G] {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=
-  have h := Classical.choose_spec ((Filter.HasBasis.mem_iff'
+  let h := Classical.choose_spec ((Filter.HasBasis.mem_iff'
     ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U))
-  let H := OpenSubgroupSubnhdsOfOne h.1.2 h.1.1
-  letI : Subgroup.FiniteIndex H.1 := Subgroup.finiteIndex_of_finite_quotient H.1
-  { toSubgroup := Subgroup.normalCore H
-    isOpen' := TopologicalGroup.finindex_closedSubgroup_isOpen _ <|
-      TopologicalGroup.normalCore_isClosed H.1 <| OpenSubgroup.isClosed H }
+  OpenNormalSubgroupSubClopenNhdsOfOne h.1.2 h.1.1
 
-theorem openNormalSubgroupSubnhdsOfOne_spec' {G : Type*} [Group G] [TopologicalSpace G]
+theorem openNormalSubgroupSubClopenNhdsOfOne_spec' {G : Type*} [Group G] [TopologicalSpace G]
     [TopologicalGroup G] [CompactSpace G] [TotallyDisconnectedSpace G] {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) :
-    ((OpenNormalSubgroupSubnhdsOfOne' UOpen einU) : Set G) ⊆ U :=
+    ((OpenNormalSubgroupSubClopenNhdsOfOne' UOpen einU) : Set G) ⊆ U :=
   let ⟨⟨einW,WClopen⟩,WsubU⟩ := Classical.choose_spec <| (Filter.HasBasis.mem_iff'
     ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U)
-  Set.Subset.trans (Set.Subset.trans (Subgroup.normalCore_le
-    (OpenSubgroupSubnhdsOfOne WClopen einW).1) (openSubgroupSubnhdsOfOne_spec WClopen einW)) WsubU
+  fun _ b ↦ WsubU (openNormalSubgroupSubClopenNhdsOfOne_spec WClopen einW b)
 
 /-- The open normal subgroup contained in an open nhd of `1`
-in a profinite group. (`ProfiniteGrp` version of `OpenNormalSubgroupSubnhdsOfOne'`) -/
-noncomputable def OpenNormalSubgroupSubnhdsOfOne {G : ProfiniteGrp} {U : Set G}
+in a profinite group. (`ProfiniteGrp` version of `OpenNormalSubgroupSubClopenNhdsOfOne'`) -/
+noncomputable def OpenNormalSubgroupSubClopenNhdsOfOne {G : ProfiniteGrp} {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=
-  OpenNormalSubgroupSubnhdsOfOne' UOpen einU
+  OpenNormalSubgroupSubClopenNhdsOfOne' UOpen einU
 
-theorem openNormalSubgroupSubnhdsOfOne_spec {G : ProfiniteGrp} {U : Set G}
+theorem openNormalSubgroupSubClopenNhdsOfOne_spec {G : ProfiniteGrp} {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) :
-    ((OpenNormalSubgroupSubnhdsOfOne UOpen einU) : Set G) ⊆ U :=
-  openNormalSubgroupSubnhdsOfOne_spec' UOpen einU
+    ((OpenNormalSubgroupSubClopenNhdsOfOne UOpen einU) : Set G) ⊆ U :=
+  openNormalSubgroupSubClopenNhdsOfOne_spec' UOpen einU
 
 section
 
@@ -322,9 +317,9 @@ theorem canonicalQuotientMap_injective (P : ProfiniteGrp.{u}) :
   intro x h
   by_contra xne1
   have : (1 : P) ∈ ({x}ᶜ : Set P) := Set.mem_compl_singleton_iff.mpr fun a => xne1 (id (Eq.symm a))
-  let H := OpenNormalSubgroupSubnhdsOfOne (isOpen_compl_singleton) this
+  let H := OpenNormalSubgroupSubClopenNhdsOfOne (isOpen_compl_singleton) this
   have xninH : x ∉ H := fun a =>
-    (openNormalSubgroupSubnhdsOfOne_spec (isOpen_compl_singleton) this) a rfl
+    (openNormalSubgroupSubClopenNhdsOfOne_spec (isOpen_compl_singleton) this) a rfl
   have xinKer : (CanonicalQuotientMap P).toMonoidHom x = 1 := h
   simp only [CanonicalQuotientMap, MonoidHom.coe_mk, OneHom.coe_mk] at xinKer
   apply Subtype.val_inj.mpr at xinKer
