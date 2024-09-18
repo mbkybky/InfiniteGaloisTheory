@@ -200,31 +200,20 @@ namespace ProfiniteGrp
 
 /-- The open normal subgroup contained in an open nhd of `1`
 in a compact totallydisconnected topological group. -/
-noncomputable def OpenNormalSubgroupSubClopenNhdsOfOne' {G : Type*} [Group G] [TopologicalSpace G]
+noncomputable def OpenNormalSubgroupSubOpenNhdsOfOne {G : Type*} [Group G] [TopologicalSpace G]
     [TopologicalGroup G] [CompactSpace G] [TotallyDisconnectedSpace G] {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=
   let h := Classical.choose_spec ((Filter.HasBasis.mem_iff'
     ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U))
   OpenNormalSubgroupSubClopenNhdsOfOne h.1.2 h.1.1
 
-theorem openNormalSubgroupSubClopenNhdsOfOne_spec' {G : Type*} [Group G] [TopologicalSpace G]
+theorem openNormalSubgroupSubOpenNhdsOfOne_spec {G : Type*} [Group G] [TopologicalSpace G]
     [TopologicalGroup G] [CompactSpace G] [TotallyDisconnectedSpace G] {U : Set G}
     (UOpen : IsOpen U) (einU : 1 ∈ U) :
-    ((OpenNormalSubgroupSubClopenNhdsOfOne' UOpen einU) : Set G) ⊆ U :=
+    ((OpenNormalSubgroupSubOpenNhdsOfOne UOpen einU) : Set G) ⊆ U :=
   let ⟨⟨einW,WClopen⟩,WsubU⟩ := Classical.choose_spec <| (Filter.HasBasis.mem_iff'
     ((nhds_basis_clopen (1 : G))) U ).mp <| mem_nhds_iff.mpr (by use U)
   fun _ b ↦ WsubU (openNormalSubgroupSubClopenNhdsOfOne_spec WClopen einW b)
-
-/-- The open normal subgroup contained in an open nhd of `1`
-in a profinite group. (`ProfiniteGrp` version of `OpenNormalSubgroupSubClopenNhdsOfOne'`) -/
-noncomputable def OpenNormalSubgroupSubClopenNhdsOfOne {G : ProfiniteGrp} {U : Set G}
-    (UOpen : IsOpen U) (einU : 1 ∈ U) : OpenNormalSubgroup G :=
-  OpenNormalSubgroupSubClopenNhdsOfOne' UOpen einU
-
-theorem openNormalSubgroupSubClopenNhdsOfOne_spec {G : ProfiniteGrp} {U : Set G}
-    (UOpen : IsOpen U) (einU : 1 ∈ U) :
-    ((OpenNormalSubgroupSubClopenNhdsOfOne UOpen einU) : Set G) ⊆ U :=
-  openNormalSubgroupSubClopenNhdsOfOne_spec' UOpen einU
 
 section
 
@@ -317,9 +306,9 @@ theorem canonicalQuotientMap_injective (P : ProfiniteGrp.{u}) :
   intro x h
   by_contra xne1
   have : (1 : P) ∈ ({x}ᶜ : Set P) := Set.mem_compl_singleton_iff.mpr fun a => xne1 (id (Eq.symm a))
-  let H := OpenNormalSubgroupSubClopenNhdsOfOne (isOpen_compl_singleton) this
+  let H := OpenNormalSubgroupSubOpenNhdsOfOne (isOpen_compl_singleton) this
   have xninH : x ∉ H := fun a =>
-    (openNormalSubgroupSubClopenNhdsOfOne_spec (isOpen_compl_singleton) this) a rfl
+    (openNormalSubgroupSubOpenNhdsOfOne_spec (isOpen_compl_singleton) this) a rfl
   have xinKer : (CanonicalQuotientMap P).toMonoidHom x = 1 := h
   simp only [CanonicalQuotientMap, MonoidHom.coe_mk, OneHom.coe_mk] at xinKer
   apply Subtype.val_inj.mpr at xinKer

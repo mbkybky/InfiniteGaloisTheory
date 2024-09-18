@@ -357,7 +357,6 @@ noncomputable def homtoLimit : (K ≃ₐ[k] K) →* ProfiniteGrp.ofFiniteGrpLimi
 
 lemma restrict_eq (σ : K ≃ₐ[k] K) (x : K) (Lx : FiniteGaloisIntermediateField k K)
     (hLx : x ∈ Lx.val) : σ x = (AlgEquiv.restrictNormalHom Lx σ) ⟨x, hLx⟩ := by
-  show σ x = ((AlgEquiv.restrictNormal σ Lx) ⟨x, hLx⟩).1
   have := AlgEquiv.restrictNormal_commutes σ Lx ⟨x, hLx⟩
   convert this
   exact id this.symm
@@ -465,18 +464,15 @@ noncomputable def mulEquivtoLimit [IsGalois k K] :
   toFun := homtoLimit k K
   map_mul' := map_mul _
   invFun := toAlgEquiv
-  left_inv := fun f ↦ by
-    ext x
-    exact AlgEquiv.restrictNormal_commutes f (adjoin k {x}).val ⟨x, _⟩
+  left_inv := fun f ↦ AlgEquiv.ext fun x =>
+    AlgEquiv.restrictNormal_commutes f (adjoin k {x}).val ⟨x, _⟩
   right_inv := fun g ↦ by
     apply Subtype.val_injective
     ext L
     show (toAlgEquiv g).restrictNormal _ = _
-    apply AlgEquiv.ext
-    intro x
+    ext x
     have : ((toAlgEquiv g).restrictNormal L.unop) x = (toAlgEquiv g) x.1 := by
       convert AlgEquiv.restrictNormal_commutes (toAlgEquiv g) L.unop x
-    apply Subtype.val_injective
     simp_rw [this]
     exact proj_lift_adjoin_simple _ _ _ _ x.2
 
@@ -500,33 +496,30 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
         mulEquivtoLimit k K '' (L'.val.fixingSubgroup : Set (K ≃ₐ[k] K)) := by
       ext σ
       constructor
-      all_goals intro h
-      · simp only [Set.mem_preimage] at h
+      · intro h
         use (mulEquivtoLimit k K).symm σ
-        simp only [h, MulEquiv.apply_symm_apply, and_self]
-      · rcases h with ⟨σ',h1,h2⟩
+        simp only [h.out , MulEquiv.apply_symm_apply, and_self]
+      · rintro ⟨_, h1, h2⟩
         simp only [← h2, Set.mem_preimage, MulEquiv.symm_apply_apply, h1]
     rw [this]
     let fix1 : Set ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → (finGalFunctor _ _).obj L) :=
       {x : ((L : (FiniteGaloisIntermediateField k K)ᵒᵖ) → (finGalFunctor _ _).obj L)
         | x (op L') = 1}
-    have pre : fix1 = Set.preimage (fun x => x (op L')) {1} := by rfl
     have C : Continuous (fun (x : (L : (FiniteGaloisIntermediateField k K)ᵒᵖ) →
       (finGalFunctor _ _).obj L) ↦ x (op L')) := continuous_apply (op L')
     have : mulEquivtoLimit k K '' L'.val.fixingSubgroup = Set.preimage Subtype.val fix1 := by
       ext x
       constructor
-      all_goals intro h
-      · rcases h with ⟨α,hα1,hα2⟩
+      · rintro ⟨α,hα1,hα2⟩
         simp only [Set.mem_preimage,←hα2, fix1, Set.mem_setOf_eq, mulEquivtoLimit, homtoLimit,
           MonoidHom.coe_mk, OneHom.coe_mk, MulEquiv.coe_mk, Equiv.coe_fn_mk]
         apply AlgEquiv.ext
         intro x
         apply Subtype.val_injective
-        rw [← restrict_eq α x.1 L' x.2]
-        simp only [AlgEquiv.one_apply]
+        rw [← restrict_eq α x.1 L' x.2, AlgEquiv.one_apply]
         exact hα1 x
-      · simp only [Set.mem_preimage] at h
+      · intro h
+        simp only [Set.mem_preimage] at h
         use (mulEquivtoLimit _ _).symm x
         simp only [SetLike.mem_coe, MulEquiv.apply_symm_apply, and_true]
         apply (mem_fixingSubgroup_iff (K ≃ₐ[k] K)).mpr
@@ -540,9 +533,7 @@ lemma limtoGalContinuous [IsGalois k K] : Continuous (mulEquivtoLimit k K).symm 
         have fix_y : AlgEquiv.restrictNormalHom L' Aut ⟨y, hy⟩ = ⟨y, hy⟩ := by
           simp only [fix, AlgEquiv.one_apply]
         rw [restrict_eq Aut y L' hy, fix_y]
-    have op : IsOpen fix1 := by
-      rw [pre]
-      exact C.isOpen_preimage {1} trivial
+    have op : IsOpen fix1 := C.isOpen_preimage {1} trivial
     exact this ▸ (isOpen_induced op)
   · simp only [Set.mem_preimage, map_one, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
     Subgroup.mem_toSubmonoid]
@@ -580,7 +571,7 @@ theorem restrictNormalHomContinuous (L : IntermediateField k K) [Normal k L] :
   rw [map_one]
   intro N hN
   rw [krullTopology_mem_nhds_one] at hN
-  obtain ⟨L', hL', hO⟩ := hN
+  obtain ⟨L', _, hO⟩ := hN
   letI : FiniteDimensional k L' :=
     Module.Finite.equiv <| AlgEquiv.toLinearEquiv <| IntermediateField.lift_algEquiv L L'
   apply mem_nhds_iff.mpr

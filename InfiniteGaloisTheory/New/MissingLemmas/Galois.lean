@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2024 Jujian Zhang. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jujian Zhang, Yongle Hu, Nailin Guan, Jingting Wang
+Authors: Yongle Hu, Jingting Wang
 -/
 import Mathlib.FieldTheory.Galois
 
@@ -37,45 +37,16 @@ theorem AlgEquiv.liftNormal_intermediateField_commutes [Normal K L] {E F : Inter
 
 namespace Normal
 
-theorem normalClosure_eq_self_of_invariant_under_embedding {K L : Type*} [Field K] [Field L]
-    [Algebra K L] (E : IntermediateField K L)
-    (h : ∀ σ : E →ₐ[K] L, σ.fieldRange = E) : normalClosure K E L = E := by
-  refine le_antisymm ?_ ((h (val E)).symm.trans_le (le_iSup AlgHom.fieldRange (val E)))
-  intro x hx
-  rw [normalClosure, mem_mk, Subalgebra.mem_toSubsemiring, mem_toSubalgebra] at hx
-  exact iSup_le (fun σ ↦ (h σ).le) hx
-
-/-- If `E` is an intermediate field of a normal extension `L / K`, and `E` remains invariant
-under every `K`-algebra embedding `σ : E →ₐ[K] L`, then `E / K` is normal. -/
-theorem of_intermediateField_invariant_under_embedding [Normal K L]
-    (E : IntermediateField K L) (h : ∀ σ : E →ₐ[K] L, σ.fieldRange = E) : Normal K E := by
-  have hn := normalClosure.normal K E L
-  rw [normalClosure_eq_self_of_invariant_under_embedding E h] at hn
-  exact hn
-
 /-- If `E` is an intermediate field of a normal extension `K / L`, and every element in `E`
 remains in `E` after the action of every element in the Galois group, then `E / K` is normal. -/
-theorem of_intermediateField_mem_invariant_under_embedding [Normal K L]
-    (E : IntermediateField K L) (h : ∀ σ : L ≃ₐ[K] L, ∀ x : E, σ x.1 ∈ E) : Normal K E := by
-  apply Normal.of_intermediateField_invariant_under_embedding E
-  intro σ
-  apply le_antisymm
-  · intro y hy
-    rcases AlgHom.mem_fieldRange.mp hy with ⟨x, hx⟩
-    apply Set.mem_of_eq_of_mem _ (h (liftNormal (AlgHom.toAlgEquiv_fieldRange σ) L) x)
-    have h : x.1 = algebraMap E L x := rfl
-    rw [← hx, h, liftNormal_commutes]
-    rfl
-  · intro y hy
-    let τ := liftNormal (AlgHom.toAlgEquiv_fieldRange σ) L
-    let x : E := ⟨τ⁻¹ y, Set.mem_of_eq_of_mem rfl (h τ⁻¹ ⟨y, hy⟩)⟩
-    rw [AlgHom.mem_fieldRange]
-    use x
-    have hx : σ x = algebraMap (σ.fieldRange) L ((AlgHom.toAlgEquiv_fieldRange σ) x) := rfl
-    have hxt : (algebraMap E L) x = τ⁻¹ y := rfl
-    have ht : τ (τ⁻¹ y) = (τ * τ⁻¹) y := rfl
-    rw [hx, ← liftNormal_commutes, hxt, ht, mul_inv_cancel]
-    rfl
+private lemma of_intermediateField_mem_invariant_under_embedding [Normal K L]
+    (E : IntermediateField K L) (h₀ : ∀ σ : L ≃ₐ[K] L, ∀ x : E, σ x.1 ∈ E) : Normal K E := by
+  apply normal_iff_forall_map_le'.mpr
+  intro σ h hy
+  have : h ∈ (IntermediateField.map σ.toAlgHom E : Set L) := hy
+  rcases this with ⟨x,hx⟩
+  rw [← hx.2]
+  convert h₀ σ ⟨x,hx.1⟩
 
 end Normal
 
@@ -173,6 +144,8 @@ end IsGalois
 
 namespace IntermediateField
 
+
+--after lift
 /--The algEquiv between an intermediate field and its lift-/
 def lift_algEquiv (F : IntermediateField K E) :
     ↥F ≃ₐ[K] (IntermediateField.lift F) where
@@ -185,6 +158,7 @@ def lift_algEquiv (F : IntermediateField K E) :
   map_add' := fun _ _ => rfl
   commutes' := fun _ => rfl
 
+--mark as private
 lemma finiteDimensional_of_le {M N : IntermediateField K L} (le : M ≤ N) [FiniteDimensional K N] :
     FiniteDimensional K M := by
   let i : M →ₐ[K] N := {
